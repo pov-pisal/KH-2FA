@@ -766,48 +766,109 @@ function clearInputs() {
   if (elements.importFile) {
     elements.importFile.value = "";
   }
+  clearImportStatus();
+}
+
+function showImportStatus(message, type = "error") {
+  if (!elements.importError) return;
+  elements.importError.textContent = message;
+  elements.importError.className = `import-error ${type}`;
+}
+
+function clearImportStatus() {
+  if (!elements.importError) return;
+  elements.importError.textContent = "";
+  elements.importError.className = "import-error hidden";
 }
 
 function showImportError(message) {
-  if (!elements.importError) return;
-  elements.importError.textContent = message;
-  elements.importError.classList.remove("hidden");
+  showImportStatus(message, "error");
 }
 
 function clearImportError() {
-  if (elements.importError) {
-    elements.importError.textContent = "";
-    elements.importError.classList.add("hidden");
-  }
+  clearImportStatus();
 }
 
-async function handleImportFileSelect(event) {
+async function loadBackupFile(file) {
+  if (!file) return;
   try {
-    clearImportError();
-    showImportError("Reading selected backup file...");
-
-    const file = elements.importFile?.files?.[0] || event.target?.files?.[0];
-    if (!file) {
-      showImportError("No file selected.");
-      return;
-    }
-
-    // Read the file content
+    clearImportStatus();
+    showImportStatus("Reading file...", "info");
     const content = await file.text();
-    if (!content) {
-      showImportError("Selected file is empty.");
+    if (!content || !content.trim()) {
+      showImportStatus("Selected file is empty.", "error");
       return;
     }
 
-    // Populate textarea and trigger import
     if (elements.importText) {
       elements.importText.value = content;
     }
-    await handleImportBackup();
-  } catch (error) {
-    console.error("File selection error:", error);
-    showImportError(`Failed to read file: ${error.message || error}`);
-    clearInputs();
+
+    // Inspect content to give user helpful immediate feedback
+    let count = null;
+    try {
+      const parsed = JSON.parse(content.replace(/^\uFEFF/, ""));
+      if (Array.isArray(parsed)) {
+        count = parsed.length;
+      } else if (Array.isArray(parsed?.accounts)) {
+        count = parsed.accounts.length;
+      } else if ((parsed?.ciphertext && parsed?.iv && parsed?.salt) || parsed?.vault) {
+        count = "encrypted";
+      }
+    } catch {
+      // Syntax errors will be validated on import
+    }
+
+    if (typeof count === "number") {
+      showImportStatus(
+        `✓ "${file.name}" loaded (${count} account${count === 1 ? "" : "s"}) — click Import to restore.`,
+        "success",
+      );
+    } else if (count === "encrypted") {
+      showImportStatus(
+        `✓ "${file.name}" loaded (encrypted vault) — click Import to restore.`,
+        "success",
+      );
+    } else {
+      showImportStatus(
+        `✓ "${file.name}" loaded — click Import to restore.`,
+        "info",
+      );
+    }
+
+    elements.importBtn?.focus();
+  } catch (err) {
+    console.error("Failed to read file:", err);
+    showImportStatus(`Failed to read file: ${err.message || err}`, "error");
+  }
+}
+
+async function triggerFilePicker() {
+  // Method 1: Modern File System Access API
+  if (typeof window.showOpenFilePicker === "function") {
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        types: [
+          {
+            description: "JSON backup (*.json)",
+            accept: { "application/json": [".json"] },
+          },
+        ],
+        multiple: false,
+      });
+      const file = await handle.getFile();
+      await loadBackupFile(file);
+      return;
+    } catch (err) {
+      if (err.name === "AbortError") return; // user cancelled picker
+      console.warn("showOpenFilePicker failed, falling back to input:", err);
+    }
+  }
+
+  // Method 2: Fallback to hidden file input
+  if (elements.importFile) {
+    elements.importFile.value = "";
+    elements.importFile.click();
   }
 }
 
@@ -1215,14 +1276,35 @@ async function init() {
   elements.changePinBtn.addEventListener("click", handleChangePin);
   elements.backupBtn.addEventListener("click", handleBackup);
   elements.copyBackupBtn.addEventListener("click", handleCopyBackup);
-  // "Open Full Backup Page" button — opens backup.html as a tab (file pickers work there)
+  // Click on "Choose File" button triggers the file picker directly in popup
   elements.importFileBtn?.addEventListener("click", () => {
-    chrome.tabs.create({ url: chrome.runtime.getURL("backup.html") });
+    triggerFilePicker();
   });
 
-  // Drag-and-drop on the drop zone — no dialog, no popup close, just reads the file
+  // Hidden file input change listener fallback
+  elements.importFile?.addEventListener("change", async (e) => {
+    const file = e.target?.files?.[0];
+    if (file) {
+      await loadBackupFile(file);
+    }
+  });
+
+  // Drop zone events: click to browse, keyboard access, and drag-and-drop
   const dropZone = document.getElementById("importDropZone");
   if (dropZone) {
+    // Click on drop zone opens file picker to choose a local file
+    dropZone.addEventListener("click", () => {
+      triggerFilePicker();
+    });
+
+    // Keyboard support (Enter or Space) to activate drop zone
+    dropZone.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        triggerFilePicker();
+      }
+    });
+
     dropZone.addEventListener("dragover", (e) => {
       e.preventDefault();
       dropZone.classList.add("drag-over");
@@ -1234,14 +1316,8 @@ async function init() {
       e.preventDefault();
       dropZone.classList.remove("drag-over");
       const file = e.dataTransfer?.files?.[0];
-      if (!file) return;
-      try {
-        const content = await file.text();
-        if (!content) { showImportError("Dropped file is empty."); return; }
-        if (elements.importText) elements.importText.value = content;
-        showImportError(`✓ "${file.name}" loaded — click Import to apply.`);
-      } catch (err) {
-        showImportError(`Failed to read file: ${err.message}`);
+      if (file) {
+        await loadBackupFile(file);
       }
     });
   }
@@ -1252,15 +1328,8 @@ async function init() {
     elements.importText.addEventListener("drop", async (e) => {
       e.preventDefault();
       const file = e.dataTransfer?.files?.[0];
-      if (!file) return;
-      try {
-        const content = await file.text();
-        if (content) {
-          elements.importText.value = content;
-          showImportError(`✓ "${file.name}" loaded — click Import to apply.`);
-        }
-      } catch (err) {
-        showImportError(`Failed to read file: ${err.message}`);
+      if (file) {
+        await loadBackupFile(file);
       }
     });
   }

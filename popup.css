@@ -295,8 +295,8 @@ button:active {
   text-align: center;
   font-size: 12px;
   color: var(--muted);
-  cursor: default;
-  transition: border-color 0.18s, background 0.18s, color 0.18s;
+  cursor: pointer;
+  transition: all 0.18s ease;
   margin-bottom: 8px;
   display: flex;
   flex-direction: column;
@@ -305,15 +305,43 @@ button:active {
   user-select: none;
 }
 
+.drop-zone:hover {
+  border-color: var(--primary);
+  background: rgba(76, 201, 240, 0.06);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.drop-zone:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-color: var(--primary);
+}
+
+.drop-zone:active {
+  transform: translateY(0);
+}
+
 .drop-zone .drop-icon {
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
+}
+
+.drop-zone .drop-title {
+  font-size: 12px;
+}
+
+.drop-zone .drop-subtext {
+  font-size: 11px;
+  color: var(--primary);
+  opacity: 0.9;
 }
 
 .drop-zone.drag-over {
   border-color: var(--primary);
-  background: rgba(76, 201, 240, 0.07);
+  background: rgba(76, 201, 240, 0.12);
   color: var(--primary);
+  transform: scale(1.01);
 }
 
 
@@ -376,12 +404,32 @@ button:active {
 }
 
 .import-error {
-  padding: 6px 8px;
-  background: rgba(248, 113, 113, 0.1);
-  border-left: 2px solid var(--danger);
-  border-radius: 4px;
-  color: var(--danger);
+  padding: 8px 10px;
+  border-radius: 6px;
   font-size: 11px;
+  line-height: 1.4;
+  background: rgba(248, 113, 113, 0.1);
+  border-left: 3px solid var(--danger);
+  color: var(--danger);
+  transition: all 0.2s ease;
+}
+
+.import-error.error {
+  background: rgba(248, 113, 113, 0.12);
+  border-left: 3px solid var(--danger);
+  color: var(--danger);
+}
+
+.import-error.success {
+  background: rgba(76, 201, 240, 0.12);
+  border-left: 3px solid var(--primary);
+  color: var(--primary);
+}
+
+.import-error.info {
+  background: rgba(167, 139, 250, 0.12);
+  border-left: 3px solid var(--accent);
+  color: var(--accent);
 }
 
 .import-error.hidden {
@@ -392,9 +440,6 @@ button.small {
   padding: 6px 12px !important;
   font-size: 12px !important;
   height: auto !important;
-}
-
-  color: var(--primary);
 }
 
 .import-textarea {
@@ -416,19 +461,6 @@ button.small {
 .import-textarea:focus {
   outline: none;
   border-color: var(--primary);
-}
-
-.import-error {
-  padding: 8px 10px;
-  background: rgba(248, 113, 113, 0.1);
-  border-left: 3px solid var(--danger);
-  border-radius: 4px;
-  color: var(--danger);
-  font-size: 12px;
-}
-
-.import-error.hidden {
-  display: none !important;
 }
 
 .file-input {

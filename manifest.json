@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Atomic Authenticator",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Secure TOTP generator with encrypted vault.",
   "action": {
     "default_title": "Atomic Authenticator",

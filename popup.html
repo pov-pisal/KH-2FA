@@ -329,9 +329,16 @@
 
             <!-- Import Section -->
             <div class="backup-tab-content hidden" id="import-tab">
-              <div id="importDropZone" class="drop-zone" role="region" aria-label="Drop zone for backup file">
+              <div
+                id="importDropZone"
+                class="drop-zone"
+                role="button"
+                tabindex="0"
+                aria-label="Upload backup file: click to browse or drag and drop here"
+              >
                 <span class="drop-icon">📂</span>
-                <span>Drag &amp; drop a <strong>.json</strong> backup here</span>
+                <span class="drop-title">Drag &amp; drop a <strong>.json</strong> backup here</span>
+                <span class="drop-subtext">or click to browse file</span>
               </div>
               <textarea
                 id="importText"
@@ -349,8 +356,8 @@
                 <button id="importBtn" class="backup-btn import-btn">
                   ✓ Import
                 </button>
-                <button id="importFileBtn" class="backup-btn file-select-btn">
-                  🔗 Open Full Backup Page
+                <button id="importFileBtn" class="backup-btn file-select-btn" type="button">
+                  📁 Choose File
                 </button>
               </div>
               <div
