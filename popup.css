@@ -487,18 +487,43 @@ button.small {
 
 .list {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .account {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px;
-  display: grid;
-  gap: 8px;
-  transition: box-shadow 0.18s, opacity 0.18s, transform 0.18s;
-  cursor: default;
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+
+.account:hover {
+  background: var(--panel-2);
+  border-color: rgba(76, 201, 240, 0.45);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
+}
+
+.account:active {
+  transform: scale(0.99);
+}
+
+.account:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* Tactile copy feedback */
+.account.copied {
+  border-color: var(--primary) !important;
+  background: rgba(76, 201, 240, 0.09) !important;
+  box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.35) !important;
 }
 
 /* Account being dragged — ghost */
@@ -513,139 +538,143 @@ button.small {
   box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.35), 0 4px 16px rgba(76, 201, 240, 0.15);
 }
 
-/* Drag handle — shown on hover */
-.drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  flex-shrink: 0;
-  cursor: grab;
-  color: var(--border);
-  font-size: 16px;
-  line-height: 1;
-  opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
-  touch-action: none;
-  user-select: none;
-}
-
-.account:hover .drag-handle {
-  opacity: 1;
-}
-
-.drag-handle:hover {
-  color: var(--muted);
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-  color: var(--primary);
-}
-
-.account-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.account-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  flex: 1;
-}
-
+/* Brand Icon */
 .account-brand-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   background: var(--panel-2);
   border: 1px solid var(--border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  transition: transform 0.18s ease, border-color 0.18s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition: transform 0.18s ease;
   overflow: hidden;
 }
 
 .account:hover .account-brand-icon {
-  transform: scale(1.06);
+  transform: scale(1.05);
 }
 
 .account-brand-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 19px;
+  height: 19px;
   display: block;
 }
 
 .account-brand-icon.small {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
 }
 
 .account-brand-icon.small svg {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
+}
+
+/* Details: Middle column */
+.account-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .account-title {
-  display: grid;
-  gap: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
   min-width: 0;
+  line-height: 1.25;
 }
 
 .account-title strong {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 120px;
+  flex-shrink: 0;
 }
 
 .account-title span {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.account-code-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .account-code {
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.account-code:hover {
+  font-family: "SFMono-Regular", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
   color: var(--primary);
+  line-height: 1.2;
+  user-select: none;
+  transition: color 0.15s ease, filter 0.15s ease;
 }
 
-.code-row {
+.account:hover .account-code {
+  filter: brightness(1.15);
+}
+
+.copy-tip {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  pointer-events: none;
+}
+
+.account:hover .copy-tip {
+  opacity: 0.9;
+  transform: scale(1);
+}
+
+.copy-tip.active {
+  opacity: 1 !important;
+  color: #10b981 !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+}
+
+/* End column: Countdown timer + Drag handle */
+.account-end {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
 .progress-ring {
   position: relative;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
 }
 
@@ -658,15 +687,19 @@ button.small {
 .ring-track {
   fill: none;
   stroke: var(--panel-2);
-  stroke-width: 3;
+  stroke-width: 2.6;
 }
 
 .ring-progress {
   fill: none;
   stroke: var(--primary);
-  stroke-width: 3;
+  stroke-width: 2.6;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.2s linear;
+  transition: stroke-dashoffset 0.25s linear, stroke 0.3s ease;
+}
+
+.progress-ring.expiring .ring-progress {
+  stroke: var(--danger) !important;
 }
 
 .ring-text {
@@ -674,9 +707,48 @@ button.small {
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 700;
   color: var(--text);
+  transition: color 0.3s ease;
+}
+
+.progress-ring.expiring .ring-text {
+  color: var(--danger) !important;
+  font-weight: 800;
+}
+
+/* Drag handle */
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 26px;
+  flex-shrink: 0;
+  cursor: grab;
+  color: var(--border);
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  touch-action: none;
+  user-select: none;
+  margin-left: 2px;
+}
+
+.account:hover .drag-handle {
+  opacity: 0.65;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+  color: var(--primary);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  color: var(--primary);
 }
 
 .empty {

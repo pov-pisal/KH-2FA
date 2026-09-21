@@ -1164,8 +1164,11 @@ async function saveAccount() {
 }
 
 // ── Drag-to-reorder handlers ─────────────────────────────────────────────────
+let isDraggingNow = false;
+
 function handleDragStart(e, accountId) {
   dragSrcId = accountId;
+  isDraggingNow = true;
   // Delay adding the class so the drag image captures the normal look
   requestAnimationFrame(() => e.target.closest(".account")?.classList.add("dragging"));
   e.dataTransfer.effectAllowed = "move";
@@ -1218,9 +1221,24 @@ async function handleDrop(e, targetId) {
 
 function handleDragEnd(e) {
   dragSrcId = null;
+  setTimeout(() => {
+    isDraggingNow = false;
+  }, 120);
   // Clean up any lingering visual states
   document.querySelectorAll(".account.dragging").forEach((el) => el.classList.remove("dragging"));
   document.querySelectorAll(".account.drag-over").forEach((el) => el.classList.remove("drag-over"));
+}
+
+function formatOTPDisplay(raw) {
+  if (!raw || typeof raw !== "string" || raw.includes("-")) return raw || "--- ---";
+  const clean = raw.replace(/\s+/g, "");
+  if (clean.length === 6) {
+    return `${clean.slice(0, 3)} ${clean.slice(3)}`;
+  }
+  if (clean.length === 8) {
+    return `${clean.slice(0, 4)} ${clean.slice(4)}`;
+  }
+  return clean;
 }
 
 function renderAccounts() {
@@ -1247,6 +1265,8 @@ function renderAccounts() {
     item.dataset.id = account.id;
     item.setAttribute("role", "listitem");
     item.setAttribute("draggable", "true");
+    item.setAttribute("tabindex", "0");
+    item.setAttribute("title", "Click to copy 2FA code");
 
     // Drag events
     item.addEventListener("dragstart", (e) => handleDragStart(e, account.id));
@@ -1255,12 +1275,15 @@ function renderAccounts() {
     item.addEventListener("drop",      (e) => handleDrop(e, account.id));
     item.addEventListener("dragend",   handleDragEnd);
 
-    const header = document.createElement("div");
-    header.className = "account-header";
+    // Keyboard support: Enter / Space to copy
+    item.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        item.click();
+      }
+    });
 
-    const mainInfo = document.createElement("div");
-    mainInfo.className = "account-main";
-
+    // Left: Brand Icon
     const brandIcon = document.createElement("div");
     brandIcon.className = "account-brand-icon";
     brandIcon.title = brand.name;
@@ -1268,45 +1291,63 @@ function renderAccounts() {
     brandIcon.style.borderColor = brand.borderColor;
     brandIcon.innerHTML = brand.svg;
 
+    // Center: Details
+    const details = document.createElement("div");
+    details.className = "account-details";
+
     const title = document.createElement("div");
     title.className = "account-title";
+
     const issuer = document.createElement("strong");
     issuer.textContent = account.issuer || brand.name || "Account";
-    const label = document.createElement("span");
-    label.textContent = account.label || "(no label)";
-    title.append(issuer, label);
+    issuer.title = issuer.textContent;
+    title.append(issuer);
 
-    mainInfo.append(brandIcon, title);
+    if (account.label) {
+      const label = document.createElement("span");
+      label.textContent = `· ${account.label}`;
+      label.title = account.label;
+      title.append(label);
+    }
 
-    // Drag handle — visible on hover, used to initiate drag
-    const dragHandle = document.createElement("div");
-    dragHandle.className = "drag-handle";
-    dragHandle.setAttribute("aria-hidden", "true");
-    dragHandle.innerHTML = "&#8942;&#8942;"; // ⠿ six-dot grid
-
-    header.append(mainInfo, dragHandle);
-
-    const codeRow = document.createElement("div");
-    codeRow.className = "code-row";
+    const codeWrap = document.createElement("div");
+    codeWrap.className = "account-code-wrap";
 
     const code = document.createElement("div");
     code.className = "account-code";
     code.dataset.code = "";
-    code.setAttribute("title", "Click to copy");
-    code.textContent = "------";
+    code.textContent = "--- ---";
+
+    const copyTip = document.createElement("span");
+    copyTip.className = "copy-tip";
+    copyTip.textContent = "Copy";
+
+    codeWrap.append(code, copyTip);
+    details.append(title, codeWrap);
+
+    // Right: Progress Ring + Drag handle
+    const endCol = document.createElement("div");
+    endCol.className = "account-end";
 
     const ring = document.createElement("div");
     ring.className = "progress-ring";
     ring.innerHTML = `
-      <svg viewBox="0 0 36 36" aria-hidden="true">
-        <circle class="ring-track" cx="18" cy="18" r="15.5"></circle>
-        <circle class="ring-progress" cx="18" cy="18" r="15.5"></circle>
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <circle class="ring-track" cx="16" cy="16" r="13.5"></circle>
+        <circle class="ring-progress" cx="16" cy="16" r="13.5"></circle>
       </svg>
       <span class="ring-text">30</span>
     `;
 
-    codeRow.append(code, ring);
-    item.append(header, codeRow);
+    const dragHandle = document.createElement("div");
+    dragHandle.className = "drag-handle";
+    dragHandle.setAttribute("aria-hidden", "true");
+    dragHandle.title = "Drag to reorder";
+    dragHandle.innerHTML = "&#8942;&#8942;"; // ⠿ six-dot grid
+
+    endCol.append(ring, dragHandle);
+
+    item.append(brandIcon, details, endCol);
     elements.accountsList.append(item);
   }
 
@@ -1333,7 +1374,9 @@ async function updateCodes() {
       );
       if (item) {
         const codeEl = item.querySelector("[data-code]");
-        codeEl.textContent = otp;
+        if (codeEl) {
+          codeEl.textContent = formatOTPDisplay(otp);
+        }
       }
     } catch (error) {
       codes.set(account.id, "------");
@@ -1342,7 +1385,9 @@ async function updateCodes() {
       );
       if (item) {
         const codeEl = item.querySelector("[data-code]");
-        codeEl.textContent = "------";
+        if (codeEl) {
+          codeEl.textContent = "--- ---";
+        }
       }
     }
   });
@@ -1354,7 +1399,7 @@ async function updateCodes() {
 function updateProgress(now = Date.now()) {
   const remaining = 30 - (Math.floor(now / 1000) % 30);
   const percent = (remaining / 30) * 100;
-  const radius = 15.5;
+  const radius = 13.5;
   const circumference = 2 * Math.PI * radius;
 
   elements.accountsList.querySelectorAll(".progress-ring").forEach((ring) => {
@@ -1367,64 +1412,95 @@ function updateProgress(now = Date.now()) {
     if (text) {
       text.textContent = String(remaining);
     }
+    if (remaining <= 5) {
+      ring.classList.add("expiring");
+    } else {
+      ring.classList.remove("expiring");
+    }
   });
 }
 
 async function handleAccountAction(event) {
-  const codeTarget = event.target.closest(".account-code");
+  if (isDraggingNow || dragSrcId) return;
+  if (event.target.closest(".drag-handle")) return;
+
   const item = event.target.closest(".account");
   if (!item) return;
   const id = item.dataset.id;
   const account = vault.accounts.find((acc) => acc.id === id);
   if (!account) return;
 
-  if (codeTarget) {
-    const code = codes.get(id) || (await generateTOTP(account.secret));
-    await navigator.clipboard.writeText(code);
-    showToast("Copied");
+  const button = event.target.closest("button[data-action]");
+  if (button) {
+    const action = button.dataset.action;
+
+    if (action === "copy") {
+      const code = (codes.get(id) || (await generateTOTP(account.secret))).replace(/\s+/g, "");
+      await navigator.clipboard.writeText(code);
+      showToast("Copied");
+    }
+
+    if (action === "autofill") {
+      const code = (codes.get(id) || (await generateTOTP(account.secret))).replace(/\s+/g, "");
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (!tab?.id) return;
+      chrome.tabs.sendMessage(
+        tab.id,
+        { type: "AUTOFILL_OTP", code },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            showToast("Autofill unavailable on this page");
+            return;
+          }
+          if (!response?.ok) {
+            showToast(response?.error || "Autofill failed");
+          } else {
+            showToast("Autofilled");
+          }
+        },
+      );
+    }
+
+    if (action === "edit") {
+      openModal(account);
+    }
+
+    if (action === "delete") {
+      openDeleteModal(id);
+    }
     return;
   }
 
-  const button = event.target.closest("button[data-action]");
-  if (!button) return;
-  const action = button.dataset.action;
+  // Click on the card or code copies the OTP code
+  try {
+    const rawOtp = codes.get(id) || (await generateTOTP(account.secret));
+    const cleanOtp = String(rawOtp).replace(/\s+/g, "");
+    if (!cleanOtp || cleanOtp.includes("-")) return;
 
-  if (action === "copy") {
-    const code = codes.get(id) || (await generateTOTP(account.secret));
-    await navigator.clipboard.writeText(code);
-    showToast("Copied");
-  }
+    await navigator.clipboard.writeText(cleanOtp);
 
-  if (action === "autofill") {
-    const code = codes.get(id) || (await generateTOTP(account.secret));
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    if (!tab?.id) return;
-    chrome.tabs.sendMessage(
-      tab.id,
-      { type: "AUTOFILL_OTP", code },
-      (response) => {
-        if (chrome.runtime.lastError) {
-          showToast("Autofill unavailable on this page");
-          return;
-        }
-        if (!response?.ok) {
-          showToast(response?.error || "Autofill failed");
-        } else {
-          showToast("Autofilled");
-        }
-      },
-    );
-  }
+    // Tactile visual feedback on the card
+    item.classList.add("copied");
+    const copyTip = item.querySelector(".copy-tip");
+    if (copyTip) {
+      copyTip.textContent = "Copied!";
+      copyTip.classList.add("active");
+    }
 
-  if (action === "edit") {
-    openModal(account);
-  }
+    setTimeout(() => {
+      item.classList.remove("copied");
+      if (copyTip) {
+        copyTip.textContent = "Copy";
+        copyTip.classList.remove("active");
+      }
+    }, 850);
 
-  if (action === "delete") {
-    openDeleteModal(id);
+    showToast(`Copied ${formatOTPDisplay(cleanOtp)}`);
+  } catch (err) {
+    console.error("Failed to copy TOTP code", err);
   }
 }
 
