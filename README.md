@@ -1,4 +1,4 @@
-# 🛡️ PPS Authenticator
+# 🛡️ KH 2FA
 
 A secure, lightweight browser extension for managing TOTP (Time-based One-Time Password) authentication codes with encrypted storage and PIN protection.
 
@@ -21,8 +21,8 @@ A secure, lightweight browser extension for managing TOTP (Time-based One-Time P
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/pov-pisal/PPSAuthenticator.git
-cd PPSAuthenticator
+git clone https://github.com/pov-pisal/KH-2FA.git
+cd KH-2FA
 ```
 
 2. Open Chrome/Brave/Edge and navigate to:
@@ -39,7 +39,7 @@ chrome://extensions/
 
 ### First Time Setup
 
-1. Click the PPS Authenticator extension icon
+1. Click the KH 2FA extension icon
 2. Create a PIN (minimum 6 digits) and confirm it
 3. Start adding your TOTP accounts
 

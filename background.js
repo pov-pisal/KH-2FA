@@ -1,4 +1,4 @@
-// Background service worker for PPS Authenticator (Manifest V3 Module)
+// Background service worker for KH 2FA (Manifest V3 Module)
 
 import { getVaultRecord, getSession, getMeta } from "./storage.js";
 import { decryptVault } from "./crypto.js";
@@ -6,14 +6,14 @@ import { generateTOTP } from "./totp.js";
 import { getBrandInfo } from "./brandIcons.js";
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("PPS Authenticator installed.");
+  console.log("KH 2FA installed.");
 
   // Create context menu for quick 2FA filling
   if (chrome.contextMenus) {
     chrome.contextMenus.removeAll(() => {
       chrome.contextMenus.create({
         id: "atomic_fill_otp",
-        title: "Fill 2FA code with PPS Authenticator",
+        title: "Fill 2FA code with KH 2FA",
         contexts: ["editable", "page"],
       });
     });

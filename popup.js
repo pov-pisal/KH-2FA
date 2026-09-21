@@ -785,7 +785,7 @@ async function handleBackup() {
   }
 
   const timestamp = new Date().toISOString().split("T")[0];
-  const filename = `pps-authenticator-backup-${timestamp}.json`;
+  const filename = `kh-2fa-backup-${timestamp}.json`;
 
   // ── Method 1: File System Access API (save dialog) ──────────────────────
   // Works in Chrome extension popup pages (secure context, user gesture present).

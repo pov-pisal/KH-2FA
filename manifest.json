@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "PPS Authenticator",
+  "name": "KH 2FA",
   "version": "1.0.3",
   "description": "Secure TOTP generator with encrypted vault.",
   "action": {
-    "default_title": "PPS Authenticator",
+    "default_title": "KH 2FA",
     "default_popup": "popup.html",
     "default_icon": {
       "128": "icons/qr-code-128px.png"
@@ -17,7 +17,7 @@
         "default": "Alt+Shift+A",
         "mac": "Alt+Shift+A"
       },
-      "description": "Open PPS Authenticator"
+      "description": "Open KH 2FA"
     }
   },
   "background": {

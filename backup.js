@@ -95,7 +95,7 @@ function handleDownload() {
   if (!payload) { setStatus(el.exportStatus, "No data to download.", "error"); return; }
 
   const timestamp = new Date().toISOString().split("T")[0];
-  const filename = `pps-authenticator-backup-${timestamp}.json`;
+  const filename = `kh-2fa-backup-${timestamp}.json`;
 
   // In a full Chrome tab, Blob + link.click() works perfectly.
   const blob = new Blob([payload], { type: "application/json" });

@@ -1,4 +1,4 @@
-// Content script for PPS Authenticator: In-field 2FA icon, OTP autofill, and keyboard shortcut listener
+// Content script for KH 2FA: In-field 2FA icon, OTP autofill, and keyboard shortcut listener
 
 const DEFAULT_SHORTCUT = {
   key: "a",
@@ -191,7 +191,7 @@ function showAccountsDropdown(input, accounts, badge) {
     justify-content: space-between;
     align-items: center;
   `;
-  header.innerHTML = `<span>PPS Authenticator</span><span style="font-weight:400;font-size:10px;">Select to Fill</span>`;
+  header.innerHTML = `<span>KH 2FA</span><span style="font-weight:400;font-size:10px;">Select to Fill</span>`;
   dropdown.appendChild(header);
 
   accounts.forEach((acc) => {
@@ -282,7 +282,7 @@ function handleAutofillAction(input, badge) {
     },
     (res) => {
       if (chrome.runtime.lastError) {
-        showToastMessage(input, "Could not reach PPS Authenticator", true);
+        showToastMessage(input, "Could not reach KH 2FA", true);
         return;
       }
 
@@ -326,7 +326,7 @@ function injectBadgeForInput(input) {
 
   const badge = document.createElement("div");
   badge.className = "atomic-field-badge";
-  badge.title = "Fill 2FA code with PPS Authenticator";
+  badge.title = "Fill 2FA code with KH 2FA";
   badge.style.cssText = `
     position: absolute;
     width: 22px;
