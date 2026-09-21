@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#080C14"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="26" y="26" width="460" height="460" rx="100" fill="url(#bgGrad)" stroke="#38BDF8" stroke-opacity="0.25" stroke-width="10"/>
+
+  <!-- 'K' Vertical Bar -->
+  <line x1="154" y1="144" x2="154" y2="368" stroke="url(#cyanGrad)" stroke-width="45" stroke-linecap="round"/>
+
+  <!-- 'K' Upper Arm -->
+  <line x1="160" y1="256" x2="256" y2="148" stroke="url(#cyanGrad)" stroke-width="45" stroke-linecap="round"/>
+
+  <!-- 'K' Lower Arm -->
+  <line x1="170" y1="252" x2="256" y2="364" stroke="url(#cyanGrad)" stroke-width="45" stroke-linecap="round"/>
+
+  <!-- 'H' Crossbar -->
+  <line x1="225" y1="256" x2="348" y2="256" stroke="#F8FAFC" stroke-width="45" stroke-linecap="round"/>
+
+  <!-- 'H' Vertical Bar -->
+  <line x1="348" y1="144" x2="348" y2="368" stroke="#F8FAFC" stroke-width="45" stroke-linecap="round"/>
+
+  <!-- 2FA Verified Green Indicator Pip -->
+  <circle cx="394" cy="112" r="36" fill="#0F172A"/>
+  <circle cx="394" cy="112" r="27" fill="#10B981"/>
+</svg>

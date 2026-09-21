@@ -7,7 +7,10 @@
     "default_title": "KH 2FA",
     "default_popup": "popup.html",
     "default_icon": {
-      "128": "icons/qr-code-128px.png"
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
     }
   },
   "permissions": ["storage", "activeTab", "downloads", "tabs", "contextMenus"],
@@ -38,6 +41,9 @@
     }
   ],
   "icons": {
-    "128": "icons/qr-code-128px.png"
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
   }
 }
