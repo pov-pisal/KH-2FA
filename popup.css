@@ -545,20 +545,76 @@ button.small {
 
 .account-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
-  flex-wrap: wrap;
+}
+
+.account-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.account-brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+  overflow: hidden;
+}
+
+.account:hover .account-brand-icon {
+  transform: scale(1.06);
+}
+
+.account-brand-icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.account-brand-icon.small {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.account-brand-icon.small svg {
+  width: 17px;
+  height: 17px;
 }
 
 .account-title {
   display: grid;
   gap: 2px;
+  min-width: 0;
+}
+
+.account-title strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .account-title span {
   font-size: 12px;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .account-code {
@@ -809,17 +865,27 @@ button.small {
 }
 
 .edit-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.edit-text {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
 
-.edit-meta strong {
-  font-size: 12px;
+.edit-text strong {
+  font-size: 13px;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.edit-meta span {
+.edit-text span {
   font-size: 11px;
   color: var(--muted);
   overflow: hidden;
@@ -831,4 +897,230 @@ button.small {
 .edit-actions {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
+}
+
+.modal-brand-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.modal-brand-preview.hidden {
+  display: none !important;
+}
+
+.modal-brand-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.modal-brand-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.modal-brand-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Shortcuts Section */
+.shortcut-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shortcut-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.shortcut-subtitle {
+  margin: 2px 0 0;
+  font-size: 11px;
+}
+
+.shortcut-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(76, 201, 240, 0.15);
+}
+
+.shortcut-kbd.not-set {
+  border-color: var(--border);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.shortcut-kbd.recording {
+  border-color: #ef4444;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.15);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  animation: pulseRecording 1s infinite alternate ease-in-out;
+}
+
+.shortcut-kbd[role="button"] {
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.shortcut-kbd[role="button"]:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+
+.shortcut-recording-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.recording-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulseDot 0.8s infinite alternate;
+  flex-shrink: 0;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.75); opacity: 0.5; }
+  100% { transform: scale(1.25); opacity: 1; }
+}
+
+@keyframes pulseRecording {
+  0% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.2); }
+  100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
+}
+
+.shortcut-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.shortcut-btn {
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.shortcut-advanced {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.text-link-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.text-link-btn:hover {
+  color: var(--primary);
+}
+
+.shortcut-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(167, 139, 250, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.shortcut-tip code {
+  color: var(--accent);
+  background: rgba(167, 139, 250, 0.15);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.shortcut-help-box {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(56, 189, 248, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.shortcut-help-box.hidden {
+  display: none !important;
+}
+
+.shortcut-help-box ol {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.shortcut-help-box em {
+  color: var(--text);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.shortcut-help-box code {
+  color: var(--primary);
+  background: rgba(56, 189, 248, 0.12);
+  padding: 1px 4px;
+  border-radius: 4px;
 }

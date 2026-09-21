@@ -1,18 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "Atomic Authenticator",
+  "name": "PPS Authenticator",
   "version": "1.0.3",
   "description": "Secure TOTP generator with encrypted vault.",
   "action": {
-    "default_title": "Atomic Authenticator",
+    "default_title": "PPS Authenticator",
     "default_popup": "popup.html",
     "default_icon": {
       "128": "icons/qr-code-128px.png"
     }
   },
-  "permissions": ["storage", "activeTab", "downloads", "tabs"],
+  "permissions": ["storage", "activeTab", "downloads", "tabs", "contextMenus"],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+A",
+        "mac": "Alt+Shift+A"
+      },
+      "description": "Open PPS Authenticator"
+    }
+  },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "content_scripts": [
     {
@@ -23,7 +33,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["backup.html", "backup.js", "popup.css", "crypto.js", "storage.js", "totp.js"],
+      "resources": ["backup.html", "backup.js", "popup.css", "crypto.js", "storage.js", "totp.js", "brandIcons.js"],
       "matches": ["<all_urls>"]
     }
   ],

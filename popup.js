@@ -14,6 +14,7 @@ import {
   setSession,
   clearSession as clearStoredSession,
 } from "./storage.js";
+import { getBrandInfo } from "./brandIcons.js";
 
 const defaultInactivityMs = 2 * 60 * 1000;
 
@@ -40,6 +41,9 @@ const elements = {
   modal: document.getElementById("modal"),
   modalTitle: document.getElementById("modalTitle"),
   closeModalBtn: document.getElementById("closeModalBtn"),
+  modalBrandPreview: document.getElementById("modalBrandPreview"),
+  modalBrandIcon: document.getElementById("modalBrandIcon"),
+  modalBrandName: document.getElementById("modalBrandName"),
   secretInput: document.getElementById("secretInput"),
   issuerInput: document.getElementById("issuerInput"),
   labelInput: document.getElementById("labelInput"),
@@ -75,6 +79,15 @@ const elements = {
   settingsChangePin: document.getElementById("settingsChangePin"),
   settingsBackup: document.getElementById("settingsBackup"),
   settingsPreferences: document.getElementById("settingsPreferences"),
+  settingsShortcuts: document.getElementById("settingsShortcuts"),
+  shortcutCard: document.getElementById("shortcutCard"),
+  shortcutStatusText: document.getElementById("shortcutStatusText"),
+  shortcutDisplay: document.getElementById("shortcutDisplay"),
+  shortcutRecordingPrompt: document.getElementById("shortcutRecordingPrompt"),
+  customizeShortcutBtn: document.getElementById("customizeShortcutBtn"),
+  resetShortcutBtn: document.getElementById("resetShortcutBtn"),
+  chromeShortcutsLink: document.getElementById("chromeShortcutsLink"),
+  chromeShortcutHelp: document.getElementById("chromeShortcutHelp"),
   themeSelect: document.getElementById("themeSelect"),
   sortSelect: document.getElementById("sortSelect"),
   prefSaveBtn: document.getElementById("prefSaveBtn"),
@@ -267,6 +280,39 @@ async function handleUnlock() {
   }
 }
 
+function updateModalBrandPreview() {
+  if (!elements.modalBrandPreview || !elements.modalBrandIcon || !elements.modalBrandName) return;
+
+  const secretVal = elements.secretInput?.value?.trim() || "";
+  let detectedIssuer = elements.issuerInput?.value?.trim() || "";
+  let detectedLabel = elements.labelInput?.value?.trim() || "";
+
+  if (secretVal.startsWith("otpauth://")) {
+    const parsed = parseOtpauth(secretVal);
+    if (parsed) {
+      if (!detectedIssuer) detectedIssuer = parsed.issuer;
+      if (!detectedLabel) detectedLabel = parsed.label;
+    }
+  }
+
+  if (!detectedIssuer && !detectedLabel) {
+    elements.modalBrandPreview.classList.add("hidden");
+    return;
+  }
+
+  const brand = getBrandInfo(detectedIssuer, detectedLabel);
+  if (brand.isFallback && !detectedIssuer) {
+    elements.modalBrandPreview.classList.add("hidden");
+    return;
+  }
+
+  elements.modalBrandPreview.classList.remove("hidden");
+  elements.modalBrandIcon.style.background = brand.bgColor;
+  elements.modalBrandIcon.style.borderColor = brand.borderColor;
+  elements.modalBrandIcon.innerHTML = brand.svg;
+  elements.modalBrandName.textContent = brand.name;
+}
+
 function openModal(editAccount = null) {
   editingId = editAccount?.id || null;
   elements.modalTitle.textContent = editingId ? "Edit account" : "Add account";
@@ -274,6 +320,7 @@ function openModal(editAccount = null) {
   elements.issuerInput.value = editAccount?.issuer || "";
   elements.labelInput.value = editAccount?.label || "";
   elements.modalError.textContent = "";
+  updateModalBrandPreview();
   elements.modal.classList.remove("hidden");
   elements.modal.setAttribute("aria-hidden", "false");
   elements.modal.removeAttribute("inert");
@@ -288,6 +335,7 @@ function closeModal() {
   elements.issuerInput.value = "";
   elements.labelInput.value = "";
   elements.modalError.textContent = "";
+  updateModalBrandPreview();
   editingId = null;
   elements.addAccountBtn?.focus();
 }
@@ -330,17 +378,30 @@ function renderEditAccountsList() {
     return;
   }
   sortAccounts(vault.accounts).forEach((account) => {
+    const brand = getBrandInfo(account.issuer, account.label);
     const row = document.createElement("div");
     row.className = "edit-item";
     row.setAttribute("role", "listitem");
 
     const meta = document.createElement("div");
     meta.className = "edit-meta";
+
+    const brandIcon = document.createElement("div");
+    brandIcon.className = "account-brand-icon small";
+    brandIcon.title = brand.name;
+    brandIcon.style.background = brand.bgColor;
+    brandIcon.style.borderColor = brand.borderColor;
+    brandIcon.innerHTML = brand.svg;
+
+    const textWrap = document.createElement("div");
+    textWrap.className = "edit-text";
     const issuer = document.createElement("strong");
-    issuer.textContent = account.issuer || "Account";
+    issuer.textContent = account.issuer || brand.name || "Account";
     const label = document.createElement("span");
     label.textContent = account.label || "(no label)";
-    meta.append(issuer, label);
+    textWrap.append(issuer, label);
+
+    meta.append(brandIcon, textWrap);
 
     const actions = document.createElement("div");
     actions.className = "edit-actions";
@@ -403,10 +464,12 @@ function closeSettingsModal() {
 }
 
 function hideAllSettingsSections() {
+  stopRecordingShortcut();
   [
     elements.settingsChangePin,
     elements.settingsBackup,
     elements.settingsPreferences,
+    elements.settingsShortcuts,
   ].forEach((section) => {
     if (!section) return;
     section.classList.add("hidden");
@@ -435,6 +498,7 @@ function openSettingsSection(key) {
     "change-pin": elements.settingsChangePin,
     backup: elements.settingsBackup,
     preferences: elements.settingsPreferences,
+    shortcuts: elements.settingsShortcuts,
   };
   const section = map[key];
   if (!section) return;
@@ -460,6 +524,174 @@ function openSettingsSection(key) {
   }
   if (key === "backup") {
     populateExportBackup();
+  }
+  if (key === "shortcuts") {
+    updateShortcutDisplay();
+  }
+}
+
+let isRecordingShortcut = false;
+let boundRecordHandler = null;
+
+function stopRecordingShortcut() {
+  if (!isRecordingShortcut) return;
+  isRecordingShortcut = false;
+  if (boundRecordHandler) {
+    window.removeEventListener("keydown", boundRecordHandler, true);
+    boundRecordHandler = null;
+  }
+  elements.shortcutDisplay?.classList.remove("recording");
+  elements.shortcutRecordingPrompt?.classList.add("hidden");
+  if (elements.customizeShortcutBtn) {
+    elements.customizeShortcutBtn.textContent = "✏️ Change Shortcut";
+  }
+  updateShortcutDisplay();
+}
+
+function startRecordingShortcut() {
+  if (isRecordingShortcut) {
+    stopRecordingShortcut();
+    return;
+  }
+  isRecordingShortcut = true;
+  if (elements.customizeShortcutBtn) {
+    elements.customizeShortcutBtn.textContent = "⏹️ Cancel";
+  }
+  elements.shortcutDisplay?.classList.add("recording");
+  if (elements.shortcutDisplay) {
+    elements.shortcutDisplay.textContent = "Press keys...";
+  }
+  elements.shortcutRecordingPrompt?.classList.remove("hidden");
+
+  boundRecordHandler = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Cancel on Escape
+    if (e.key === "Escape") {
+      stopRecordingShortcut();
+      showToast("Cancelled");
+      return;
+    }
+
+    // If only modifier key is pressed, show feedback on badge
+    if (["Control", "Alt", "Shift", "Meta"].includes(e.key)) {
+      const held = [];
+      if (e.ctrlKey) held.push("Ctrl");
+      if (e.altKey) held.push("Alt");
+      if (e.shiftKey) held.push("Shift");
+      if (e.metaKey) held.push(navigator.platform.toUpperCase().includes("MAC") ? "Cmd" : "Win");
+      if (elements.shortcutDisplay && held.length > 0) {
+        elements.shortcutDisplay.textContent = held.join("+") + " + ...";
+      }
+      return;
+    }
+
+    // Must have at least one modifier (Ctrl, Alt, or Meta) to avoid hijacking normal typing
+    if (!e.ctrlKey && !e.altKey && !e.metaKey) {
+      if (elements.shortcutDisplay) {
+        elements.shortcutDisplay.textContent = "Hold Ctrl or Alt";
+      }
+      return;
+    }
+
+    // Determine clean key name
+    let keyName = "";
+    if (e.code.startsWith("Key")) {
+      keyName = e.code.slice(3);
+    } else if (e.code.startsWith("Digit")) {
+      keyName = e.code.slice(5);
+    } else if (e.code === "Space") {
+      keyName = "Space";
+    } else if (e.key.length === 1) {
+      keyName = e.key.toUpperCase();
+    } else {
+      keyName = e.key;
+    }
+
+    const isMac = navigator.platform.toUpperCase().includes("MAC");
+    const parts = [];
+    if (e.ctrlKey) parts.push("Ctrl");
+    if (e.altKey) parts.push("Alt");
+    if (e.shiftKey) parts.push("Shift");
+    if (e.metaKey) parts.push(isMac ? "Cmd" : "Win");
+    parts.push(keyName);
+
+    const displayStr = parts.join("+");
+    const shortcutObj = {
+      key: e.key.toLowerCase(),
+      code: e.code,
+      ctrlKey: e.ctrlKey,
+      altKey: e.altKey,
+      shiftKey: e.shiftKey,
+      metaKey: e.metaKey,
+      display: displayStr,
+    };
+
+    chrome.storage?.local?.set({ customShortcut: shortcutObj }, () => {
+      stopRecordingShortcut();
+      showToast(`Shortcut set to ${displayStr}!`);
+    });
+  };
+
+  window.addEventListener("keydown", boundRecordHandler, true);
+}
+
+async function resetShortcut() {
+  stopRecordingShortcut();
+  try {
+    await chrome.storage?.local?.remove(["customShortcut"]);
+  } catch {
+    // ignore
+  }
+  await updateShortcutDisplay();
+  showToast("Shortcut reset to default (Alt+Shift+A)");
+}
+
+async function updateShortcutDisplay() {
+  if (!elements.shortcutDisplay) return;
+
+  // 1. Check custom shortcut stored in chrome.storage.local
+  let saved = null;
+  try {
+    const res = await chrome.storage?.local?.get(["customShortcut"]);
+    saved = res?.customShortcut;
+  } catch {
+    // ignore
+  }
+
+  if (saved?.display) {
+    elements.shortcutDisplay.textContent = saved.display;
+    elements.shortcutDisplay.classList.remove("not-set");
+    if (elements.shortcutStatusText) {
+      elements.shortcutStatusText.textContent = "Custom shortcut active";
+    }
+    return;
+  }
+
+  // 2. Check native browser commands
+  if (chrome?.commands?.getAll) {
+    try {
+      const commands = await chrome.commands.getAll();
+      const actionCmd = commands.find((c) => c.name === "_execute_action");
+      if (actionCmd?.shortcut) {
+        elements.shortcutDisplay.textContent = actionCmd.shortcut;
+        elements.shortcutDisplay.classList.remove("not-set");
+        if (elements.shortcutStatusText) {
+          elements.shortcutStatusText.textContent = "Global shortcut";
+        }
+        return;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // 3. Fallback default
+  elements.shortcutDisplay.textContent = "Alt+Shift+A";
+  elements.shortcutDisplay.classList.remove("not-set");
+  if (elements.shortcutStatusText) {
+    elements.shortcutStatusText.textContent = "Global shortcut";
   }
 }
 
@@ -553,7 +785,7 @@ async function handleBackup() {
   }
 
   const timestamp = new Date().toISOString().split("T")[0];
-  const filename = `atomic-authenticator-backup-${timestamp}.json`;
+  const filename = `pps-authenticator-backup-${timestamp}.json`;
 
   // ── Method 1: File System Access API (save dialog) ──────────────────────
   // Works in Chrome extension popup pages (secure context, user gesture present).
@@ -1008,6 +1240,8 @@ function renderAccounts() {
   }
 
   for (const account of ordered) {
+    const brand = getBrandInfo(account.issuer, account.label);
+
     const item = document.createElement("div");
     item.className = "account";
     item.dataset.id = account.id;
@@ -1024,23 +1258,33 @@ function renderAccounts() {
     const header = document.createElement("div");
     header.className = "account-header";
 
+    const mainInfo = document.createElement("div");
+    mainInfo.className = "account-main";
+
+    const brandIcon = document.createElement("div");
+    brandIcon.className = "account-brand-icon";
+    brandIcon.title = brand.name;
+    brandIcon.style.background = brand.bgColor;
+    brandIcon.style.borderColor = brand.borderColor;
+    brandIcon.innerHTML = brand.svg;
+
+    const title = document.createElement("div");
+    title.className = "account-title";
+    const issuer = document.createElement("strong");
+    issuer.textContent = account.issuer || brand.name || "Account";
+    const label = document.createElement("span");
+    label.textContent = account.label || "(no label)";
+    title.append(issuer, label);
+
+    mainInfo.append(brandIcon, title);
+
     // Drag handle — visible on hover, used to initiate drag
     const dragHandle = document.createElement("div");
     dragHandle.className = "drag-handle";
     dragHandle.setAttribute("aria-hidden", "true");
     dragHandle.innerHTML = "&#8942;&#8942;"; // ⠿ six-dot grid
 
-    const title = document.createElement("div");
-    title.className = "account-title";
-    const issuer = document.createElement("strong");
-    issuer.textContent = account.issuer || "Account";
-    const label = document.createElement("span");
-    label.textContent = account.label || "(no label)";
-    title.append(issuer, label);
-
-    const actions = document.createElement("div");
-    actions.className = "actions";
-    header.append(title, dragHandle);
+    header.append(mainInfo, dragHandle);
 
     const codeRow = document.createElement("div");
     codeRow.className = "code-row";
@@ -1337,6 +1581,14 @@ async function init() {
   elements.importBtn.addEventListener("click", handleImportBackup);
   elements.prefSaveBtn.addEventListener("click", savePreferences);
   elements.prefCancelBtn.addEventListener("click", cancelPreferences);
+  elements.customizeShortcutBtn?.addEventListener("click", startRecordingShortcut);
+  elements.shortcutDisplay?.addEventListener("click", startRecordingShortcut);
+  elements.resetShortcutBtn?.addEventListener("click", resetShortcut);
+  elements.chromeShortcutsLink?.addEventListener("click", () => {
+    elements.chromeShortcutHelp?.classList.toggle("hidden");
+    chrome.tabs?.create?.({ url: "chrome://extensions/shortcuts" });
+  });
+  updateShortcutDisplay();
 
   // Backup tabs
   document.querySelectorAll(".backup-tab").forEach((tab) => {
@@ -1401,6 +1653,10 @@ async function init() {
     });
   }
 
+  elements.secretInput.addEventListener("input", updateModalBrandPreview);
+  elements.issuerInput.addEventListener("input", updateModalBrandPreview);
+  elements.labelInput.addEventListener("input", updateModalBrandPreview);
+
   elements.secretInput.addEventListener("blur", () => {
     const value = elements.secretInput.value.trim();
     if (value.startsWith("otpauth://")) {
@@ -1413,6 +1669,7 @@ async function init() {
         if (!elements.labelInput.value.trim()) {
           elements.labelInput.value = parsed.label;
         }
+        updateModalBrandPreview();
       }
     }
   });

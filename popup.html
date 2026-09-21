@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Atomic Authenticator</title>
+    <title>PPS Authenticator</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
@@ -20,7 +20,7 @@
           </button>
           <div class="title">
             <div>
-              <h1>Atomic Authenticator</h1>
+              <h1>PPS Authenticator</h1>
               <p class="subtitle">Secure TOTP vault</p>
             </div>
           </div>
@@ -121,6 +121,14 @@
           <h2 id="modalTitle">Add account</h2>
           <button id="closeModalBtn" class="ghost" aria-label="Close">✕</button>
         </header>
+
+        <div id="modalBrandPreview" class="modal-brand-preview hidden" aria-live="polite">
+          <div id="modalBrandIcon" class="account-brand-icon"></div>
+          <div class="modal-brand-info">
+            <span class="modal-brand-label">Detected service</span>
+            <strong id="modalBrandName" class="modal-brand-name">Facebook</strong>
+          </div>
+        </div>
 
         <div class="stack">
           <label class="field">
@@ -243,6 +251,15 @@
           >
             <span class="settings-icon">🛠️</span>
             <span class="settings-label">Preferences</span>
+            <span class="settings-chevron">›</span>
+          </button>
+          <button
+            class="settings-item"
+            data-settings="shortcuts"
+            role="listitem"
+          >
+            <span class="settings-icon">⌨️</span>
+            <span class="settings-label">Shortcuts</span>
             <span class="settings-chevron">›</span>
           </button>
         </div>
@@ -407,6 +424,57 @@
             <div class="row center">
               <button id="prefSaveBtn" class="primary">Save</button>
               <button id="prefCancelBtn" class="ghost">Cancel</button>
+            </div>
+          </section>
+
+          <section
+            id="settingsShortcuts"
+            class="settings-section hidden"
+            aria-hidden="true"
+          >
+            <h3>⌨️ Keyboard Shortcut</h3>
+            <p class="muted">Open PPS Authenticator directly from any webpage with a key combination.</p>
+
+            <div class="shortcut-card" id="shortcutCard">
+              <div class="shortcut-header">
+                <div>
+                  <strong>Quick Access</strong>
+                  <p class="muted shortcut-subtitle" id="shortcutStatusText">Global shortcut</p>
+                </div>
+                <kbd id="shortcutDisplay" class="shortcut-kbd" role="button" tabindex="0" title="Click to change shortcut">Alt+Shift+A</kbd>
+              </div>
+
+              <div id="shortcutRecordingPrompt" class="shortcut-recording-prompt hidden">
+                <span class="recording-dot"></span>
+                <span>Press your key combination (e.g. <code>Alt+A</code>)...</span>
+              </div>
+
+              <div class="shortcut-action-row">
+                <button id="customizeShortcutBtn" class="primary shortcut-btn" type="button">
+                  ✏️ Change Shortcut
+                </button>
+                <button id="resetShortcutBtn" class="secondary shortcut-btn" type="button">
+                  ↺ Reset
+                </button>
+              </div>
+            </div>
+
+            <div class="shortcut-tip">
+              💡 <span>Click <strong>Change Shortcut</strong>, then press any keys (e.g. <code>Alt+A</code>, <code>Ctrl+Shift+K</code>). Press <strong>Esc</strong> to cancel.</span>
+            </div>
+
+            <div class="shortcut-advanced">
+              <button id="chromeShortcutsLink" class="text-link-btn" type="button">
+                ⚙️ Configure via Chrome Settings
+              </button>
+            </div>
+
+            <div id="chromeShortcutHelp" class="shortcut-help-box hidden">
+              <strong>How to change in Chrome Settings:</strong>
+              <ol>
+                <li>Click the ✏️ pencil icon next to <em>PPS Authenticator</em></li>
+                <li>Press your desired shortcut (e.g. <code>Alt+A</code>)</li>
+              </ol>
             </div>
           </section>
         </div>
