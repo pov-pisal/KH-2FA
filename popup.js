@@ -1610,6 +1610,8 @@ function checkInactivity() {
     setLocked(true);
     showLockedView({ createMode: false });
   }
+}
+
 function togglePrivacyMask() {
   privacyMaskActive = !privacyMaskActive;
   if (elements.peekToggleBtn) {
