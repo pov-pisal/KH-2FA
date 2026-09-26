@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "KH 2FA",
   "version": "1.1.0",
-  "description": "Secure TOTP generator with encrypted vault.",
+  "description": "Secure 2FA authenticator with encrypted vault, screen QR code scanner, and OTP autofill.",
   "action": {
     "default_title": "KH 2FA",
     "default_popup": "popup.html",
@@ -32,12 +32,6 @@
       "matches": ["<all_urls>"],
       "js": ["contentScript.js"],
       "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["backup.html", "backup.js", "popup.css", "crypto.js", "storage.js", "totp.js", "brandIcons.js"],
-      "matches": ["<all_urls>"]
     }
   ],
   "icons": {

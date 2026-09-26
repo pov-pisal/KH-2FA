@@ -1,160 +1,98 @@
 # 🛡️ KH 2FA
 
-A secure, lightweight browser extension for managing TOTP (Time-based One-Time Password) authentication codes with encrypted storage and PIN protection.
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 
-## ✨ Features
-
-- **🔐 Encrypted Vault** - All TOTP secrets are encrypted with AES-256-GCM using your PIN
-- **📱 TOTP Generation** - Generate time-based one-time passwords for two-factor authentication
-- **🔑 PIN Protection** - Secure your vault with a personal identification number
-- **💾 Backup & Restore** - Export your accounts for backup (PIN is not included)
-- **🎨 Dark/Light Theme** - Choose your preferred color scheme
-- **🔒 Auto-lock** - Automatically lock vault after inactivity
-- **📂 Account Management** - Add, edit, and delete TOTP accounts
-- **🔍 Search** - Quickly find accounts by issuer or label
-- **📊 Customizable Sorting** - Sort accounts by date, issuer, or label
-
-## 🚀 Installation
-
-### From Source (Development)
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/pov-pisal/KH-2FA.git
-cd KH-2FA
-```
-
-2. Open Chrome/Brave/Edge and navigate to:
-
-```
-chrome://extensions/
-```
-
-3. Enable "Developer mode" (top right toggle)
-
-4. Click "Load unpacked" and select the project folder
-
-## 📖 Usage
-
-### First Time Setup
-
-1. Click the KH 2FA extension icon
-2. Create a PIN (minimum 6 digits) and confirm it
-3. Start adding your TOTP accounts
-
-### Adding an Account
-
-1. Click the "Add account" button
-2. Enter the TOTP secret (base32 encoded)
-3. Optionally add the issuer name and label
-4. Click "Save account"
-
-**Tip:** You can paste `otpauth://` URLs directly - the extension will parse them automatically!
-
-### Generating Codes
-
-- Your TOTP codes refresh every 30 seconds
-- Click on an account to copy the code
-- Codes are automatically removed from clipboard after a short delay
-
-### Backing Up Your Data
-
-1. Go to Settings → Backup
-2. Click "Export" tab
-3. Click "Copy to Clipboard" or "Download" to save your backup
-4. **Note:** Backups include only your accounts, not your PIN for security
-
-### Restoring from Backup
-
-1. Go to Settings → Backup
-2. Click "Import" tab
-3. Paste your backup JSON
-4. Click "Import Backup" to restore accounts
-
-## 🏗️ Project Structure
-
-```
-├── manifest.json          # Chrome extension manifest
-├── popup.html            # Main UI
-├── popup.css             # Styling
-├── popup.js              # Main logic & event handlers
-├── crypto.js             # Encryption/decryption functions
-├── totp.js               # TOTP generation & parsing
-├── storage.js            # Browser storage interface
-├── contentScript.js      # Content script for autofill
-├── import.html           # Import page
-├── import.js             # Import page logic
-└── icons/                # Extension icons (16x16, 32x32, 48x48, 128x128)
-```
-
-## 🔒 Security
-
-- **End-to-End Encrypted** - TOTP secrets encrypted with AES-256-GCM
-- **PIN-Protected** - Your PIN never leaves your device
-- **No Server Communication** - Completely offline, no cloud sync
-- **Secure Storage** - Uses Chrome's `chrome.storage.sync` for encrypted local storage
-- **Auto-lock** - Configurable timeout to automatically lock the vault
-
-### Encryption Details
-
-- **Algorithm:** AES-256-GCM (NIST approved)
-- **Key Derivation:** PBKDF2 with SHA-256
-- **Iterations:** 100,000
-- **IV:** Random 12-byte nonce
-
-## 🛠️ Technical Stack
-
-- **Language:** Vanilla JavaScript (ES6+)
-- **Storage:** Chrome Storage API
-- **Encryption:** Web Crypto API
-- **UI Framework:** None (vanilla HTML/CSS)
-- **Build Tool:** None required (load as unpacked extension)
-
-## 📚 Dependencies
-
-None! This extension has zero external dependencies. It uses only:
-
-- Chrome APIs
-- Web Crypto API
-- Browser Storage API
-
-## ⚙️ Settings
-
-- **Auto-lock after:** Set how long before vault auto-locks (1 min - Never)
-- **Theme:** Choose between Dark and Light modes
-- **Sort Accounts:** Order by Newest, Oldest, Issuer (A-Z/Z-A), or Label (A-Z/Z-A)
-- **Change PIN:** Update your vault PIN anytime
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📝 License
-
-This project is open source and available under the MIT License.
-
-## ⚠️ Disclaimer
-
-This extension is provided as-is. While security best practices have been implemented:
-
-- Always keep your PIN secure and memorable (it cannot be recovered if lost)
-- Back up your accounts regularly
-- Test restore functionality with non-critical accounts first
-
-## 🐛 Bug Reports
-
-Found a bug? Please open an issue on GitHub with:
-
-- Steps to reproduce
-- Expected behavior
-- Actual behavior
-- Browser version
-
-## 📞 Support
-
-For questions or issues, please open a GitHub issue.
+A modern, secure, and private browser extension for managing Two-Factor Authentication (2FA / TOTP) codes with client-side AES-256 encryption, 1-click screen QR scanner, and automatic login autofill.
 
 ---
 
-Made with ❤️ for secure authentication
+## ✨ Features
+
+- **🔐 Client-Side Encrypted Vault** - All TOTP secrets are encrypted locally using AES-256-GCM with PBKDF2 (150,000 rounds) derived from your personal PIN.
+- **📷 1-Click Screen QR Scanner** - Capture QR codes directly from your browser tab or upload an image to add accounts effortlessly without mobile scanning apps.
+- **⚡ In-Field Autofill** - Automatically detects 2FA verification fields on login pages and fills codes in 1 click or via keyboard shortcut.
+- **⏱️ Full RFC 6238 & Steam Guard** - Supports standard 6, 7, and 8 digits, custom algorithms (SHA-1, SHA-256, SHA-512), custom periods (15s, 30s, 60s), and Steam Guard alphanumeric codes.
+- **👁️ Privacy Mask (Peek Mode)** - Conceals codes with a Gaussian blur to protect against shoulder surfing; hovering over any account card reveals the code.
+- **⭐ Star / Pin Favorites** - Pin your most important accounts to the top of your vault.
+- **🛡️ Anti-Brute-Force Lockout** - Automatic cooldown timer temporarily halts unlock attempts after repeated incorrect PIN entries.
+- **💤 System Lock & Idle Protection** - Purges decrypted session keys and locks the vault whenever your machine locks or sleeps.
+- **🎨 4 Sleek Themes** - Switch between Midnight Cyan, Pure OLED Black, Nord Arctic, and Clean Light.
+- **💾 Encrypted Backup & Restore** - Export or import your accounts anytime.
+- **🔍 Quick Search & Hotkeys** - Press `/` to focus search instantly; press `Alt+Shift+A` to launch the extension anywhere.
+
+---
+
+## 🚀 Installation
+
+### From Source (Development / Unpacked)
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/pov-pisal/KH-2FA.git
+   cd KH-2FA
+   ```
+2. Open Chrome, Brave, or Edge and navigate to:
+   ```
+   chrome://extensions/
+   ```
+3. Enable **Developer mode** (toggle in the top-right corner).
+4. Click **Load unpacked** and select the `KH-2FA` project folder.
+
+---
+
+## 📖 Usage
+
+### First-Time Setup
+1. Click the **KH 2FA** icon in your browser toolbar.
+2. Create a master PIN (minimum 6 digits) and confirm it.
+3. Start adding your 2FA accounts!
+
+### Adding Accounts
+- **Screen QR Scan**: Click the **📷** button on the toolbar or inside the Add Account modal while viewing a 2FA setup QR code on screen.
+- **Manual Input**: Click **+** (Add Account) to enter your secret key, issuer, and label. You can also paste complete `otpauth://` URLs directly.
+
+### Copying & Autofilling Codes
+- Click any account card to copy its one-time code to your clipboard.
+- On login pages, click the KH 2FA badge next to the 2FA input field to autofill immediately.
+
+---
+
+## 🔒 Security Architecture
+
+| Parameter | Specification |
+|---|---|
+| **Encryption** | AES-256-GCM (NIST Approved, authenticated encryption) |
+| **Key Derivation** | PBKDF2 with SHA-256 (150,000 iterations) |
+| **Salt & Nonce** | Cryptographically secure random 16-byte salt & 12-byte IV |
+| **Vault Storage** | Private local browser storage (`chrome.storage.local`) |
+| **Session Keys** | In-memory only (`chrome.storage.session`), purged on lock or browser exit |
+| **Telemetry / Tracking** | **None.** Zero third-party scripts, zero analytics, zero external network requests |
+
+---
+
+## 📁 Project Structure
+
+```
+├── manifest.json          # Chrome Extension Manifest V3 configuration
+├── popup.html             # Extension popup user interface
+├── popup.css              # Themes, layout, and component styling
+├── popup.js               # Vault management, TOTP timers, and UI logic
+├── background.js          # Background service worker (auto-lock, context menu, tab capture)
+├── contentScript.js       # In-field autofill and QR code extraction
+├── crypto.js              # AES-256-GCM and PBKDF2 cryptographic routines
+├── totp.js                # RFC 6238 TOTP engine, HMAC-SHA, and Steam Guard
+├── storage.js             # Browser storage wrapper (local & session)
+├── brandIcons.js          # High-resolution brand SVG icons and colors
+├── backup.html / .js      # Standalone vault export/import page
+├── CHROMEWEBSTORE.md      # Official Chrome Web Store listing metadata & justifications
+├── PRIVACY.md             # Privacy Policy document
+└── icons/                 # Extension icons (16px, 32px, 48px, 128px, etc.)
+```
+
+---
+
+## 📝 License
+
+This project is licensed under the [MIT License](LICENSE).
