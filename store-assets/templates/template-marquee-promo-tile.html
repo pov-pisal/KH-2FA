@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1400px;
+    height: 560px;
+    overflow: hidden;
+    background: radial-gradient(circle at 65% 40%, #111e3b 0%, #080c16 65%, #03050a 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 70px;
+    position: relative;
+    user-select: none;
+  }
+
+  .glow-cyan {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(76, 201, 240, 0.15) 0%, rgba(76, 201, 240, 0) 70%);
+    top: -100px;
+    right: 250px;
+    pointer-events: none;
+    filter: blur(50px);
+  }
+  .glow-violet {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.12) 0%, rgba(167, 139, 250, 0) 70%);
+    bottom: -150px;
+    left: 50px;
+    pointer-events: none;
+    filter: blur(50px);
+  }
+
+  /* Left Side: Brand & Feature Copy */
+  .marquee-left {
+    width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 10;
+  }
+  .brand-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-title {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    color: #ffffff;
+  }
+  .brand-pill {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    background: rgba(76, 201, 240, 0.15);
+    border: 1px solid rgba(76, 201, 240, 0.45);
+    color: #4cc9f0;
+    box-shadow: 0 0 15px rgba(76, 201, 240, 0.25);
+  }
+  .headline {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.25;
+    background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #94a3b8;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+    backdrop-filter: blur(8px);
+  }
+  .feature-icon {
+    font-size: 14px;
+  }
+
+  /* Right Side: High-Res MacBook Mockup */
+  .marquee-right {
+    width: 680px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+  }
+
+  .macbook-screen {
+    width: 660px;
+    height: 420px;
+    background: #0f172a;
+    border-radius: 14px 14px 0 0;
+    border: 8px solid #1a1e27;
+    border-bottom: none;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 30px rgba(76, 201, 240, 0.15);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen-camera {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 14px;
+    background: #1a1e27;
+    border-radius: 0 0 8px 8px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .camera-lens { width: 5px; height: 5px; border-radius: 50%; background: #070a13; border: 1px solid #2d3342; }
+
+  .macos-menubar {
+    height: 20px;
+    background: rgba(15, 23, 42, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    font-size: 9px;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .chrome-window {
+    flex: 1;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .chrome-topbar {
+    height: 32px;
+    background: #141b2d;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.r { background: #ff5f56; }
+  .dot.y { background: #ffbd2e; }
+  .dot.g { background: #27c93f; }
+  .url-pill {
+    flex: 1;
+    height: 20px;
+    background: #0b0f19;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 9px;
+    color: #94a3b8;
+    margin-left: 8px;
+  }
+
+  /* Pop-Up inside MacBook */
+  .popup-overlay {
+    position: absolute;
+    top: 4px;
+    right: 12px;
+    width: 250px;
+    background: #0b0f19;
+    border: 1px solid rgba(76, 201, 240, 0.4);
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.8), 0 0 20px rgba(76, 201, 240, 0.2);
+  }
+  .pop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2px;
+  }
+  .pop-brand {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .pop-2fa {
+    font-size: 8px;
+    padding: 1px 5px;
+    background: rgba(76, 201, 240, 0.15);
+    border: 1px solid rgba(76, 201, 240, 0.4);
+    color: #4cc9f0;
+    border-radius: 4px;
+  }
+  .pop-card {
+    background: #131a29;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 5px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pop-card.pinned {
+    border-color: rgba(76, 201, 240, 0.35);
+  }
+  .pop-card-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .pop-card-code {
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 800;
+    color: #4cc9f0;
+    letter-spacing: 1px;
+  }
+  .pop-ring {
+    font-size: 8px;
+    font-weight: 800;
+    color: #34d399;
+  }
+
+  .macbook-base {
+    width: 710px;
+    height: 12px;
+    background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
+    border-radius: 0 0 12px 12px;
+    position: relative;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+  }
+  .macbook-chin {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: #14171f;
+    border-radius: 0 0 4px 4px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="glow-cyan"></div>
+  <div class="glow-violet"></div>
+
+  <!-- Left Side: Copy & Features -->
+  <div class="marquee-left">
+    <div class="brand-badge-row">
+      <span class="brand-title">KH</span>
+      <span class="brand-pill">2FA</span>
+    </div>
+    <h1 class="headline">The Modern Two-Factor Authenticator for Chrome</h1>
+    <p class="description">Protect your digital accounts with client-side AES-256 encryption, 1-click screen QR scanning, and instant login autofill.</p>
+
+    <div class="feature-grid">
+      <div class="feature-item">
+        <span class="feature-icon">🛡️</span>
+        <span>AES-256-GCM Vault</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">📷</span>
+        <span>Screen QR Scanner</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">⚡</span>
+        <span>In-Field Code Autofill</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">👁️</span>
+        <span>Privacy Peek Mode</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">⭐</span>
+        <span>Pin Favorite Accounts</span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🔒</span>
+        <span>100% Offline &amp; Private</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: MacBook Mockup -->
+  <div class="marquee-right">
+    <div class="macbook-screen">
+      <div class="screen-camera"><div class="camera-lens"></div></div>
+
+      <div class="macos-menubar">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span style="font-weight:900;"></span>
+          <span style="font-weight:700;">Chrome</span>
+          <span>File</span>
+          <span>Edit</span>
+          <span>View</span>
+        </div>
+        <div>98% 🔋 &nbsp; Tue Sep 27</div>
+      </div>
+
+      <div class="chrome-window">
+        <div class="chrome-topbar">
+          <div class="dot r"></div>
+          <div class="dot y"></div>
+          <div class="dot g"></div>
+          <div class="url-pill">🔒 github.com/settings/security</div>
+        </div>
+
+        <div style="flex:1; background:#0d1117; padding:16px 20px; display:flex; flex-direction:column; gap:10px;">
+          <div style="font-size:13px; font-weight:700; color:#f0f6fc;">Two-factor authentication (2FA)</div>
+          <div style="font-size:10px; color:#8b949e; line-height:1.4; max-width:320px;">Two-factor authentication adds an extra layer of security when logging into your account.</div>
+          <div style="margin-top:8px; display:inline-block; padding:4px 10px; background:#238636; border-radius:5px; font-size:10px; font-weight:600; width:fit-content;">Configure Keys</div>
+        </div>
+
+        <!-- Pop-Up -->
+        <div class="popup-overlay">
+          <div class="pop-head">
+            <div class="pop-brand">
+              <span>KH</span>
+              <span class="pop-2fa">2FA</span>
+            </div>
+            <span style="font-size:8px; color:#34d399; font-weight:700;">● Secure</span>
+          </div>
+
+          <div class="pop-card pinned">
+            <div>
+              <div class="pop-card-title">GitHub · dev ★</div>
+              <div class="pop-card-code">904 613</div>
+            </div>
+            <div class="pop-ring">24s</div>
+          </div>
+
+          <div class="pop-card">
+            <div>
+              <div class="pop-card-title">Google · admin</div>
+              <div class="pop-card-code">718 352</div>
+            </div>
+            <div class="pop-ring">18s</div>
+          </div>
+
+          <div class="pop-card">
+            <div>
+              <div class="pop-card-title">AWS · prod</div>
+              <div class="pop-card-code">280 749</div>
+            </div>
+            <div class="pop-ring">12s</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="macbook-base">
+      <div class="macbook-chin"></div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    height: 800px;
+    overflow: hidden;
+    background: radial-gradient(circle at 75% 25%, #101c36 0%, #070a13 70%, #03050a 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 28px;
+    position: relative;
+    user-select: none;
+  }
+
+  .glow-green {
+    position: absolute;
+    width: 550px;
+    height: 550px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.12) 0%, rgba(52, 211, 153, 0) 70%);
+    top: -80px;
+    left: 200px;
+    pointer-events: none;
+    filter: blur(40px);
+  }
+  .glow-cyan {
+    position: absolute;
+    width: 550px;
+    height: 550px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(76, 201, 240, 0.12) 0%, rgba(76, 201, 240, 0) 70%);
+    top: -100px;
+    right: 80px;
+    pointer-events: none;
+    filter: blur(40px);
+  }
+
+  /* Header Section */
+  .top-title-wrap {
+    text-align: center;
+    margin-bottom: 24px;
+    z-index: 10;
+  }
+  .top-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    color: #34d399;
+  }
+  .pill-badge.cyan {
+    background: rgba(76, 201, 240, 0.1);
+    border-color: rgba(76, 201, 240, 0.3);
+    color: #4cc9f0;
+  }
+  .pill-badge.purple {
+    background: rgba(167, 139, 250, 0.1);
+    border-color: rgba(167, 139, 250, 0.3);
+    color: #c4b5fd;
+  }
+  .top-headline {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(180deg, #ffffff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .top-subhead {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+    letter-spacing: 0.2px;
+  }
+
+  /* MacBook Mockup Frame */
+  .macbook-wrapper {
+    width: 1060px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+    position: relative;
+  }
+
+  .macbook-screen {
+    width: 960px;
+    height: 590px;
+    background: #0f172a;
+    border-radius: 18px 18px 0 0;
+    border: 10px solid #1a1e27;
+    border-bottom: none;
+    box-shadow: 0 -2px 0 1px #2d3342, 0 30px 90px rgba(0, 0, 0, 0.7);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen-camera {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 18px;
+    background: #1a1e27;
+    border-radius: 0 0 10px 10px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .camera-lens {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #070a13;
+    border: 1px solid #2d3342;
+  }
+
+  .macos-menubar {
+    height: 24px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 11px;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 90;
+  }
+  .menubar-left { display: flex; gap: 14px; align-items: center; }
+  .apple-icon { font-size: 13px; font-weight: 900; }
+  .menubar-right { display: flex; gap: 12px; align-items: center; font-size: 11px; }
+
+  .chrome-window {
+    flex: 1;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .chrome-header {
+    height: 40px;
+    background: #141b2d;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .window-controls { display: flex; gap: 7px; margin-left: 2px; }
+  .control-dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+
+  .browser-tabs { display: flex; gap: 4px; flex: 1; margin-left: 6px; }
+  .tab {
+    padding: 6px 14px;
+    border-radius: 8px 8px 0 0;
+    font-size: 11px;
+    color: #94a3b8;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .tab.active { background: #0b0f19; color: #f8fafc; font-weight: 500; }
+
+  .chrome-toolbar {
+    height: 38px;
+    background: #0b0f19;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .nav-buttons { display: flex; gap: 8px; color: #64748b; font-size: 13px; }
+  .url-bar {
+    flex: 1;
+    height: 26px;
+    background: #151d2f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 11px;
+    color: #cbd5e1;
+    gap: 6px;
+  }
+  .url-lock { color: #34d399; font-size: 10px; }
+  .url-host { color: #f8fafc; font-weight: 600; }
+  .url-path { color: #64748b; }
+
+  .extension-icons { display: flex; align-items: center; gap: 10px; position: relative; }
+  .ext-icon-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #4cc9f0, #4361ee);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(76, 201, 240, 0.5);
+    cursor: pointer;
+  }
+
+  /* Page Viewport with QR Code on screen */
+  .page-viewport {
+    flex: 1;
+    background: #0d1117;
+    padding: 24px 36px;
+    color: #c9d1d9;
+    display: flex;
+    gap: 24px;
+    position: relative;
+  }
+  .qr-setup-box {
+    flex: 1;
+    max-width: 480px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .qr-setup-box h2 {
+    font-size: 16px;
+    color: #f0f6fc;
+  }
+  .qr-setup-box p {
+    font-size: 12px;
+    color: #8b949e;
+  }
+
+  /* Holographic QR Scanner Target */
+  .qr-scanner-frame {
+    width: 190px;
+    height: 190px;
+    margin: 8px auto;
+    position: relative;
+    border: 2px solid rgba(52, 211, 153, 0.4);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    box-shadow: 0 0 25px rgba(52, 211, 153, 0.2);
+  }
+  .qr-corner {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: #34d399;
+    border-style: solid;
+  }
+  .corner-tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+  .corner-tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+  .corner-bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+  .corner-br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+  .laser-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #34d399;
+    box-shadow: 0 0 10px #34d399, 0 0 20px #34d399;
+  }
+  .qr-scan-badge {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0b0f19;
+    border: 1px solid #34d399;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+    color: #34d399;
+    white-space: nowrap;
+  }
+
+  /* KH 2FA POPUP IN SCANNER / ADD MODE */
+  .extension-popup {
+    position: absolute;
+    top: 4px;
+    right: 14px;
+    width: 330px;
+    background: #0b0f19;
+    border: 1px solid rgba(76, 201, 240, 0.4);
+    border-radius: 14px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.8), 0 0 30px rgba(52, 211, 153, 0.18);
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    gap: 12px;
+    z-index: 80;
+  }
+
+  .popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .popup-brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .brand-kh { font-size: 15px; font-weight: 800; color: #ffffff; }
+  .brand-2fa {
+    font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px;
+    background: rgba(76, 201, 240, 0.15); border: 1px solid rgba(76, 201, 240, 0.4); color: #4cc9f0;
+  }
+
+  .qr-detect-banner {
+    background: rgba(52, 211, 153, 0.12);
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .detect-icon {
+    font-size: 16px;
+    color: #34d399;
+  }
+  .detect-text {
+    display: flex;
+    flex-direction: column;
+  }
+  .detect-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #34d399;
+  }
+  .detect-sub {
+    font-size: 9px;
+    color: #94a3b8;
+  }
+
+  .detected-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #131a29;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .form-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+  .form-val {
+    height: 26px;
+    background: #0b0f19;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    padding: 0 8px;
+    font-size: 11px;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+  }
+  .form-val.secret {
+    font-family: monospace;
+    color: #4cc9f0;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-save-acc {
+    height: 32px;
+    background: linear-gradient(135deg, #34d399, #059669);
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 3px 10px rgba(52, 211, 153, 0.3);
+    cursor: pointer;
+  }
+
+  .peek-mode-card {
+    background: rgba(76, 201, 240, 0.06);
+    border: 1px solid rgba(76, 201, 240, 0.2);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .peek-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #cbd5e1;
+  }
+  .peek-toggle {
+    width: 28px;
+    height: 16px;
+    background: #4cc9f0;
+    border-radius: 999px;
+    position: relative;
+  }
+  .peek-knob {
+    width: 12px;
+    height: 12px;
+    background: #0b0f19;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+  }
+
+  .macbook-base {
+    width: 1040px;
+    height: 16px;
+    background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
+    border-radius: 0 0 16px 16px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  }
+  .macbook-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 6px;
+    background: #14171f;
+    border-radius: 0 0 6px 6px;
+  }
+
+  .bottom-badges-wrap {
+    display: flex;
+    gap: 16px;
+    margin-top: 20px;
+    z-index: 10;
+  }
+  .bottom-badge-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+    backdrop-filter: blur(8px);
+  }
+</style>
+</head>
+<body>
+
+  <div class="glow-green"></div>
+  <div class="glow-cyan"></div>
+
+  <div class="top-title-wrap">
+    <div class="top-badges">
+      <div class="pill-badge">📷 1-Click Screen Scan</div>
+      <div class="pill-badge cyan">👁️ Privacy Peek Mode</div>
+      <div class="pill-badge purple">⭐ Star Pinning</div>
+    </div>
+    <h1 class="top-headline">1-Click Screen QR Scanner &amp; Privacy Mask</h1>
+    <p class="top-subhead">Instantly scan 2FA setup QR codes without reaching for your phone</p>
+  </div>
+
+  <div class="macbook-wrapper">
+    <div class="macbook-screen">
+      <div class="screen-camera"><div class="camera-lens"></div></div>
+
+      <div class="macos-menubar">
+        <div class="menubar-left">
+          <span class="apple-icon"></span>
+          <span style="font-weight:700;">Chrome</span>
+          <span>File</span>
+          <span>Edit</span>
+          <span>View</span>
+          <span>History</span>
+          <span>Window</span>
+        </div>
+        <div class="menubar-right">
+          <span>98% 🔋</span>
+          <span>WiFi 📶</span>
+          <span>Tue Sep 27 &nbsp;10:43 AM</span>
+        </div>
+      </div>
+
+      <div class="chrome-window">
+        <div class="chrome-header">
+          <div class="window-controls">
+            <div class="control-dot dot-red"></div>
+            <div class="control-dot dot-yellow"></div>
+            <div class="control-dot dot-green"></div>
+          </div>
+          <div class="browser-tabs">
+            <div class="tab active">
+              <span>GitHub · Two-factor setup</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chrome-toolbar">
+          <div class="nav-buttons"><span>←</span><span>→</span><span>⟳</span></div>
+          <div class="url-bar">
+            <span class="url-lock">🔒</span>
+            <span class="url-host">github.com</span><span class="url-path">/settings/two-factor/setup</span>
+          </div>
+          <div class="extension-icons">
+            <div class="ext-icon-badge">KH</div>
+          </div>
+        </div>
+
+        <div class="page-viewport">
+          <!-- Setup instructions on website -->
+          <div class="qr-setup-box">
+            <h2>Set up Two-Factor Authentication</h2>
+            <p>Scan the QR code below using your authenticator app to enroll your device.</p>
+            
+            <!-- Simulated QR code with scanner overlay -->
+            <div class="qr-scanner-frame">
+              <div class="qr-corner corner-tl"></div>
+              <div class="qr-corner corner-tr"></div>
+              <div class="qr-corner corner-bl"></div>
+              <div class="qr-corner corner-br"></div>
+              <div class="laser-line"></div>
+              <div class="qr-scan-badge">✓ 2FA QR DETECTED</div>
+
+              <!-- Real QR Code SVG -->
+              <svg width="150" height="150" viewBox="0 0 33 33" shape-rendering="crispEdges">
+                <path fill="#000000" d="M0 0h9v9H0zM24 0h9v9H24zM0 24h9v9H0zM2 2h5v5H2zM26 2h5v5h-5zM2 26h5v5H2zM4 4h1v1H4zM28 4h1v1h-1zM4 28h1v1H4zM12 0h2v1h-2zM15 0h1v4h-1zM18 0h1v2h-1zM20 0h2v3h-2zM10 2h1v1h-1zM13 2h1v1h-1zM17 2h1v1h-1zM10 4h2v2h-2zM13 4h1v1h-1zM18 4h2v2h-2zM21 4h1v2h-1zM14 6h1v1h-1zM16 6h1v1h-1zM20 7h1v2h-1zM11 8h1v2h-1zM13 8h2v1h-2zM17 8h1v1h-1zM22 8h1v1h-1zM0 10h1v1H0zM3 10h1v1H3zM5 10h2v1H5zM8 10h1v1H8zM10 10h1v3h-1zM14 10h1v1h-1zM18 10h1v1h-1zM21 10h2v1h-2zM24 10h1v2h-1zM27 10h2v1h-2zM31 10h2v1h-2zM1 11h2v1H1zM4 11h1v1H4zM7 11h1v1H7zM12 11h2v2h-2zM16 11h1v1h-1zM20 11h1v2h-1zM28 11h1v2h-1zM0 12h1v1H0zM3 12h1v1H3zM5 12h2v1H5zM8 12h1v2H8zM15 12h2v1h-2zM18 12h1v1h-1zM22 12h2v1h-2zM25 12h2v1h-2zM30 12h1v1h-1zM32 12h1v1h-1zM1 13h2v1H1zM4 13h1v1H4zM7 13h1v1H7zM11 13h1v1h-1zM14 13h1v1h-1zM17 13h1v1h-1zM27 13h1v1h-1zM31 13h1v2h-1zM0 14h1v2H0zM2 14h2v1H2zM5 14h2v1H5zM10 14h1v2h-1zM12 14h2v2h-2zM16 14h1v1h-1zM18 14h2v1h-2zM22 14h1v1h-1zM24 14h2v1h-2zM28 14h2v1h-2zM1 15h1v1H1zM4 15h1v1H4zM7 15h1v1H7zM15 15h1v2h-1zM21 15h1v2h-1zM26 15h2v1h-2zM30 15h1v1h-1zM32 15h1v2h-1zM3 16h2v1H3zM6 16h1v1H6zM8 16h1v1H8zM11 16h1v1h-1zM14 16h1v1h-1zM17 16h3v1h-3zM23 16h1v1h-1zM25 16h1v2h-1zM29 16h1v1h-1zM1 17h1v1H1zM4 17h2v1H4zM7 17h1v1H7zM9 17h1v1H9zM12 17h2v1h-2zM20 17h1v1h-1zM27 17h2v1h-2zM30 17h2v1h-2zM0 18h1v1H0zM2 18h2v1H2zM6 18h1v1H6zM8 18h1v1H8zM10 18h2v2h-2zM13 18h2v1h-2zM16 18h1v1h-1zM18 18h2v1h-2zM22 18h2v1h-2zM26 18h1v1h-1zM32 18h1v1h-1zM1 19h1v1H1zM4 19h2v1H4zM7 19h1v2H7zM13 19h1v1h-1zM15 19h2v1h-2zM21 19h1v1h-1zM24 19h2v1h-2zM28 19h3v1h-3zM0 20h1v1H0zM2 20h2v1H2zM5 20h1v1H5zM9 20h1v1H9zM12 20h1v1h-1zM17 20h3v1h-3zM22 20h2v1h-2zM27 20h1v1h-1zM32 20h1v1h-1zM1 21h1v1H1zM3 21h2v1H3zM6 21h1v1H6zM8 21h1v1H8zM10 21h2v1h-2zM14 21h2v1h-2zM18 21h1v1h-1zM20 21h1v1h-1zM25 21h2v1h-2zM29 21h1v1h-1zM31 21h1v1h-1zM0 22h1v1H0zM4 22h1v1H4zM8 22h1v1H8zM12 22h2v1h-2zM16 22h2v1h-2zM22 22h3v1h-3zM27 22h2v1h-2zM30 22h2v1h-2zM1 23h2v1H1zM5 23h2v1H5zM10 23h1v1h-1zM15 23h1v1h-1zM19 23h2v1h-2zM23 23h1v1h-1zM26 23h1v1h-1zM29 23h1v1h-1zM10 24h1v1h-1zM13 24h2v1h-2zM17 24h1v2h-1zM20 24h2v1h-2zM23 24h2v2h-2zM26 24h2v1h-2zM30 24h2v1h-2zM11 25h1v1h-1zM15 25h2v1h-2zM19 25h1v1h-1zM22 25h1v1h-1zM29 25h1v1h-1zM32 25h1v1h-1zM10 26h2v1h-2zM13 26h1v1h-1zM16 26h1v2h-1zM18 26h1v1h-1zM20 26h2v1h-2zM25 26h1v1h-1zM27 26h2v1h-2zM30 26h1v2h-1zM12 27h1v1h-1zM14 27h1v2h-1zM17 27h2v1h-2zM22 27h1v1h-1zM24 27h1v1h-1zM28 27h2v1h-2zM32 27h1v1h-1zM10 28h1v1h-1zM12 28h1v1h-1zM16 28h1v1h-1zM19 28h2v1h-2zM23 28h1v1h-1zM26 28h1v1h-1zM31 28h1v1h-1zM11 29h1v1h-1zM13 29h1v2h-1zM15 29h1v1h-1zM17 29h2v1h-2zM21 29h1v1h-1zM24 29h2v1h-2zM27 29h2v1h-2zM30 29h1v1h-1zM32 29h1v1h-1zM10 30h2v1h-2zM14 30h1v1h-1zM16 30h1v1h-1zM19 30h2v1h-2zM22 30h2v1h-2zM26 30h1v2h-1zM29 30h1v1h-1zM31 30h1v1h-1zM12 31h1v1h-1zM15 31h1v1h-1zM18 31h1v1h-1zM20 31h1v1h-1zM24 31h1v1h-1zM27 31h2v1h-2zM30 31h2v1h-2zM10 32h2v1h-2zM13 32h2v1h-2zM16 32h2v1h-2zM19 32h1v1h-1zM22 32h1v1h-1zM25 32h1v1h-1zM28 32h2v1h-2zM32 32h1v1h-1z"/>
+              </svg>
+            </div>
+            
+            <p style="text-align:center; font-size:11px; color:#64748b;">Or enter key manually: <span style="font-family:monospace; color:#cbd5e1;">JBSWY3DPEHPK45P7</span></p>
+          </div>
+
+          <!-- POPUP SHOWING AUTOMATICALLY SCANNED & PARSED QR DETAILS -->
+          <div class="extension-popup">
+            <div class="popup-header">
+              <div class="popup-brand-badge">
+                <span class="brand-kh">KH</span>
+                <span class="brand-2fa">2FA</span>
+              </div>
+              <span style="font-size:10px; color:#34d399; font-weight:700;">● Active Screen Scan</span>
+            </div>
+
+            <!-- Detection Banner -->
+            <div class="qr-detect-banner">
+              <div class="detect-icon">📷</div>
+              <div class="detect-text">
+                <span class="detect-title">2FA QR Code Decoded</span>
+                <span class="detect-sub">Extracted via native BarcodeDetector API</span>
+              </div>
+            </div>
+
+            <!-- Detected Account Form -->
+            <div class="detected-form">
+              <div class="form-row">
+                <span class="form-label">Issuer</span>
+                <div class="form-val">GitHub</div>
+              </div>
+              <div class="form-row">
+                <span class="form-label">Account Label</span>
+                <div class="form-val">developer</div>
+              </div>
+              <div class="form-row">
+                <span class="form-label">Secret Key (Base32)</span>
+                <div class="form-val secret">JBSWY3DPEHPK45P7</div>
+              </div>
+              <div class="form-row">
+                <span class="form-label">Generated 2FA Code</span>
+                <div class="form-val" style="font-family:monospace; font-size:14px; font-weight:800; color:#34d399; letter-spacing:1.5px;">904 613</div>
+              </div>
+            </div>
+
+            <button class="btn-save-acc">
+              <span>✓</span> Save Account to Encrypted Vault
+            </button>
+
+            <!-- Privacy Peek Mode Toggle -->
+            <div class="peek-mode-card">
+              <div class="peek-left">
+                <span>👁️</span>
+                <span>Privacy Mask (Peek Mode)</span>
+              </div>
+              <div class="peek-toggle">
+                <div class="peek-knob"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="macbook-base">
+      <div class="macbook-notch"></div>
+    </div>
+  </div>
+
+  <div class="bottom-badges-wrap">
+    <div class="bottom-badge-card">
+      <span>📷</span>
+      <div>Zero Mobile Apps Required</div>
+    </div>
+    <div class="bottom-badge-card">
+      <span>👁️</span>
+      <div>Anti-Shoulder Surfing Mask</div>
+    </div>
+    <div class="bottom-badge-card">
+      <span>⭐</span>
+      <div>Pin Favorite Accounts</div>
+    </div>
+    <div class="bottom-badge-card">
+      <span>🛡️</span>
+      <div>PBKDF2 150,000 Rounds</div>
+    </div>
+  </div>
+
+</body>
+</html>

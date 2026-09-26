@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 440px;
+    height: 280px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 30%, #111a33 0%, #070a13 75%, #03050a 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 14px;
+    position: relative;
+    user-select: none;
+  }
+
+  .glow {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(76, 201, 240, 0.16) 0%, rgba(76, 201, 240, 0) 70%);
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    filter: blur(25px);
+  }
+
+  .header-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+  }
+  .brand-badge {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .brand-kh {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: #ffffff;
+  }
+  .brand-2fa {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(76, 201, 240, 0.18);
+    border: 1px solid rgba(76, 201, 240, 0.5);
+    color: #4cc9f0;
+    box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
+  }
+  .sub-tag {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 3px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+
+  /* Compact MacBook Mockup */
+  .mac-preview {
+    width: 380px;
+    height: 172px;
+    background: #0f172a;
+    border-radius: 10px 10px 0 0;
+    border: 6px solid #1a1e27;
+    border-bottom: none;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(76, 201, 240, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 5;
+  }
+  .mac-topbar {
+    height: 18px;
+    background: #141b2d;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot.r { background: #ff5f56; }
+  .dot.y { background: #ffbd2e; }
+  .dot.g { background: #27c93f; }
+  .url-preview {
+    margin-left: 6px;
+    font-size: 8px;
+    color: #64748b;
+    background: #0b0f19;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex: 1;
+  }
+
+  .mac-content {
+    flex: 1;
+    background: #0b0f19;
+    padding: 8px 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* Floating Extension Mini-Popup */
+  .mini-popup {
+    flex: 1;
+    background: #131a29;
+    border: 1px solid rgba(76, 201, 240, 0.35);
+    border-radius: 8px;
+    padding: 7px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  }
+  .mini-acc {
+    background: #0b0f19;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mini-acc-name {
+    font-size: 10px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  .mini-acc-code {
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 800;
+    color: #4cc9f0;
+    letter-spacing: 1px;
+  }
+  .mini-timer {
+    font-size: 8px;
+    color: #34d399;
+    font-weight: 700;
+  }
+
+  .mini-side-features {
+    width: 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .feature-pill {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 9px;
+    font-weight: 600;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .feature-pill span { color: #4cc9f0; font-weight: 800; }
+
+  .mac-base {
+    width: 410px;
+    height: 8px;
+    background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
+    border-radius: 0 0 10px 10px;
+    position: relative;
+    z-index: 5;
+  }
+  .mac-chin-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: #14171f;
+    border-radius: 0 0 3px 3px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="glow"></div>
+
+  <div class="header-wrap">
+    <div class="brand-badge">
+      <span class="brand-kh">KH</span>
+      <span class="brand-2fa">2FA</span>
+    </div>
+    <div class="sub-tag">Ultra-Fast &amp; Secure 2FA for Chrome</div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; align-items:center;">
+    <div class="mac-preview">
+      <div class="mac-topbar">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+        <div class="url-preview">🔒 github.com/login/2fa</div>
+      </div>
+      <div class="mac-content">
+        <div class="mini-popup">
+          <div class="mini-acc">
+            <span class="mini-acc-name">GitHub</span>
+            <span class="mini-acc-code">904 613</span>
+            <span class="mini-timer">24s</span>
+          </div>
+          <div class="mini-acc">
+            <span class="mini-acc-name">Google</span>
+            <span class="mini-acc-code">718 352</span>
+            <span class="mini-timer">18s</span>
+          </div>
+        </div>
+        <div class="mini-side-features">
+          <div class="feature-pill"><span>✓</span> AES-256 Vault</div>
+          <div class="feature-pill"><span>✓</span> Screen QR Scan</div>
+          <div class="feature-pill"><span>✓</span> 100% Offline</div>
+        </div>
+      </div>
+    </div>
+    <div class="mac-base">
+      <div class="mac-chin-notch"></div>
+    </div>
+  </div>
+
+</body>
+</html>
