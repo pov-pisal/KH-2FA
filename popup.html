@@ -9,25 +9,27 @@
   <body>
     <div class="app" aria-live="polite">
       <header class="app-header">
-        <div class="header-left">
-          <button
-            id="settingsBtn"
-            class="ghost icon-btn"
-            aria-label="Settings"
-            title="Settings"
-          >
-            ⚙️
-          </button>
-          <div class="title">
-            <div>
-              <h1>KH 2FA</h1>
-              <p class="subtitle">Secure TOTP vault</p>
-            </div>
+        <button
+          id="settingsBtn"
+          class="ghost icon-btn"
+          aria-label="Settings"
+          title="Settings"
+        >
+          ⚙️
+        </button>
+        <div class="title">
+          <div class="brand-title">
+            <span class="brand-name">KH</span>
+            <span class="brand-badge">2FA</span>
+          </div>
+          <div class="subtitle-wrap">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span class="subtitle">Secure TOTP vault</span>
           </div>
         </div>
         <button
           id="editAccountsBtn"
-          class="ghost"
+          class="ghost icon-btn"
           aria-label="Edit accounts"
           title="Edit accounts"
         >

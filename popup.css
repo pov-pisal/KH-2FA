@@ -52,13 +52,7 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
+  position: relative;
 }
 
 .icon-btn {
@@ -68,34 +62,101 @@ body {
   place-items: center;
   padding: 0;
   border-radius: 10px;
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: var(--panel-2);
+  border-color: rgba(76, 201, 240, 0.4);
+  transform: translateY(-1px);
+}
+
+.icon-btn:active {
+  transform: scale(0.96);
 }
 
 .title {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   text-align: center;
   flex: 1;
+  min-width: 0;
+}
+
+.brand-title {
+  display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 6px;
+  line-height: 1.2;
 }
 
-.logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  box-shadow: 0 0 16px rgba(76, 201, 240, 0.35);
+.brand-name {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: var(--text);
 }
 
-h1 {
-  font-size: 16px;
-  margin: 0;
+.brand-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  background: rgba(76, 201, 240, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(76, 201, 240, 0.35);
+  border-radius: 6px;
+  padding: 1px 6px;
+  line-height: 1.3;
+  box-shadow: 0 0 10px rgba(76, 201, 240, 0.15);
+  transition: all 0.2s ease;
+}
+
+[data-theme="light"] .brand-badge {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.subtitle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.8);
+  flex-shrink: 0;
+  animation: pulse-dot 2.5s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
 }
 
 .subtitle {
-  margin: 2px 0 0 0;
-  font-size: 12px;
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--muted);
+  letter-spacing: 0.2px;
+  line-height: 1;
 }
 
 .muted {
