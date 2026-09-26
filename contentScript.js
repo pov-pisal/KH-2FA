@@ -425,5 +425,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message?.type === "EXTRACT_QR_DOM") {
+    const link = document.querySelector('a[href^="otpauth://"]');
+    if (link?.href) {
+      sendResponse({ ok: true, url: link.href });
+      return true;
+    }
+    const images = Array.from(document.querySelectorAll("img, svg, canvas"));
+    for (const img of images) {
+      const src = img.getAttribute("src") || "";
+      const dataUrl = img.getAttribute("data-url") || img.getAttribute("data-secret") || "";
+      if (src.includes("otpauth%3A%2F%2F") || src.includes("otpauth://")) {
+        try {
+          const clean = decodeURIComponent(src.split("chl=")[1] || src);
+          if (clean.startsWith("otpauth://")) {
+            sendResponse({ ok: true, url: clean });
+            return true;
+          }
+        } catch {}
+      }
+      if (dataUrl.startsWith("otpauth://")) {
+        sendResponse({ ok: true, url: dataUrl });
+        return true;
+      }
+    }
+    sendResponse({ ok: false });
+    return true;
+  }
+
   return false;
 });

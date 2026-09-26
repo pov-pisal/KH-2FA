@@ -22,9 +22,20 @@ export function base32ToBytes(input) {
   return new Uint8Array(bytes);
 }
 
-export async function generateTOTP(secret, now = Date.now()) {
+export async function generateTOTP(secret, now = Date.now(), options = {}) {
+  const period = Number(options.period) || 30;
+  const digits = options.digits === "steam" || options.digits === 5 ? "steam" : (Number(options.digits) || 6);
+  const algorithm = (options.algorithm || "SHA-1").toUpperCase();
+
+  const hashName =
+    algorithm === "SHA-256" || algorithm === "SHA256"
+      ? "SHA-256"
+      : algorithm === "SHA-512" || algorithm === "SHA512"
+        ? "SHA-512"
+        : "SHA-1";
+
   const keyData = base32ToBytes(secret);
-  const counter = Math.floor(now / 1000 / 30);
+  const counter = Math.floor(now / 1000 / period);
   const buffer = new ArrayBuffer(8);
   const view = new DataView(buffer);
   view.setUint32(4, counter);
@@ -32,7 +43,7 @@ export async function generateTOTP(secret, now = Date.now()) {
   const key = await crypto.subtle.importKey(
     "raw",
     keyData,
-    { name: "HMAC", hash: "SHA-1" },
+    { name: "HMAC", hash: hashName },
     false,
     ["sign"]
   );
@@ -46,21 +57,42 @@ export async function generateTOTP(secret, now = Date.now()) {
     ((hmacView.getUint8(offset + 2) & 0xff) << 8) |
     (hmacView.getUint8(offset + 3) & 0xff);
 
-  const otp = (binCode % 1000000).toString().padStart(6, "0");
+  if (digits === "steam") {
+    const STEAM_CHARS = "23456789BCDFGHJKMNPQRTVWXY";
+    let fullCode = binCode;
+    let steamCode = "";
+    for (let i = 0; i < 5; i += 1) {
+      steamCode += STEAM_CHARS[fullCode % STEAM_CHARS.length];
+      fullCode = Math.floor(fullCode / STEAM_CHARS.length);
+    }
+    return steamCode;
+  }
+
+  const numDigits = Math.min(Math.max(Number(digits) || 6, 6), 8);
+  const modulo = Math.pow(10, numDigits);
+  const otp = (binCode % modulo).toString().padStart(numDigits, "0");
   return otp;
 }
 
 export function parseOtpauth(url) {
-  if (!url.startsWith("otpauth://totp/")) {
+  if (!url || typeof url !== "string") {
+    return null;
+  }
+
+  const cleanUrl = url.trim();
+  if (!cleanUrl.startsWith("otpauth://")) {
     return null;
   }
 
   try {
-    const parsed = new URL(url);
-    const labelRaw = decodeURIComponent(parsed.pathname.replace("/", ""));
+    const parsed = new URL(cleanUrl);
+    const labelRaw = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
     const params = parsed.searchParams;
     const secret = params.get("secret") || "";
     const issuerParam = params.get("issuer") || "";
+    const algorithm = (params.get("algorithm") || "SHA1").toUpperCase();
+    const digits = params.get("digits") ? Number(params.get("digits")) : 6;
+    const period = params.get("period") ? Number(params.get("period")) : 30;
 
     let issuer = issuerParam;
     let label = labelRaw;
@@ -73,7 +105,10 @@ export function parseOtpauth(url) {
     return {
       issuer: issuer.trim(),
       label: label.trim(),
-      secret: secret.trim(),
+      secret: normalizeSecret(secret),
+      algorithm: algorithm.includes("256") ? "SHA-256" : algorithm.includes("512") ? "SHA-512" : "SHA-1",
+      digits: digits === 8 ? 8 : digits === 7 ? 7 : 6,
+      period: period > 0 ? period : 30,
     };
   } catch (error) {
     return null;

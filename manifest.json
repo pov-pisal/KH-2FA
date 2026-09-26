@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "KH 2FA",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Secure TOTP generator with encrypted vault.",
   "action": {
     "default_title": "KH 2FA",
@@ -13,7 +13,7 @@
       "128": "icons/icon-128.png"
     }
   },
-  "permissions": ["storage", "activeTab", "downloads", "tabs", "contextMenus"],
+  "permissions": ["storage", "activeTab", "downloads", "tabs", "contextMenus", "idle"],
   "commands": {
     "_execute_action": {
       "suggested_key": {

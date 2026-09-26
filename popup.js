@@ -92,6 +92,14 @@ const elements = {
   sortSelect: document.getElementById("sortSelect"),
   prefSaveBtn: document.getElementById("prefSaveBtn"),
   prefCancelBtn: document.getElementById("prefCancelBtn"),
+  peekToggleBtn: document.getElementById("peekToggleBtn"),
+  scanScreenQrBtn: document.getElementById("scanScreenQrBtn"),
+  modalScanScreenBtn: document.getElementById("modalScanScreenBtn"),
+  qrFileInput: document.getElementById("qrFileInput"),
+  lockoutNotice: document.getElementById("lockoutNotice"),
+  digitsInput: document.getElementById("digitsInput"),
+  algorithmInput: document.getElementById("algorithmInput"),
+  periodInput: document.getElementById("periodInput"),
 };
 
 let vaultRecord = null;
@@ -105,6 +113,10 @@ let editingId = null;
 let pendingDeleteId = null;
 let preferencesDraft = null;
 let dragSrcId = null;          // id of account being dragged
+let privacyMaskActive = false;
+let failedPinAttempts = 0;
+let lockoutSecondsRemaining = 0;
+let lockoutInterval = null;
 const codes = new Map();
 
 function showToast(message) {
@@ -166,7 +178,7 @@ function getSortMode() {
 }
 
 function applyTheme(theme) {
-  const resolved = theme === "light" ? "light" : "dark";
+  const resolved = ["light", "oled", "nord"].includes(theme) ? theme : "dark";
   document.documentElement.dataset.theme = resolved;
 }
 
@@ -177,39 +189,45 @@ function normalizeSortText(value) {
 function sortAccounts(list) {
   const mode = getSortMode();
   const sorted = [...list];
-  // "manual" preserves the order stored in vault.accounts
-  if (mode === "manual") return sorted;
-  if (mode === "oldest") {
-    sorted.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-    return sorted;
+
+  // Pinned accounts always float to the top
+  const pinned = [];
+  const unpinned = [];
+  for (const item of sorted) {
+    if (item.pinned) pinned.push(item);
+    else unpinned.push(item);
   }
-  if (mode === "newest") {
-    sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    return sorted;
-  }
-  if (mode === "issuer-asc" || mode === "issuer-desc") {
-    sorted.sort((a, b) =>
-      normalizeSortText(a.issuer).localeCompare(
-        normalizeSortText(b.issuer),
-        undefined,
-        { sensitivity: "base" },
-      ),
-    );
-    if (mode === "issuer-desc") sorted.reverse();
-    return sorted;
-  }
-  if (mode === "label-asc" || mode === "label-desc") {
-    sorted.sort((a, b) =>
-      normalizeSortText(a.label).localeCompare(
-        normalizeSortText(b.label),
-        undefined,
-        { sensitivity: "base" },
-      ),
-    );
-    if (mode === "label-desc") sorted.reverse();
-    return sorted;
-  }
-  return sorted;
+
+  const sortSlice = (items) => {
+    if (mode === "manual") return items;
+    const res = [...items];
+    if (mode === "oldest") {
+      res.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    } else if (mode === "newest") {
+      res.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } else if (mode === "issuer-asc" || mode === "issuer-desc") {
+      res.sort((a, b) =>
+        normalizeSortText(a.issuer).localeCompare(
+          normalizeSortText(b.issuer),
+          undefined,
+          { sensitivity: "base" },
+        ),
+      );
+      if (mode === "issuer-desc") res.reverse();
+    } else if (mode === "label-asc" || mode === "label-desc") {
+      res.sort((a, b) =>
+        normalizeSortText(a.label).localeCompare(
+          normalizeSortText(b.label),
+          undefined,
+          { sensitivity: "base" },
+        ),
+      );
+      if (mode === "label-desc") res.reverse();
+    }
+    return res;
+  };
+
+  return [...sortSlice(pinned), ...sortSlice(unpinned)];
 }
 
 function clearSession() {
@@ -237,7 +255,34 @@ async function setLocked(locked) {
   meta = await updateMeta({ locked, lastActive: locked ? 0 : Date.now() });
 }
 
+function setLockout(seconds) {
+  lockoutSecondsRemaining = seconds;
+  elements.unlockBtn.disabled = true;
+  elements.unlockPin.disabled = true;
+  if (elements.lockoutNotice) {
+    elements.lockoutNotice.classList.remove("hidden");
+    elements.lockoutNotice.textContent = `Too many failed attempts. Try again in ${lockoutSecondsRemaining}s.`;
+  }
+  clearInterval(lockoutInterval);
+  lockoutInterval = setInterval(() => {
+    lockoutSecondsRemaining -= 1;
+    if (lockoutSecondsRemaining <= 0) {
+      clearInterval(lockoutInterval);
+      elements.unlockBtn.disabled = false;
+      elements.unlockPin.disabled = false;
+      if (elements.lockoutNotice) {
+        elements.lockoutNotice.classList.add("hidden");
+        elements.lockoutNotice.textContent = "";
+      }
+      elements.unlockPin.focus();
+    } else if (elements.lockoutNotice) {
+      elements.lockoutNotice.textContent = `Too many failed attempts. Try again in ${lockoutSecondsRemaining}s.`;
+    }
+  }, 1000);
+}
+
 async function handleUnlock() {
+  if (lockoutSecondsRemaining > 0) return;
   const createMode = !vaultRecord;
   elements.lockError.textContent = "";
 
@@ -270,13 +315,23 @@ async function handleUnlock() {
 
   try {
     vault = await decryptVault(pin, vaultRecord);
+    failedPinAttempts = 0;
+    if (elements.lockoutNotice) {
+      elements.lockoutNotice.classList.add("hidden");
+      elements.lockoutNotice.textContent = "";
+    }
     sessionPin = pin;
     sessionData = { pin, lastActive: Date.now() };
     await setSession(sessionData);
     await setLocked(false);
     showMainView();
   } catch (error) {
+    failedPinAttempts += 1;
     elements.lockError.textContent = "Incorrect PIN.";
+    if (failedPinAttempts >= 3) {
+      const waitSeconds = failedPinAttempts === 3 ? 5 : failedPinAttempts === 4 ? 15 : 30;
+      setLockout(waitSeconds);
+    }
   }
 }
 
@@ -319,6 +374,9 @@ function openModal(editAccount = null) {
   elements.secretInput.value = editAccount?.secret || "";
   elements.issuerInput.value = editAccount?.issuer || "";
   elements.labelInput.value = editAccount?.label || "";
+  if (elements.digitsInput) elements.digitsInput.value = String(editAccount?.digits || "6");
+  if (elements.algorithmInput) elements.algorithmInput.value = editAccount?.algorithm || "SHA-1";
+  if (elements.periodInput) elements.periodInput.value = String(editAccount?.period || "30");
   elements.modalError.textContent = "";
   updateModalBrandPreview();
   elements.modal.classList.remove("hidden");
@@ -334,6 +392,9 @@ function closeModal() {
   elements.secretInput.value = "";
   elements.issuerInput.value = "";
   elements.labelInput.value = "";
+  if (elements.digitsInput) elements.digitsInput.value = "6";
+  if (elements.algorithmInput) elements.algorithmInput.value = "SHA-1";
+  if (elements.periodInput) elements.periodInput.value = "30";
   elements.modalError.textContent = "";
   updateModalBrandPreview();
   editingId = null;
@@ -1122,6 +1183,9 @@ async function saveAccount() {
       if (!elements.labelInput.value.trim()) {
         elements.labelInput.value = parsed.label;
       }
+      if (elements.digitsInput) elements.digitsInput.value = String(parsed.digits || 6);
+      if (elements.algorithmInput) elements.algorithmInput.value = parsed.algorithm || "SHA-1";
+      if (elements.periodInput) elements.periodInput.value = String(parsed.period || 30);
     }
   }
 
@@ -1143,6 +1207,12 @@ async function saveAccount() {
     issuer: issuerValue,
     label: labelValue,
     secret: normalizedSecret,
+    digits: elements.digitsInput?.value || "6",
+    algorithm: elements.algorithmInput?.value || "SHA-1",
+    period: Number(elements.periodInput?.value) || 30,
+    pinned: editingId && vault?.accounts
+      ? Boolean(vault.accounts.find((item) => item.id === editingId)?.pinned)
+      : false,
     createdAt:
       editingId && vault?.accounts
         ? vault.accounts.find((item) => item.id === editingId)?.createdAt ||
@@ -1315,6 +1385,9 @@ function renderAccounts() {
 
     const code = document.createElement("div");
     code.className = "account-code";
+    if (privacyMaskActive) {
+      code.classList.add("masked");
+    }
     code.dataset.code = "";
     code.textContent = "--- ---";
 
@@ -1325,9 +1398,21 @@ function renderAccounts() {
     codeWrap.append(code, copyTip);
     details.append(title, codeWrap);
 
-    // Right: Progress Ring + Drag handle
+    // Right: Star / Pin + Progress Ring + Drag handle
     const endCol = document.createElement("div");
     endCol.className = "account-end";
+
+    const starBtn = document.createElement("button");
+    starBtn.className = `star-btn ${account.pinned ? "active" : ""}`;
+    starBtn.type = "button";
+    starBtn.title = account.pinned ? "Unpin account" : "Pin to top";
+    starBtn.textContent = account.pinned ? "★" : "☆";
+    starBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      account.pinned = !account.pinned;
+      await saveVault();
+      renderAccounts();
+    });
 
     const ring = document.createElement("div");
     ring.className = "progress-ring";
@@ -1336,7 +1421,7 @@ function renderAccounts() {
         <circle class="ring-track" cx="16" cy="16" r="13.5"></circle>
         <circle class="ring-progress" cx="16" cy="16" r="13.5"></circle>
       </svg>
-      <span class="ring-text">30</span>
+      <span class="ring-text">${account.period || 30}</span>
     `;
 
     const dragHandle = document.createElement("div");
@@ -1345,7 +1430,7 @@ function renderAccounts() {
     dragHandle.title = "Drag to reorder";
     dragHandle.innerHTML = "&#8942;&#8942;"; // ⠿ six-dot grid
 
-    endCol.append(ring, dragHandle);
+    endCol.append(starBtn, ring, dragHandle);
 
     item.append(brandIcon, details, endCol);
     elements.accountsList.append(item);
@@ -1358,16 +1443,11 @@ function renderAccounts() {
 async function updateCodes() {
   if (!vault) return;
   const now = Date.now();
-  const counter = Math.floor(now / 1000 / 30);
-  if (counter === currentCounter) {
-    updateProgress(now);
-    return;
-  }
-  currentCounter = counter;
+  currentCounter = Math.floor(now / 1000);
 
   const promises = vault.accounts.map(async (account) => {
     try {
-      const otp = await generateTOTP(account.secret, now);
+      const otp = await generateTOTP(account.secret, now, account);
       codes.set(account.id, otp);
       const item = elements.accountsList.querySelector(
         `[data-id="${account.id}"]`,
@@ -1397,12 +1477,17 @@ async function updateCodes() {
 }
 
 function updateProgress(now = Date.now()) {
-  const remaining = 30 - (Math.floor(now / 1000) % 30);
-  const percent = (remaining / 30) * 100;
-  const radius = 13.5;
-  const circumference = 2 * Math.PI * radius;
+  elements.accountsList.querySelectorAll(".account").forEach((item) => {
+    const id = item.dataset.id;
+    const account = vault?.accounts?.find((acc) => acc.id === id);
+    const period = Number(account?.period) || 30;
+    const remaining = period - (Math.floor(now / 1000) % period);
+    const percent = (remaining / period) * 100;
+    const radius = 13.5;
+    const circumference = 2 * Math.PI * radius;
 
-  elements.accountsList.querySelectorAll(".progress-ring").forEach((ring) => {
+    const ring = item.querySelector(".progress-ring");
+    if (!ring) return;
     const progress = ring.querySelector(".ring-progress");
     const text = ring.querySelector(".ring-text");
     if (progress) {
@@ -1422,7 +1507,7 @@ function updateProgress(now = Date.now()) {
 
 async function handleAccountAction(event) {
   if (isDraggingNow || dragSrcId) return;
-  if (event.target.closest(".drag-handle")) return;
+  if (event.target.closest(".drag-handle") || event.target.closest(".star-btn")) return;
 
   const item = event.target.closest(".account");
   if (!item) return;
@@ -1435,13 +1520,13 @@ async function handleAccountAction(event) {
     const action = button.dataset.action;
 
     if (action === "copy") {
-      const code = (codes.get(id) || (await generateTOTP(account.secret))).replace(/\s+/g, "");
+      const code = (codes.get(id) || (await generateTOTP(account.secret, Date.now(), account))).replace(/\s+/g, "");
       await navigator.clipboard.writeText(code);
       showToast("Copied");
     }
 
     if (action === "autofill") {
-      const code = (codes.get(id) || (await generateTOTP(account.secret))).replace(/\s+/g, "");
+      const code = (codes.get(id) || (await generateTOTP(account.secret, Date.now(), account))).replace(/\s+/g, "");
       const [tab] = await chrome.tabs.query({
         active: true,
         currentWindow: true,
@@ -1476,7 +1561,7 @@ async function handleAccountAction(event) {
 
   // Click on the card or code copies the OTP code
   try {
-    const rawOtp = codes.get(id) || (await generateTOTP(account.secret));
+    const rawOtp = codes.get(id) || (await generateTOTP(account.secret, Date.now(), account));
     const cleanOtp = String(rawOtp).replace(/\s+/g, "");
     if (!cleanOtp || cleanOtp.includes("-")) return;
 
@@ -1525,6 +1610,113 @@ function checkInactivity() {
     setLocked(true);
     showLockedView({ createMode: false });
   }
+function togglePrivacyMask() {
+  privacyMaskActive = !privacyMaskActive;
+  if (elements.peekToggleBtn) {
+    elements.peekToggleBtn.classList.toggle("active", privacyMaskActive);
+    elements.peekToggleBtn.title = privacyMaskActive
+      ? "Disable Privacy Mask (Show codes)"
+      : "Enable Privacy Mask (Blur codes until hover)";
+  }
+  document.querySelectorAll(".account-code").forEach((el) => {
+    el.classList.toggle("masked", privacyMaskActive);
+  });
+}
+
+async function decodeImageForQR(imgSource) {
+  if ("BarcodeDetector" in window) {
+    try {
+      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+      const barcodes = await detector.detect(imgSource);
+      if (barcodes && barcodes.length > 0) {
+        for (const code of barcodes) {
+          if (code.rawValue) return code.rawValue;
+        }
+      }
+    } catch (e) {
+      console.warn("BarcodeDetector error:", e);
+    }
+  }
+  return null;
+}
+
+function populateAndOpenAddModal(urlOrSecret) {
+  if (!urlOrSecret) return;
+  const parsed = parseOtpauth(urlOrSecret);
+  openModal();
+  if (parsed) {
+    elements.secretInput.value = parsed.secret;
+    elements.issuerInput.value = parsed.issuer;
+    elements.labelInput.value = parsed.label;
+    if (elements.digitsInput) elements.digitsInput.value = String(parsed.digits || 6);
+    if (elements.algorithmInput) elements.algorithmInput.value = parsed.algorithm || "SHA-1";
+    if (elements.periodInput) elements.periodInput.value = String(parsed.period || 30);
+  } else {
+    elements.secretInput.value = urlOrSecret;
+  }
+  updateModalBrandPreview();
+  showToast("QR code detected & loaded!");
+}
+
+async function handleScanScreenQR() {
+  showToast("Scanning screen for QR code...");
+  chrome.runtime.sendMessage({ action: "CAPTURE_VISIBLE_TAB" }, async (response) => {
+    if (response?.ok && response?.dataUrl) {
+      const img = new Image();
+      img.onload = async () => {
+        const qrContent = await decodeImageForQR(img);
+        if (qrContent) {
+          populateAndOpenAddModal(qrContent);
+        } else {
+          fallbackDomScan();
+        }
+      };
+      img.onerror = () => fallbackDomScan();
+      img.src = response.dataUrl;
+    } else {
+      fallbackDomScan();
+    }
+  });
+
+  function fallbackDomScan() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const activeTab = tabs?.[0];
+      if (!activeTab?.id) {
+        showToast("No active tab found");
+        return;
+      }
+      chrome.tabs.sendMessage(activeTab.id, { type: "EXTRACT_QR_DOM" }, (res) => {
+        if (res?.ok && res?.url) {
+          populateAndOpenAddModal(res.url);
+        } else {
+          showToast("No 2FA QR code found on active tab");
+        }
+      });
+    });
+  }
+}
+
+async function handleQrFileUpload(e) {
+  const file = e.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
+    const dataUrl = evt.target?.result;
+    if (dataUrl) {
+      const img = new Image();
+      img.onload = async () => {
+        const qrContent = await decodeImageForQR(img);
+        if (qrContent) {
+          populateAndOpenAddModal(qrContent);
+        } else {
+          showToast("Could not find QR code in this image");
+        }
+      };
+      img.src = dataUrl;
+    }
+  };
+  reader.readAsDataURL(file);
+  e.target.value = "";
 }
 
 async function init() {
@@ -1747,6 +1939,23 @@ async function init() {
         }
         updateModalBrandPreview();
       }
+    }
+  });
+
+  elements.peekToggleBtn?.addEventListener("click", togglePrivacyMask);
+  elements.scanScreenQrBtn?.addEventListener("click", handleScanScreenQR);
+  elements.modalScanScreenBtn?.addEventListener("click", handleScanScreenQR);
+  elements.qrFileInput?.addEventListener("change", handleQrFileUpload);
+
+  // Quick search shortcut: press '/' to focus search input
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key === "/" &&
+      document.activeElement !== elements.searchInput &&
+      !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)
+    ) {
+      e.preventDefault();
+      elements.searchInput?.focus();
     }
   });
 

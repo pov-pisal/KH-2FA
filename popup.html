@@ -83,6 +83,7 @@
             <button id="unlockBtn" class="primary">Unlock</button>
           </div>
           <p id="lockError" class="error" role="alert"></p>
+          <div id="lockoutNotice" class="lockout-box hidden" role="alert"></div>
         </section>
 
         <section id="mainView" class="hidden" aria-hidden="true" inert>
@@ -91,16 +92,32 @@
               <input
                 id="searchInput"
                 type="search"
-                placeholder="Search accounts"
+                placeholder="Search accounts (Press /)"
                 aria-label="Search accounts"
               />
             </div>
-            <button id="addAccountBtn" class="primary">Add account</button>
+            <button
+              id="peekToggleBtn"
+              class="ghost icon-btn"
+              title="Toggle Privacy Mask (Hide codes)"
+              aria-label="Toggle Privacy Mask"
+            >
+              👁️
+            </button>
+            <button
+              id="scanScreenQrBtn"
+              class="ghost icon-btn"
+              title="Scan QR code from webpage"
+              aria-label="Scan QR code from webpage"
+            >
+              📷
+            </button>
+            <button id="addAccountBtn" class="primary">+ Add</button>
           </div>
 
           <div id="emptyState" class="card empty hidden" aria-hidden="true">
             <h3>No accounts yet</h3>
-            <p>Add your first TOTP account to get started.</p>
+            <p>Add your first TOTP account or scan a QR code to get started.</p>
           </div>
 
           <div id="accountsList" class="list" role="list"></div>
@@ -132,6 +149,16 @@
           </div>
         </div>
 
+        <div class="qr-scan-actions">
+          <button id="modalScanScreenBtn" class="qr-action-btn" type="button">
+            📷 Scan QR on Page
+          </button>
+          <label class="qr-action-btn file-label" for="qrFileInput">
+            📁 Upload QR Image
+            <input type="file" id="qrFileInput" accept="image/*" class="file-input-hidden" />
+          </label>
+        </div>
+
         <div class="stack">
           <label class="field">
             <span>Secret or otpauth URL</span>
@@ -153,6 +180,37 @@
               placeholder="myemail@gmail.com"
             />
           </label>
+
+          <details class="advanced-account-settings">
+            <summary>Advanced options (Digits, Algorithm, Period)</summary>
+            <div class="advanced-grid">
+              <label class="field">
+                <span>Digits</span>
+                <select id="digitsInput">
+                  <option value="6">6 digits (Default)</option>
+                  <option value="8">8 digits</option>
+                  <option value="7">7 digits</option>
+                  <option value="steam">Steam Guard</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Algorithm</span>
+                <select id="algorithmInput">
+                  <option value="SHA-1">SHA-1 (Default)</option>
+                  <option value="SHA-256">SHA-256</option>
+                  <option value="SHA-512">SHA-512</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Period</span>
+                <select id="periodInput">
+                  <option value="30">30s (Default)</option>
+                  <option value="15">15s</option>
+                  <option value="60">60s</option>
+                </select>
+              </label>
+            </div>
+          </details>
         </div>
 
         <div class="row center">
@@ -407,8 +465,10 @@
             <div class="settings-row">
               <span>Theme</span>
               <select id="themeSelect" aria-label="Theme">
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
+                <option value="dark">Midnight Cyan (Dark)</option>
+                <option value="oled">Pure OLED (Black)</option>
+                <option value="nord">Nord Arctic</option>
+                <option value="light">Clean Light</option>
               </select>
             </div>
             <div class="settings-row">

@@ -1,6 +1,4 @@
-// Background service worker for KH 2FA (Manifest V3 Module)
-
-import { getVaultRecord, getSession, getMeta } from "./storage.js";
+import { getVaultRecord, getSession, getMeta, clearSession, updateMeta } from "./storage.js";
 import { decryptVault } from "./crypto.js";
 import { generateTOTP } from "./totp.js";
 import { getBrandInfo } from "./brandIcons.js";
@@ -19,6 +17,21 @@ chrome.runtime.onInstalled.addListener(() => {
     });
   }
 });
+
+// Auto-lock vault on system lock or idle
+if (chrome.idle?.onStateChanged) {
+  chrome.idle.onStateChanged.addListener(async (state) => {
+    if (state === "locked" || state === "idle") {
+      try {
+        await clearSession();
+        await updateMeta({ locked: true });
+        console.log(`KH 2FA: Vault auto-locked due to system state '${state}'.`);
+      } catch (err) {
+        console.error("Auto-lock failed:", err);
+      }
+    }
+  });
+}
 
 // Handle Context Menu clicks
 chrome.contextMenus?.onClicked.addListener((info, tab) => {
@@ -110,7 +123,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         for (const acc of accounts) {
           const isMatch = matchesDomain(acc, hostname, url);
           const brand = getBrandInfo(acc.issuer, acc.label);
-          const code = await generateTOTP(acc.secret);
+          const code = await generateTOTP(acc.secret, Date.now(), acc);
           const item = {
             id: acc.id,
             issuer: acc.issuer || brand.name || "Account",
@@ -145,6 +158,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     })();
     return true; // Asynchronous reply
+  }
+
+  if (message?.action === "CAPTURE_VISIBLE_TAB") {
+    chrome.tabs.captureVisibleTab(null, { format: "png" }, (dataUrl) => {
+      if (chrome.runtime.lastError || !dataUrl) {
+        sendResponse({ ok: false, error: chrome.runtime.lastError?.message || "Failed to capture tab" });
+      } else {
+        sendResponse({ ok: true, dataUrl });
+      }
+    });
+    return true;
   }
 
   return false;
