@@ -119,10 +119,20 @@ let lockoutSecondsRemaining = 0;
 let lockoutInterval = null;
 const codes = new Map();
 
-function showToast(message) {
+let toastTimeoutId = null;
+
+function showToast(message, duration = 1800) {
+  if (toastTimeoutId) {
+    clearTimeout(toastTimeoutId);
+    toastTimeoutId = null;
+  }
   elements.toast.textContent = message;
   elements.toast.classList.add("show");
-  setTimeout(() => elements.toast.classList.remove("show"), 1600);
+  const visibleDuration = message.length > 30 ? Math.max(duration, 3000) : duration;
+  toastTimeoutId = setTimeout(() => {
+    elements.toast.classList.remove("show");
+    toastTimeoutId = null;
+  }, visibleDuration);
 }
 
 function showLockedView({ createMode }) {
@@ -1406,7 +1416,9 @@ function renderAccounts() {
     starBtn.className = `star-btn ${account.pinned ? "active" : ""}`;
     starBtn.type = "button";
     starBtn.title = account.pinned ? "Unpin account" : "Pin to top";
-    starBtn.textContent = account.pinned ? "★" : "☆";
+    starBtn.innerHTML = account.pinned
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
     starBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
       account.pinned = !account.pinned;
@@ -1428,7 +1440,7 @@ function renderAccounts() {
     dragHandle.className = "drag-handle";
     dragHandle.setAttribute("aria-hidden", "true");
     dragHandle.title = "Drag to reorder";
-    dragHandle.innerHTML = "&#8942;&#8942;"; // ⠿ six-dot grid
+    dragHandle.innerHTML = `<svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden="true"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/></svg>`;
 
     endCol.append(starBtn, ring, dragHandle);
 
@@ -1715,7 +1727,7 @@ async function handleScanScreenQR() {
       return;
     }
     if (isRestrictedUrl(activeTab.url)) {
-      showToast("Cannot scan browser internal pages (chrome://). Please open a webpage with a 2FA QR code.");
+      showToast("Cannot scan chrome:// pages. Open a website with a QR code.");
       return;
     }
 
