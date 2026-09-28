@@ -1625,7 +1625,47 @@ function togglePrivacyMask() {
   });
 }
 
+function isRestrictedUrl(url) {
+  if (!url) return false;
+  return (
+    url.startsWith("chrome://") ||
+    url.startsWith("edge://") ||
+    url.startsWith("about:") ||
+    url.startsWith("chrome-extension://") ||
+    url.startsWith("view-source:") ||
+    url.includes("chromewebstore.google.com")
+  );
+}
+
 async function decodeImageForQR(imgSource) {
+  // 1. Try pure JavaScript jsQR engine (100% desktop Chrome & Cross-Platform support)
+  try {
+    const qrFn = typeof jsQR !== "undefined" ? jsQR : (window.jsQR || null);
+    if (qrFn) {
+      const width = imgSource.naturalWidth || imgSource.width;
+      const height = imgSource.naturalHeight || imgSource.height;
+      if (width > 0 && height > 0) {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(imgSource, 0, 0, width, height);
+        const imgData = ctx.getImageData(0, 0, width, height);
+
+        // Standard contrast scan
+        const code = qrFn(imgData.data, width, height, { inversionAttempts: "dontInvert" });
+        if (code?.data) return code.data;
+
+        // Inverted contrast scan (dark mode QR codes)
+        const codeInv = qrFn(imgData.data, width, height, { inversionAttempts: "onlyInvert" });
+        if (codeInv?.data) return codeInv.data;
+      }
+    }
+  } catch (err) {
+    console.warn("jsQR decode error:", err);
+  }
+
+  // 2. Fallback to native BarcodeDetector if available
   if ("BarcodeDetector" in window) {
     try {
       const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
@@ -1662,38 +1702,65 @@ function populateAndOpenAddModal(urlOrSecret) {
 
 async function handleScanScreenQR() {
   showToast("Scanning screen for QR code...");
-  chrome.runtime.sendMessage({ action: "CAPTURE_VISIBLE_TAB" }, async (response) => {
-    if (response?.ok && response?.dataUrl) {
-      const img = new Image();
-      img.onload = async () => {
-        const qrContent = await decodeImageForQR(img);
-        if (qrContent) {
-          populateAndOpenAddModal(qrContent);
-        } else {
-          fallbackDomScan();
-        }
-      };
-      img.onerror = () => fallbackDomScan();
-      img.src = response.dataUrl;
-    } else {
-      fallbackDomScan();
-    }
-  });
 
-  function fallbackDomScan() {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const activeTab = tabs?.[0];
-      if (!activeTab?.id) {
-        showToast("No active tab found");
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (chrome.runtime.lastError) {
+      console.warn("Tabs query error:", chrome.runtime.lastError.message);
+      showToast("Cannot access active tab");
+      return;
+    }
+    const activeTab = tabs?.[0];
+    if (!activeTab) {
+      showToast("No active tab found");
+      return;
+    }
+    if (isRestrictedUrl(activeTab.url)) {
+      showToast("Cannot scan browser internal pages (chrome://). Please open a webpage with a 2FA QR code.");
+      return;
+    }
+
+    chrome.runtime.sendMessage({ action: "CAPTURE_VISIBLE_TAB" }, async (response) => {
+      if (chrome.runtime.lastError) {
+        console.warn("CAPTURE_VISIBLE_TAB error:", chrome.runtime.lastError.message);
+        fallbackDomScan(activeTab);
         return;
       }
-      chrome.tabs.sendMessage(activeTab.id, { type: "EXTRACT_QR_DOM" }, (res) => {
-        if (res?.ok && res?.url) {
-          populateAndOpenAddModal(res.url);
-        } else {
-          showToast("No 2FA QR code found on active tab");
-        }
-      });
+      if (response?.ok && response?.dataUrl) {
+        const img = new Image();
+        img.onload = async () => {
+          const qrContent = await decodeImageForQR(img);
+          if (qrContent) {
+            populateAndOpenAddModal(qrContent);
+          } else {
+            fallbackDomScan(activeTab);
+          }
+        };
+        img.onerror = () => fallbackDomScan(activeTab);
+        img.src = response.dataUrl;
+      } else {
+        fallbackDomScan(activeTab);
+      }
+    });
+  });
+
+  function fallbackDomScan(activeTab) {
+    if (!activeTab?.id || isRestrictedUrl(activeTab.url)) {
+      showToast("No 2FA QR code found on screen");
+      return;
+    }
+    chrome.tabs.sendMessage(activeTab.id, { type: "EXTRACT_QR_DOM" }, (res) => {
+      if (chrome.runtime.lastError) {
+        // Explicitly reading chrome.runtime.lastError prevents Chrome from logging Unchecked runtime.lastError!
+        const ignored = chrome.runtime.lastError.message;
+        console.warn("Content script unreachable:", ignored);
+        showToast("No 2FA QR code found on screen");
+        return;
+      }
+      if (res?.ok && res?.url) {
+        populateAndOpenAddModal(res.url);
+      } else {
+        showToast("No 2FA QR code found on screen");
+      }
     });
   }
 }
