@@ -2,240 +2,552 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>KH 2FA - Small Promo Tile (440x280)</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     width: 440px;
     height: 280px;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 30%, #111a33 0%, #070a13 75%, #03050a 100%);
+    background: #080c16;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 18px 18px;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     color: #f1f5f9;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px 14px;
+    padding: 12px 14px 8px;
     position: relative;
     user-select: none;
   }
 
-  .glow {
+  /* Ambient Glows */
+  .glow-cyan {
     position: absolute;
-    width: 260px;
-    height: 260px;
+    width: 280px;
+    height: 280px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(76, 201, 240, 0.16) 0%, rgba(76, 201, 240, 0) 70%);
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(76, 201, 240, 0.18) 0%, rgba(76, 201, 240, 0) 70%);
+    top: -60px;
+    right: 30px;
     pointer-events: none;
-    filter: blur(25px);
+    filter: blur(35px);
+  }
+  .glow-indigo {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(67, 97, 238, 0.18) 0%, rgba(67, 97, 238, 0) 70%);
+    bottom: -50px;
+    left: 20px;
+    pointer-events: none;
+    filter: blur(30px);
   }
 
+  /* Header Section */
   .header-wrap {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 4px;
     z-index: 10;
   }
-  .brand-badge {
+  .top-brand-row {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
   }
-  .brand-kh {
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: 0.8px;
+  .brand-logo-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #4cc9f0, #4361ee);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+  }
+  .brand-logo-badge svg { width: 14px; height: 14px; fill: #ffffff; }
+  .brand-title {
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: 0.6px;
     color: #ffffff;
   }
-  .brand-2fa {
-    font-size: 11px;
-    font-weight: 800;
-    padding: 2px 7px;
-    border-radius: 6px;
-    background: rgba(76, 201, 240, 0.18);
-    border: 1px solid rgba(76, 201, 240, 0.5);
+  .brand-title span {
     color: #4cc9f0;
-    box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
   }
-  .sub-tag {
-    font-size: 10px;
-    color: #94a3b8;
-    margin-top: 3px;
-    font-weight: 500;
-    letter-spacing: 0.2px;
+  .pill-vault {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(76, 201, 240, 0.12);
+    border: 1px solid rgba(76, 201, 240, 0.4);
+    color: #4cc9f0;
+    text-transform: uppercase;
   }
 
+  .sub-tagline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+  .sub-dot { width: 4px; height: 4px; border-radius: 50%; background: #34d399; }
+
   /* Compact MacBook Mockup */
-  .mac-preview {
-    width: 380px;
-    height: 172px;
+  .macbook-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+    width: 100%;
+  }
+
+  .macbook-screen {
+    width: 396px;
+    height: 184px;
     background: #0f172a;
     border-radius: 10px 10px 0 0;
     border: 6px solid #1a1e27;
     border-bottom: none;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(76, 201, 240, 0.15);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.85), 0 0 25px rgba(76, 201, 240, 0.18);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     position: relative;
-    z-index: 5;
   }
-  .mac-topbar {
-    height: 18px;
+
+  /* MacBook Camera Notch */
+  .mac-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 58px;
+    height: 8px;
+    background: #1a1e27;
+    border-radius: 0 0 5px 5px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mac-notch-lens { width: 3px; height: 3px; border-radius: 50%; background: #070a13; }
+
+  /* macOS Top Menubar */
+  .macos-bar {
+    height: 14px;
+    background: rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    font-size: 7px;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .macos-left { display: flex; align-items: center; gap: 6px; }
+  .apple-icon-svg { width: 6px; height: 7px; fill: #cbd5e1; }
+
+  /* Chrome Browser Window */
+  .chrome-window {
+    flex: 1;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Chrome Tabs & URL bar combined */
+  .chrome-topbar {
+    height: 20px;
     background: #141b2d;
     display: flex;
     align-items: center;
     padding: 0 8px;
-    gap: 5px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   }
-  .dot { width: 6px; height: 6px; border-radius: 50%; }
-  .dot.r { background: #ff5f56; }
-  .dot.y { background: #ffbd2e; }
-  .dot.g { background: #27c93f; }
-  .url-preview {
-    margin-left: 6px;
-    font-size: 8px;
-    color: #64748b;
-    background: #0b0f19;
-    padding: 2px 8px;
-    border-radius: 4px;
+  .win-dots { display: flex; gap: 4px; }
+  .win-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-r { background: #ff5f56; }
+  .dot-y { background: #ffbd2e; }
+  .dot-g { background: #27c93f; }
+  .url-pill {
     flex: 1;
-  }
-
-  .mac-content {
-    flex: 1;
+    height: 14px;
     background: #0b0f19;
-    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
     display: flex;
-    gap: 10px;
     align-items: center;
+    padding: 0 6px;
+    font-size: 7.5px;
+    color: #cbd5e1;
+    gap: 4px;
+    margin-left: 4px;
   }
+  .ext-icon-badge {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #4cc9f0, #4361ee);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 6px rgba(76, 201, 240, 0.6);
+  }
+  .ext-icon-badge svg { width: 8px; height: 8px; fill: white; }
 
-  /* Floating Extension Mini-Popup */
-  .mini-popup {
+  /* Web Page Background Content */
+  .web-content {
     flex: 1;
-    background: #131a29;
-    border: 1px solid rgba(76, 201, 240, 0.35);
-    border-radius: 8px;
-    padding: 7px;
+    background: #0d1117;
+    padding: 8px 10px;
+    display: flex;
+    gap: 8px;
+    position: relative;
+  }
+  .web-left-side {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 5px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    padding-top: 4px;
   }
-  .mini-acc {
-    background: #0b0f19;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 6px;
-    padding: 4px 8px;
+  .web-sec-title {
+    font-size: 9px;
+    font-weight: 700;
+    color: #f0f6fc;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .web-sec-sub {
+    font-size: 7.5px;
+    color: #8b949e;
+    line-height: 1.35;
+  }
+  .web-verified-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 5px;
+    padding: 5px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .web-v-title { font-size: 7.5px; font-weight: 700; color: #34d399; }
+  .web-v-sub { font-size: 6.5px; color: #8b949e; }
+
+  /* Floating KH 2FA Extension Popup */
+  .popup-overlay {
+    width: 190px;
+    background: #0c1220;
+    border: 1px solid rgba(76, 201, 240, 0.4);
+    border-radius: 8px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 20px rgba(76, 201, 240, 0.2);
+    flex-shrink: 0;
+  }
+
+  .pop-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
-  .mini-acc-name {
-    font-size: 10px;
-    font-weight: 700;
-    color: #f1f5f9;
-  }
-  .mini-acc-code {
-    font-family: monospace;
-    font-size: 12px;
+  .pop-brand {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
     font-weight: 800;
-    color: #4cc9f0;
-    letter-spacing: 1px;
+    color: #ffffff;
   }
-  .mini-timer {
-    font-size: 8px;
+  .pop-badge-icon {
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #4cc9f0, #4361ee);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pop-badge-icon svg { width: 8px; height: 8px; fill: white; }
+  .pop-status {
+    font-size: 6.5px;
     color: #34d399;
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    background: rgba(52, 211, 153, 0.12);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    border-radius: 999px;
   }
+  .pop-status .dot { width: 3.5px; height: 3.5px; border-radius: 50%; background: #34d399; }
 
-  .mini-side-features {
-    width: 140px;
+  /* Account Cards in Mini Popup */
+  .pop-cards-stack {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
-  .feature-pill {
-    background: rgba(15, 23, 42, 0.8);
+  .pop-card {
+    background: #131b2e;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 9px;
-    font-weight: 600;
-    color: #cbd5e1;
+    border-radius: 5px;
+    padding: 4px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pop-card.pinned {
+    border-color: rgba(76, 201, 240, 0.35);
+    background: #152238;
+  }
+  .pop-card-left {
     display: flex;
     align-items: center;
     gap: 5px;
   }
-  .feature-pill span { color: #4cc9f0; font-weight: 800; }
+  .pop-brand-ico {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pop-brand-ico.github { background: rgba(255, 255, 255, 0.12); color: #fff; }
+  .pop-brand-ico.google { background: rgba(66, 133, 244, 0.15); color: #4285f4; }
+  .pop-brand-ico svg { width: 9px; height: 9px; fill: currentColor; }
 
-  .mac-base {
-    width: 410px;
+  .pop-card-meta {
+    display: flex;
+    flex-direction: column;
+  }
+  .pop-card-title {
+    font-size: 8px;
+    font-weight: 700;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .star { color: #fbbf24; font-size: 7px; }
+  .pop-card-acc {
+    font-size: 6.5px;
+    color: #64748b;
+  }
+
+  .pop-card-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .pop-card-otp {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    font-weight: 800;
+    color: #4cc9f0;
+    letter-spacing: 0.8px;
+  }
+  .pop-timer-pill {
+    font-size: 6.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1px 3px;
+    border-radius: 3px;
+  }
+
+  /* Copied Toast Pill */
+  .mini-toast {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 7px;
+    color: #34d399;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+  .mini-toast svg { width: 7px; height: 7px; fill: #34d399; }
+
+  /* MacBook Chin / Base */
+  .macbook-base {
+    width: 418px;
     height: 8px;
     background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 8px 8px;
     position: relative;
-    z-index: 5;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7);
   }
-  .mac-chin-notch {
+  .macbook-chin-notch {
     position: absolute;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
     width: 60px;
-    height: 3px;
+    height: 2.5px;
     background: #14171f;
-    border-radius: 0 0 3px 3px;
+    border-radius: 0 0 2px 2px;
   }
 </style>
 </head>
 <body>
 
-  <div class="glow"></div>
+  <!-- Ambient Light -->
+  <div class="glow-cyan"></div>
+  <div class="glow-indigo"></div>
 
+  <!-- Top Brand Row -->
   <div class="header-wrap">
-    <div class="brand-badge">
-      <span class="brand-kh">KH</span>
-      <span class="brand-2fa">2FA</span>
+    <div class="top-brand-row">
+      <div class="brand-logo-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+      </div>
+      <div class="brand-title">KH <span>2FA</span></div>
+      <div class="pill-vault">AES-256 Vault</div>
     </div>
-    <div class="sub-tag">Ultra-Fast &amp; Secure 2FA for Chrome</div>
+    <div class="sub-tagline">
+      <span>Offline &amp; Private</span>
+      <div class="sub-dot"></div>
+      <span>Screen QR Scanner</span>
+      <div class="sub-dot"></div>
+      <span>Instant Autofill</span>
+    </div>
   </div>
 
-  <div style="display:flex; flex-direction:column; align-items:center;">
-    <div class="mac-preview">
-      <div class="mac-topbar">
-        <div class="dot r"></div>
-        <div class="dot y"></div>
-        <div class="dot g"></div>
-        <div class="url-preview">🔒 github.com/login/2fa</div>
+  <!-- MacBook Pro Mockup Section -->
+  <div class="macbook-wrapper">
+    <div class="macbook-screen">
+      <!-- Camera Notch -->
+      <div class="mac-notch"><div class="mac-notch-lens"></div></div>
+
+      <!-- macOS Top Bar -->
+      <div class="macos-bar">
+        <div class="macos-left">
+          <svg class="apple-icon-svg" viewBox="0 0 170 170"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.58-7.7-11.64-13.98-6.19-9.56-11.08-20.73-14.67-33.52-3.59-12.79-5.39-24.81-5.39-36.06 0-14.35 3.42-26.24 10.26-35.68 6.84-9.44 15.54-14.28 26.09-14.52 4.9.11 10.12 1.3 15.66 3.58 5.54 2.28 9.25 3.48 11.13 3.58 1.52 0 5.44-1.29 11.75-3.86 6.31-2.58 11.85-3.71 16.63-3.39 12.83.76 22.84 5.33 30.03 13.7-11.09 6.74-16.53 16.19-16.32 28.37.22 9.56 3.81 17.5 10.76 23.8 6.96 6.3 15.22 10.05 24.78 11.25-2.17 6.31-4.89 12.61-8.15 18.9zm-29.28-111.45c0 7.39-2.61 14.24-7.83 20.54-5.22 6.3-11.74 10.11-19.57 11.42-.43-1.09-.65-2.28-.65-3.59 0-7.17 2.72-14.02 8.15-20.54 5.43-6.52 12.06-10.33 19.9-11.41.01 1.2.01 2.39 0 3.58z"/></svg>
+          <span style="font-weight:700;">Chrome</span>
+          <span>File</span>
+          <span>Edit</span>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <span>99% 🔋</span>
+          <span>10:42 AM</span>
+        </div>
       </div>
-      <div class="mac-content">
-        <div class="mini-popup">
-          <div class="mini-acc">
-            <span class="mini-acc-name">GitHub</span>
-            <span class="mini-acc-code">904 613</span>
-            <span class="mini-timer">24s</span>
+
+      <!-- Chrome Window -->
+      <div class="chrome-window">
+        <div class="chrome-topbar">
+          <div class="win-dots">
+            <div class="win-dot dot-r"></div>
+            <div class="win-dot dot-y"></div>
+            <div class="win-dot dot-g"></div>
           </div>
-          <div class="mini-acc">
-            <span class="mini-acc-name">Google</span>
-            <span class="mini-acc-code">718 352</span>
-            <span class="mini-timer">18s</span>
+          <div class="url-pill">
+            <span style="color:#34d399;">🔒</span>
+            <span style="font-weight:600; color:#f8fafc;">github.com</span>
+            <span style="color:#64748b;">/settings/security</span>
+          </div>
+          <div class="ext-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
           </div>
         </div>
-        <div class="mini-side-features">
-          <div class="feature-pill"><span>✓</span> AES-256 Vault</div>
-          <div class="feature-pill"><span>✓</span> Screen QR Scan</div>
-          <div class="feature-pill"><span>✓</span> 100% Offline</div>
+
+        <div class="web-content">
+          <!-- Background Web Content -->
+          <div class="web-left-side">
+            <div class="web-sec-title">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#58a6ff"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+              <span>Two-Factor Auth</span>
+            </div>
+            <div class="web-sec-sub">Encrypted client-side security device active.</div>
+            <div class="web-verified-card">
+              <span class="web-v-title">✓ KH 2FA Paired</span>
+              <span class="web-v-sub">Hardware-accelerated AES-256</span>
+            </div>
+          </div>
+
+          <!-- KH 2FA Extension Popup -->
+          <div class="popup-overlay">
+            <div class="pop-head">
+              <div class="pop-brand">
+                <div class="pop-badge-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                </div>
+                <span>KH 2FA</span>
+              </div>
+              <div class="pop-status"><div class="dot"></div><span>Vault Active</span></div>
+            </div>
+
+            <div class="pop-cards-stack">
+              <!-- Card 1: GitHub dev -->
+              <div class="pop-card pinned">
+                <div class="pop-card-left">
+                  <div class="pop-brand-ico github">
+                    <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                  </div>
+                  <div class="pop-card-meta">
+                    <span class="pop-card-title">GitHub <span class="star">★</span></span>
+                    <span class="pop-card-acc">dev@lead</span>
+                  </div>
+                </div>
+                <div class="pop-card-right">
+                  <span class="pop-card-otp">904 613</span>
+                  <span class="pop-timer-pill">24s</span>
+                </div>
+              </div>
+
+              <!-- Card 2: Google admin -->
+              <div class="pop-card">
+                <div class="pop-card-left">
+                  <div class="pop-brand-ico google">
+                    <svg viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
+                  </div>
+                  <div class="pop-card-meta">
+                    <span class="pop-card-title">Google</span>
+                    <span class="pop-card-acc">admin@kh.io</span>
+                  </div>
+                </div>
+                <div class="pop-card-right">
+                  <span class="pop-card-otp">718 352</span>
+                  <span class="pop-timer-pill">18s</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Toast pill -->
+            <div class="mini-toast">
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>Copied 904 613 to clipboard</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="mac-base">
-      <div class="mac-chin-notch"></div>
+
+    <!-- MacBook Chin -->
+    <div class="macbook-base">
+      <div class="macbook-chin-notch"></div>
     </div>
   </div>
 
