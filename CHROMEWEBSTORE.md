@@ -126,5 +126,6 @@ English
 
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
-| 1.1.0 | 2026-09-27 | Screen QR scanner, privacy peek mask, brute-force PIN lockout, system idle auto-lock, star favorites, RFC 6238 TOTP engine (SHA-256/512, Steam Guard, custom periods), OLED and Nord themes. | Ready to publish |
+| 1.2.0 | 2026-09-29 | Redesigned popup UI: 380x560px rock-solid popup viewport, full-view modal sheets, crisp vector SVG icons, pure JavaScript jsQR scanner engine, top-aligned PIN entry card, and floating glassmorphic notifications. | Ready to publish |
+| 1.1.0 | 2026-09-27 | Screen QR scanner, privacy peek mask, brute-force PIN lockout, system idle auto-lock, star favorites, RFC 6238 TOTP engine (SHA-256/512, Steam Guard, custom periods), OLED and Nord themes. | Published |
 | 1.0.0 | 2026-09-14 | Initial release with AES-256-GCM encrypted vault, TOTP generator, PIN lock, backup/export, and in-field autofill. | Published |

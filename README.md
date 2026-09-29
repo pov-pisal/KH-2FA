@@ -1,6 +1,6 @@
 # 🛡️ KH 2FA
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 
