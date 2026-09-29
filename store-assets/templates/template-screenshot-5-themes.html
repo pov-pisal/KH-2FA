@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KH 2FA - Screenshot 5: Multi-Theme & Encrypted Backup (1280x800)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    height: 800px;
+    overflow: hidden;
+    background: #090614;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 26px;
+    position: relative;
+    user-select: none;
+  }
+
+  /* Ambient Glows */
+  .glow-fuchsia {
+    position: absolute;
+    width: 550px;
+    height: 550px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.16) 0%, rgba(236, 72, 153, 0) 70%);
+    top: -100px;
+    right: 120px;
+    pointer-events: none;
+    filter: blur(45px);
+  }
+  .glow-purple {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, rgba(168, 85, 247, 0) 70%);
+    bottom: 40px;
+    left: -50px;
+    pointer-events: none;
+    filter: blur(45px);
+  }
+
+  /* Header Section */
+  .top-title-wrap {
+    text-align: center;
+    margin-bottom: 20px;
+    z-index: 10;
+  }
+  .top-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: rgba(236, 72, 153, 0.12);
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    color: #f472b6;
+  }
+  .pill-badge.purple {
+    background: rgba(168, 85, 247, 0.12);
+    border-color: rgba(168, 85, 247, 0.35);
+    color: #c084fc;
+  }
+  .pill-badge.green {
+    background: rgba(52, 211, 153, 0.12);
+    border-color: rgba(52, 211, 153, 0.35);
+    color: #34d399;
+  }
+  .top-headline {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+  }
+  .top-headline span {
+    background: linear-gradient(135deg, #f472b6 0%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .top-subhead {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+    letter-spacing: 0.2px;
+  }
+
+  /* MacBook Mockup Frame */
+  .macbook-wrapper {
+    width: 1060px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+    position: relative;
+  }
+
+  /* Display Screen Lid */
+  .macbook-screen {
+    width: 960px;
+    height: 590px;
+    background: #0f172a;
+    border-radius: 18px 18px 0 0;
+    border: 10px solid #1a1e27;
+    border-bottom: none;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8), 0 0 40px rgba(236, 72, 153, 0.15);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* MacBook Notch */
+  .screen-camera {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 16px;
+    background: #1a1e27;
+    border-radius: 0 0 9px 9px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .camera-lens { width: 5px; height: 5px; border-radius: 50%; background: #070a13; border: 1px solid #2d3342; }
+
+  /* macOS Menu Bar */
+  .macos-menubar {
+    height: 24px;
+    background: rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 11px;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 90;
+  }
+  .menubar-left { display: flex; gap: 14px; align-items: center; }
+  .apple-icon-svg { width: 10px; height: 12px; fill: #cbd5e1; }
+  .menubar-right { display: flex; gap: 12px; align-items: center; font-size: 11px; color: #94a3b8; }
+
+  /* Chrome Browser Window */
+  .chrome-window {
+    flex: 1;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Tabs Bar */
+  .chrome-header {
+    height: 38px;
+    background: #141b2d;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .window-controls { display: flex; gap: 7px; }
+  .control-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+
+  .browser-tabs { display: flex; gap: 4px; flex: 1; margin-left: 6px; }
+  .tab {
+    padding: 6px 14px;
+    border-radius: 7px 7px 0 0;
+    font-size: 11px;
+    color: #94a3b8;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .tab.active { background: #0b0f19; color: #f8fafc; font-weight: 600; }
+
+  /* Toolbar */
+  .chrome-toolbar {
+    height: 36px;
+    background: #0b0f19;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .nav-buttons { display: flex; gap: 8px; color: #64748b; font-size: 13px; }
+  .url-bar {
+    flex: 1;
+    height: 24px;
+    background: #151d2f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 11px;
+    color: #cbd5e1;
+    gap: 6px;
+  }
+  .url-lock { color: #34d399; font-size: 10px; }
+  .url-host { color: #f8fafc; font-weight: 600; }
+  .url-path { color: #64748b; }
+
+  .ext-icon-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.6);
+  }
+  .ext-icon-badge svg { width: 14px; height: 14px; fill: white; }
+
+  /* Background Page Viewport */
+  .page-viewport {
+    flex: 1;
+    background: #0f101c;
+    padding: 24px 32px;
+    color: #c9d1d9;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+  }
+  .settings-page-hdr {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .settings-page-desc { font-size: 12px; color: #8b949e; line-height: 1.5; max-width: 520px; }
+
+  .compliance-card {
+    background: #16182a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 16px 20px;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .comp-title { font-size: 13px; font-weight: 700; color: #f472b6; }
+  .comp-sub { font-size: 11px; color: #94a3b8; }
+
+  /* FLOATING KH 2FA POPUP */
+  .extension-popup {
+    position: absolute;
+    top: 6px;
+    right: 14px;
+    width: 320px;
+    background: #0e111d;
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(236, 72, 153, 0.2);
+    z-index: 80;
+  }
+
+  /* Popup Header */
+  .popup-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2px;
+  }
+  .hdr-logo-group { display: flex; align-items: center; gap: 6px; }
+  .hdr-kh-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hdr-kh-badge svg { width: 13px; height: 13px; fill: white; }
+  .hdr-brand-name { font-size: 13px; font-weight: 800; letter-spacing: 0.5px; color: #ffffff; }
+  .hdr-settings-tag {
+    font-size: 9px;
+    color: #f472b6;
+    font-weight: 700;
+    padding: 2px 7px;
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    border-radius: 999px;
+  }
+
+  /* Section Title */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  /* Theme Selector Grid */
+  .theme-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .theme-pill-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #141829;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+  .theme-pill-btn.active {
+    border-color: #f472b6;
+    background: rgba(236, 72, 153, 0.12);
+    color: #ffffff;
+  }
+  .theme-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .theme-dot.cyan { background: #4cc9f0; }
+  .theme-dot.dark { background: #000000; border: 1px solid #475569; }
+  .theme-dot.nord { background: #88c0d0; }
+  .theme-dot.light { background: #f8fafc; }
+
+  /* Security Settings Rows */
+  .settings-row-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #141829;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 11px;
+    color: #e2e8f0;
+  }
+  .toggle-switch-on {
+    width: 28px;
+    height: 15px;
+    background: #f472b6;
+    border-radius: 999px;
+    position: relative;
+  }
+  .toggle-switch-on::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 11px;
+    height: 11px;
+    background: #ffffff;
+    border-radius: 50%;
+  }
+
+  /* Encrypted Backup & Restore Box */
+  .backup-action-box {
+    background: rgba(236, 72, 153, 0.08);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .backup-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .backup-title-txt { font-size: 11px; font-weight: 700; color: #f8fafc; }
+  .backup-aes-badge {
+    font-size: 8px;
+    font-weight: 800;
+    color: #34d399;
+    padding: 2px 6px;
+    background: rgba(52, 211, 153, 0.15);
+    border-radius: 4px;
+  }
+  .backup-btn-row { display: flex; gap: 8px; }
+  .btn-export {
+    flex: 1;
+    height: 28px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .btn-import {
+    padding: 0 14px;
+    height: 28px;
+    background: #1a1e33;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Version Footer */
+  .popup-ver-footer {
+    font-size: 8.5px;
+    color: #64748b;
+    text-align: center;
+    padding-top: 2px;
+  }
+
+  /* MacBook Chin */
+  .macbook-base {
+    width: 1040px;
+    height: 16px;
+    background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
+    border-radius: 0 0 16px 16px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  }
+  .macbook-notch-chin {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 6px;
+    background: #14171f;
+    border-radius: 0 0 6px 6px;
+  }
+
+  /* Bottom Badges */
+  .bottom-badges-wrap {
+    display: flex;
+    gap: 16px;
+    margin-top: 18px;
+    z-index: 10;
+  }
+  .bottom-badge-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 11px;
+    font-weight: 600;
+    color: #e2e8f0;
+    backdrop-filter: blur(8px);
+  }
+  .bottom-badge-card svg { width: 14px; height: 14px; fill: #f472b6; }
+</style>
+</head>
+<body>
+
+  <!-- Ambient glow -->
+  <div class="glow-fuchsia"></div>
+  <div class="glow-purple"></div>
+
+  <!-- Top Title Header -->
+  <div class="top-title-wrap">
+    <div class="top-badges">
+      <div class="pill-badge">🎨 4 Custom Themes</div>
+      <div class="pill-badge purple">🔒 AES-256 JSON Backup</div>
+      <div class="pill-badge green">🛡️ 100% Client-Side</div>
+    </div>
+    <h1 class="top-headline">Custom Themes &amp; Encrypted Backup — <span>Total Data Ownership</span></h1>
+    <p class="top-subhead">Switch between Midnight Cyan, OLED Black, Nord Arctic &amp; export portable encrypted vaults anytime</p>
+  </div>
+
+  <!-- MacBook Pro Mockup -->
+  <div class="macbook-wrapper">
+    <div class="macbook-screen">
+      <!-- Camera Notch -->
+      <div class="screen-camera"><div class="camera-lens"></div></div>
+
+      <!-- macOS Menu Bar -->
+      <div class="macos-menubar">
+        <div class="menubar-left">
+          <svg class="apple-icon-svg" viewBox="0 0 170 170"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.58-7.7-11.64-13.98-6.19-9.56-11.08-20.73-14.67-33.52-3.59-12.79-5.39-24.81-5.39-36.06 0-14.35 3.42-26.24 10.26-35.68 6.84-9.44 15.54-14.28 26.09-14.52 4.9.11 10.12 1.3 15.66 3.58 5.54 2.28 9.25 3.48 11.13 3.58 1.52 0 5.44-1.29 11.75-3.86 6.31-2.58 11.85-3.71 16.63-3.39 12.83.76 22.84 5.33 30.03 13.7-11.09 6.74-16.53 16.19-16.32 28.37.22 9.56 3.81 17.5 10.76 23.8 6.96 6.3 15.22 10.05 24.78 11.25-2.17 6.31-4.89 12.61-8.15 18.9zm-29.28-111.45c0 7.39-2.61 14.24-7.83 20.54-5.22 6.3-11.74 10.11-19.57 11.42-.43-1.09-.65-2.28-.65-3.59 0-7.17 2.72-14.02 8.15-20.54 5.43-6.52 12.06-10.33 19.9-11.41.01 1.2.01 2.39 0 3.58z"/></svg>
+          <span style="font-weight:700;">Chrome</span>
+          <span>File</span>
+          <span>Edit</span>
+          <span>View</span>
+          <span>History</span>
+          <span>Window</span>
+        </div>
+        <div class="menubar-right">
+          <span>99% 🔋</span>
+          <span>WiFi 📶</span>
+          <span>Tue 10:55 AM</span>
+        </div>
+      </div>
+
+      <!-- Google Chrome Window -->
+      <div class="chrome-window">
+        <!-- Tab Bar -->
+        <div class="chrome-header">
+          <div class="window-controls">
+            <div class="control-dot dot-red"></div>
+            <div class="control-dot dot-yellow"></div>
+            <div class="control-dot dot-green"></div>
+          </div>
+          <div class="browser-tabs">
+            <div class="tab active">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#f472b6"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              <span>Developer Workspace · Cloud</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar & Address bar -->
+        <div class="chrome-toolbar">
+          <div class="nav-buttons"><span>←</span><span>→</span><span>⟳</span></div>
+          <div class="url-bar">
+            <span class="url-lock">🔒</span>
+            <span class="url-host">cloud.internal</span><span class="url-path">/preferences/security</span>
+          </div>
+          <div class="ext-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          </div>
+        </div>
+
+        <!-- Background Page Viewport -->
+        <div class="page-viewport">
+          <div class="settings-page-hdr">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#f472b6"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            <span>Hardware &amp; Key Custody Preferences</span>
+          </div>
+          <div class="settings-page-desc">Manage encrypted backup vaults and local security authenticators across your organization. Zero plain-text tokens found.</div>
+
+          <div class="compliance-card">
+            <div class="comp-title">✓ Vault In Full Compliance</div>
+            <div class="comp-sub">All private TOTP seeds stored with client-side AES-256-GCM hardware acceleration.</div>
+          </div>
+
+          <!-- FLOATING KH 2FA POPUP -->
+          <div class="extension-popup">
+            <div class="popup-hdr">
+              <div class="hdr-logo-group">
+                <div class="hdr-kh-badge">
+                  <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                </div>
+                <span class="hdr-brand-name">KH 2FA</span>
+              </div>
+              <div class="hdr-settings-tag">Preferences</div>
+            </div>
+
+            <!-- Section 1: Themes -->
+            <div class="section-label">Appearance &amp; Themes</div>
+            <div class="theme-options-grid">
+              <div class="theme-pill-btn active">
+                <div class="theme-dot cyan"></div>
+                <span>Midnight Cyan</span>
+              </div>
+              <div class="theme-pill-btn">
+                <div class="theme-dot dark"></div>
+                <span>OLED Black</span>
+              </div>
+              <div class="theme-pill-btn">
+                <div class="theme-dot nord"></div>
+                <span>Nord Arctic</span>
+              </div>
+              <div class="theme-pill-btn">
+                <div class="theme-dot light"></div>
+                <span>Clean Light</span>
+              </div>
+            </div>
+
+            <!-- Section 2: Security & PIN -->
+            <div class="section-label">Vault Security</div>
+            <div class="settings-row-item">
+              <span>Require Master PIN</span>
+              <div class="toggle-switch-on"></div>
+            </div>
+            <div class="settings-row-item">
+              <span>Auto-Lock Timer</span>
+              <span style="font-weight:700; color:#f472b6;">5 Minutes</span>
+            </div>
+
+            <!-- Section 3: Data Backup -->
+            <div class="backup-action-box">
+              <div class="backup-top-row">
+                <span class="backup-title-txt">Encrypted Vault Backup</span>
+                <span class="backup-aes-badge">AES-256</span>
+              </div>
+              <div class="backup-btn-row">
+                <button class="btn-export">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                  <span>Export .json</span>
+                </button>
+                <button class="btn-import">
+                  <span>Restore</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="popup-ver-footer">KH 2FA v1.2.0 · 100% Offline &amp; Client-Side</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MacBook Chin Base -->
+    <div class="macbook-base">
+      <div class="macbook-notch-chin"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Badges -->
+  <div class="bottom-badges-wrap">
+    <div class="bottom-badge-card">
+      <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.64 10.56 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+      <span>4 Handcrafted Custom Themes</span>
+    </div>
+    <div class="bottom-badge-card">
+      <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+      <span>Client-Side AES-256 JSON Export</span>
+    </div>
+    <div class="bottom-badge-card">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      <span>Standard RFC 6238 TOTP Import</span>
+    </div>
+    <div class="bottom-badge-card">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+      <span>Zero Cloud Lock-In &amp; Telemetry</span>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KH 2FA - Screenshot 4: Smart In-Field Autofill (1280x800)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    height: 800px;
+    overflow: hidden;
+    background: #060c18;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 26px;
+    position: relative;
+    user-select: none;
+  }
+
+  /* Ambient Glows */
+  .glow-blue {
+    position: absolute;
+    width: 550px;
+    height: 550px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.16) 0%, rgba(59, 130, 246, 0) 70%);
+    top: -100px;
+    right: 120px;
+    pointer-events: none;
+    filter: blur(45px);
+  }
+  .glow-cyan {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.14) 0%, rgba(56, 189, 248, 0) 70%);
+    bottom: 40px;
+    left: -50px;
+    pointer-events: none;
+    filter: blur(45px);
+  }
+
+  /* Header Section */
+  .top-title-wrap {
+    text-align: center;
+    margin-bottom: 20px;
+    z-index: 10;
+  }
+  .top-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: #60a5fa;
+  }
+  .pill-badge.cyan {
+    background: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+  }
+  .pill-badge.green {
+    background: rgba(52, 211, 153, 0.12);
+    border-color: rgba(52, 211, 153, 0.35);
+    color: #34d399;
+  }
+  .top-headline {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+  }
+  .top-headline span {
+    background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .top-subhead {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+    letter-spacing: 0.2px;
+  }
+
+  /* MacBook Mockup Frame */
+  .macbook-wrapper {
+    width: 1060px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+    position: relative;
+  }
+
+  /* Display Screen Lid */
+  .macbook-screen {
+    width: 960px;
+    height: 590px;
+    background: #0f172a;
+    border-radius: 18px 18px 0 0;
+    border: 10px solid #1a1e27;
+    border-bottom: none;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8), 0 0 40px rgba(59, 130, 246, 0.15);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* MacBook Notch */
+  .screen-camera {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 16px;
+    background: #1a1e27;
+    border-radius: 0 0 9px 9px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .camera-lens { width: 5px; height: 5px; border-radius: 50%; background: #070a13; border: 1px solid #2d3342; }
+
+  /* macOS Menu Bar */
+  .macos-menubar {
+    height: 24px;
+    background: rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 11px;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 90;
+  }
+  .menubar-left { display: flex; gap: 14px; align-items: center; }
+  .apple-icon-svg { width: 10px; height: 12px; fill: #cbd5e1; }
+  .menubar-right { display: flex; gap: 12px; align-items: center; font-size: 11px; color: #94a3b8; }
+
+  /* Chrome Browser Window */
+  .chrome-window {
+    flex: 1;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Tabs Bar */
+  .chrome-header {
+    height: 38px;
+    background: #141b2d;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .window-controls { display: flex; gap: 7px; }
+  .control-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+
+  .browser-tabs { display: flex; gap: 4px; flex: 1; margin-left: 6px; }
+  .tab {
+    padding: 6px 14px;
+    border-radius: 7px 7px 0 0;
+    font-size: 11px;
+    color: #94a3b8;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .tab.active { background: #0b0f19; color: #f8fafc; font-weight: 600; }
+
+  /* Toolbar */
+  .chrome-toolbar {
+    height: 36px;
+    background: #0b0f19;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .nav-buttons { display: flex; gap: 8px; color: #64748b; font-size: 13px; }
+  .url-bar {
+    flex: 1;
+    height: 24px;
+    background: #151d2f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 11px;
+    color: #cbd5e1;
+    gap: 6px;
+  }
+  .url-lock { color: #34d399; font-size: 10px; }
+  .url-host { color: #f8fafc; font-weight: 600; }
+  .url-path { color: #64748b; }
+
+  .ext-icon-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3b82f6, #38bdf8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+  }
+  .ext-icon-badge svg { width: 14px; height: 14px; fill: white; }
+
+  /* Background Page: 2FA Login Form */
+  .page-viewport {
+    flex: 1;
+    background: #0d1117;
+    padding: 24px 32px;
+    color: #c9d1d9;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+  }
+  .login-card-center {
+    width: 420px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 28px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin-left: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  }
+  .login-badge-ico {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #60a5fa;
+  }
+  .login-title { font-size: 16px; font-weight: 700; color: #f0f6fc; }
+  .login-desc { font-size: 11px; color: #8b949e; text-align: center; line-height: 1.4; }
+
+  /* Digits Row with Floating Autofill Tooltip */
+  .digits-row-wrapper {
+    position: relative;
+    display: flex;
+    gap: 9px;
+    margin-top: 26px;
+  }
+  .autofill-floating-banner {
+    position: absolute;
+    top: -38px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f1c30;
+    border: 1.5px solid #38bdf8;
+    border-radius: 20px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 189, 248, 0.4);
+    white-space: nowrap;
+    z-index: 20;
+  }
+  .autofill-btn-pill {
+    background: linear-gradient(135deg, #3b82f6, #38bdf8);
+    border: none;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 9px;
+    font-weight: 800;
+    color: white;
+  }
+
+  .digit-input-square {
+    width: 44px;
+    height: 50px;
+    background: #0d1117;
+    border: 1.5px solid #30363d;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 20px;
+    font-weight: 800;
+    color: #38bdf8;
+    border-color: #38bdf8;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+  }
+
+  .login-submit-btn {
+    width: 100%;
+    height: 36px;
+    background: #238636;
+    border: 1px solid rgba(240, 246, 252, 0.1);
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+
+  /* FLOATING KH 2FA POPUP */
+  .extension-popup {
+    position: absolute;
+    top: 6px;
+    right: 14px;
+    width: 320px;
+    background: #0a1324;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(56, 189, 248, 0.2);
+    z-index: 80;
+  }
+
+  /* Popup Header */
+  .popup-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2px;
+  }
+  .hdr-logo-group { display: flex; align-items: center; gap: 6px; }
+  .hdr-kh-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3b82f6, #38bdf8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hdr-kh-badge svg { width: 13px; height: 13px; fill: white; }
+  .hdr-brand-name { font-size: 13px; font-weight: 800; letter-spacing: 0.5px; color: #ffffff; }
+  .hdr-autofill-status {
+    font-size: 9px;
+    color: #38bdf8;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 999px;
+  }
+  .hdr-autofill-status .dot { width: 5px; height: 5px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 5px #38bdf8; }
+
+  /* Autofill Notification */
+  .autofill-notif-box {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 8px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .notif-left { display: flex; flex-direction: column; }
+  .notif-status { font-size: 10px; font-weight: 700; color: #38bdf8; }
+  .notif-desc { font-size: 9px; color: #94a3b8; }
+  .shortcut-badge {
+    font-family: monospace;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 6px;
+    background: #152238;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #e2e8f0;
+  }
+
+  /* Pinned Card */
+  .vault-card {
+    background: #111e33;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-left { display: flex; align-items: center; gap: 10px; }
+  .card-brand-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+  .card-brand-icon svg { width: 16px; height: 16px; fill: currentColor; }
+  .card-info { display: flex; flex-direction: column; }
+  .card-issuer-row { font-size: 11px; font-weight: 700; color: #e2e8f0; }
+  .card-account-name { font-size: 9px; color: #64748b; }
+  .otp-code {
+    font-family: ui-monospace, monospace;
+    font-size: 15px;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 1px;
+  }
+
+  /* Toast */
+  .toast-autofill-pill {
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 9px;
+    color: #38bdf8;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  /* MacBook Chin */
+  .macbook-base {
+    width: 1040px;
+    height: 16px;
+    background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
+    border-radius: 0 0 16px 16px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  }
+  .macbook-notch-chin {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 6px;
+    background: #14171f;
+    border-radius: 0 0 6px 6px;
+  }
+
+  /* Bottom Badges */
+  .bottom-badges-wrap {
+    display: flex;
+    gap: 16px;
+    margin-top: 18px;
+    z-index: 10;
+  }
+  .bottom-badge-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 11px;
+    font-weight: 600;
+    color: #e2e8f0;
+    backdrop-filter: blur(8px);
+  }
+  .bottom-badge-card svg { width: 14px; height: 14px; fill: #38bdf8; }
+</style>
+</head>
+<body>
+
+  <!-- Ambient glow -->
+  <div class="glow-blue"></div>
+  <div class="glow-cyan"></div>
+
+  <!-- Top Title Header -->
+  <div class="top-title-wrap">
+    <div class="top-badges">
+      <div class="pill-badge">⚡ 1-Click In-Field Autofill</div>
+      <div class="pill-badge cyan">⌨️ Alt+Shift+U Shortcut</div>
+      <div class="pill-badge green">🚀 Sub-Second Verification</div>
+    </div>
+    <h1 class="top-headline">Smart In-Field 2FA Autofill — <span>Log In in Under 2 Seconds</span></h1>
+    <p class="top-subhead">Automatically detects 2FA verification inputs and injects your 6-digit TOTP code with zero copy-paste friction</p>
+  </div>
+
+  <!-- MacBook Pro Mockup -->
+  <div class="macbook-wrapper">
+    <div class="macbook-screen">
+      <!-- Camera Notch -->
+      <div class="screen-camera"><div class="camera-lens"></div></div>
+
+      <!-- macOS Menu Bar -->
+      <div class="macos-menubar">
+        <div class="menubar-left">
+          <svg class="apple-icon-svg" viewBox="0 0 170 170"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.58-7.7-11.64-13.98-6.19-9.56-11.08-20.73-14.67-33.52-3.59-12.79-5.39-24.81-5.39-36.06 0-14.35 3.42-26.24 10.26-35.68 6.84-9.44 15.54-14.28 26.09-14.52 4.9.11 10.12 1.3 15.66 3.58 5.54 2.28 9.25 3.48 11.13 3.58 1.52 0 5.44-1.29 11.75-3.86 6.31-2.58 11.85-3.71 16.63-3.39 12.83.76 22.84 5.33 30.03 13.7-11.09 6.74-16.53 16.19-16.32 28.37.22 9.56 3.81 17.5 10.76 23.8 6.96 6.3 15.22 10.05 24.78 11.25-2.17 6.31-4.89 12.61-8.15 18.9zm-29.28-111.45c0 7.39-2.61 14.24-7.83 20.54-5.22 6.3-11.74 10.11-19.57 11.42-.43-1.09-.65-2.28-.65-3.59 0-7.17 2.72-14.02 8.15-20.54 5.43-6.52 12.06-10.33 19.9-11.41.01 1.2.01 2.39 0 3.58z"/></svg>
+          <span style="font-weight:700;">Chrome</span>
+          <span>File</span>
+          <span>Edit</span>
+          <span>View</span>
+          <span>History</span>
+          <span>Window</span>
+        </div>
+        <div class="menubar-right">
+          <span>99% 🔋</span>
+          <span>WiFi 📶</span>
+          <span>Tue 10:52 AM</span>
+        </div>
+      </div>
+
+      <!-- Google Chrome Window -->
+      <div class="chrome-window">
+        <!-- Tab Bar -->
+        <div class="chrome-header">
+          <div class="window-controls">
+            <div class="control-dot dot-red"></div>
+            <div class="control-dot dot-yellow"></div>
+            <div class="control-dot dot-green"></div>
+          </div>
+          <div class="browser-tabs">
+            <div class="tab active">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              <span>GitHub · Two-Factor Verification</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar & Address bar -->
+        <div class="chrome-toolbar">
+          <div class="nav-buttons"><span>←</span><span>→</span><span>⟳</span></div>
+          <div class="url-bar">
+            <span class="url-lock">🔒</span>
+            <span class="url-host">github.com</span><span class="url-path">/sessions/two-factor</span>
+          </div>
+          <div class="ext-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          </div>
+        </div>
+
+        <!-- Background Page Viewport -->
+        <div class="page-viewport">
+          <div class="login-card-center">
+            <div class="login-badge-ico">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+            </div>
+            <div class="login-title">Two-factor authentication</div>
+            <div class="login-desc">Enter the 6-digit verification code generated by your authenticator app.</div>
+
+            <!-- In-Field 6 Digits with Floating Autofill Tooltip -->
+            <div class="digits-row-wrapper">
+              <div class="autofill-floating-banner">
+                <span style="color:#38bdf8;">⚡</span>
+                <span style="font-size:11px; font-weight:700; color:#fff;">Autofill from KH 2FA</span>
+                <span style="font-size:10px; color:#94a3b8;">(dev@lead)</span>
+                <div class="autofill-btn-pill">Fill 904 613</div>
+              </div>
+
+              <div class="digit-input-square">9</div>
+              <div class="digit-input-square">0</div>
+              <div class="digit-input-square">4</div>
+              <div class="digit-input-square">6</div>
+              <div class="digit-input-square">1</div>
+              <div class="digit-input-square">3</div>
+            </div>
+
+            <button class="login-submit-btn">Verify &amp; Continue</button>
+          </div>
+
+          <!-- FLOATING KH 2FA POPUP -->
+          <div class="extension-popup">
+            <div class="popup-hdr">
+              <div class="hdr-logo-group">
+                <div class="hdr-kh-badge">
+                  <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+                </div>
+                <span class="hdr-brand-name">KH 2FA</span>
+              </div>
+              <div class="hdr-autofill-status"><div class="dot"></div><span>Autofill Ready</span></div>
+            </div>
+
+            <!-- Autofill Notification -->
+            <div class="autofill-notif-box">
+              <div class="notif-left">
+                <span class="notif-status">⚡ GitHub OTP Detected</span>
+                <span class="notif-desc">Matching account: dev@lead</span>
+              </div>
+              <div class="shortcut-badge">Alt+Shift+U</div>
+            </div>
+
+            <!-- Pinned Card -->
+            <div class="vault-card">
+              <div class="card-left">
+                <div class="card-brand-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                </div>
+                <div class="card-info">
+                  <div class="card-issuer-row">GitHub dev ★</div>
+                  <div class="card-account-name">Matched domain</div>
+                </div>
+              </div>
+              <div class="otp-code">904 613</div>
+            </div>
+
+            <!-- Toast -->
+            <div class="toast-autofill-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#38bdf8"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>Injected 904 613 into form</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MacBook Chin Base -->
+    <div class="macbook-base">
+      <div class="macbook-notch-chin"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Badges -->
+  <div class="bottom-badges-wrap">
+    <div class="bottom-badge-card">
+      <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+      <span>Smart 2FA Input Detection</span>
+    </div>
+    <div class="bottom-badge-card">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      <span>One-Click 6-Digit Auto Fill</span>
+    </div>
+    <div class="bottom-badge-card">
+      <svg viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 5H5v-2h2v2zm0-3H5v-2h2v2zm0-3H5V8h2v2zm9 8h-4v-2h4v2zm0-3h-2v-2h2v2zm0-3h-2V8h2v2zm3 6h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
+      <span>Hotkey Shortcut (Alt+Shift+U)</span>
+    </div>
+    <div class="bottom-badge-card">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+      <span>Zero Clipboard Exposure</span>
+    </div>
+  </div>
+
+</body>
+</html>
