@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KH 2FA - Marquee Tile 2: 1-Click Screen QR Scanner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1400px;
+    height: 560px;
+    overflow: hidden;
+    background: #060d14;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 70px 0 65px;
+    position: relative;
+    user-select: none;
+  }
+
+  /* Ambient Lighting */
+  .glow-emerald {
+    position: absolute;
+    width: 650px;
+    height: 650px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0) 70%);
+    top: -120px;
+    right: 200px;
+    pointer-events: none;
+    filter: blur(55px);
+  }
+  .glow-cyan {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.18) 0%, rgba(6, 182, 212, 0) 70%);
+    bottom: -140px;
+    left: 40px;
+    pointer-events: none;
+    filter: blur(55px);
+  }
+
+  /* Left Column */
+  .marquee-left {
+    width: 505px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 10;
+  }
+  .brand-pill-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .badge-tag svg { width: 13px; height: 13px; fill: currentColor; }
+  .version-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .headline {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.18;
+    letter-spacing: -0.6px;
+    color: #ffffff;
+  }
+  .headline span {
+    background: linear-gradient(135deg, #34d399 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .description {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #94a3b8;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .feat-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 9px 12px;
+    backdrop-filter: blur(10px);
+  }
+  .feat-icon-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #34d399;
+    flex-shrink: 0;
+  }
+  .feat-icon-box svg { width: 14px; height: 14px; fill: currentColor; }
+  .feat-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  .feat-sub {
+    font-size: 10px;
+    color: #64748b;
+  }
+
+  .footer-trust {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #64748b;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .trust-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 6px #34d399;
+  }
+
+  /* Right Column: MacBook Mockup */
+  .marquee-right {
+    width: 730px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+  }
+
+  .macbook-screen {
+    width: 710px;
+    height: 446px;
+    background: #0f172a;
+    border-radius: 16px 16px 0 0;
+    border: 9px solid #1a1e27;
+    border-bottom: none;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 35px rgba(16, 185, 129, 0.15);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 105px;
+    height: 14px;
+    background: #1a1e27;
+    border-radius: 0 0 8px 8px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .notch-cam { width: 5px; height: 5px; border-radius: 50%; background: #070a13; border: 1px solid #2d3342; }
+
+  .macos-bar {
+    height: 22px;
+    background: rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    font-size: 10px;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .macos-bar-left { display: flex; gap: 12px; align-items: center; }
+  .apple-icon-svg { width: 9px; height: 11px; fill: #cbd5e1; }
+
+  .chrome-window {
+    flex: 1;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .chrome-tabs-bar {
+    height: 34px;
+    background: #141b2d;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .win-dots { display: flex; gap: 6px; }
+  .win-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-r { background: #ff5f56; }
+  .dot-y { background: #ffbd2e; }
+  .dot-g { background: #27c93f; }
+
+  .tabs-group { display: flex; gap: 4px; margin-left: 8px; }
+  .tab-pill {
+    padding: 5px 12px;
+    border-radius: 6px 6px 0 0;
+    font-size: 10px;
+    color: #94a3b8;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-pill.active {
+    background: #0b0f19;
+    color: #f8fafc;
+    font-weight: 600;
+  }
+
+  .chrome-nav-bar {
+    height: 32px;
+    background: #0b0f19;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .nav-arrows { display: flex; gap: 6px; color: #475569; font-size: 11px; }
+  .url-input-pill {
+    flex: 1;
+    height: 22px;
+    background: #151d2f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 10px;
+    color: #cbd5e1;
+    gap: 5px;
+  }
+  .url-lock { color: #34d399; font-size: 9px; }
+  .ext-icons-row { display: flex; align-items: center; gap: 8px; }
+  .ext-kh-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  }
+  .ext-kh-icon svg { width: 12px; height: 12px; fill: white; }
+
+  /* Web Page Background Content: AWS / Cloud MFA Enrollment */
+  .bg-web-content {
+    flex: 1;
+    background: #0b111e;
+    padding: 18px 24px;
+    color: #c9d1d9;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+  .web-enroll-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #f0f6fc;
+  }
+  .web-enroll-sub {
+    font-size: 11px;
+    color: #8b949e;
+    max-width: 320px;
+    line-height: 1.4;
+  }
+
+  /* Realistic QR Code Box on Webpage */
+  .qr-enrollment-card {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    background: #131b2e;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 14px;
+    max-width: 350px;
+    margin-top: 4px;
+  }
+  .qr-code-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+  }
+  .qr-code-img {
+    width: 88px;
+    height: 88px;
+  }
+
+  /* Glowing Optical Scanner Viewfinder across QR */
+  .scan-viewfinder {
+    position: absolute;
+    inset: -3px;
+    border-radius: 10px;
+    border: 2px dashed rgba(16, 185, 129, 0.6);
+    pointer-events: none;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scan-corner {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: #34d399;
+    border-style: solid;
+  }
+  .corner-tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 3px 0 0 0; }
+  .corner-tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 3px 0 0; }
+  .corner-bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 3px; }
+  .corner-br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 3px 0; }
+  .scan-laser-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #34d399;
+    box-shadow: 0 0 8px #34d399, 0 0 14px #34d399;
+    top: 50%;
+  }
+
+  .qr-details-column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .qr-step-title { font-size: 11px; font-weight: 700; color: #f8fafc; }
+  .qr-step-txt { font-size: 9px; color: #94a3b8; line-height: 1.3; }
+  .manual-secret-code {
+    font-family: monospace;
+    font-size: 9px;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+    margin-top: 4px;
+  }
+
+  /* KH 2FA POPUP MODAL (FLOATING) */
+  .kh-popup-frame {
+    position: absolute;
+    top: 6px;
+    right: 14px;
+    width: 295px;
+    background: #09131d;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 12px;
+    padding: 11px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(16, 185, 129, 0.25);
+    z-index: 50;
+  }
+
+  /* Popup Header */
+  .popup-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2px;
+  }
+  .hdr-logo-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hdr-kh-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hdr-kh-badge svg { width: 13px; height: 13px; fill: white; }
+  .hdr-brand-name {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+  }
+  .hdr-scanner-status {
+    font-size: 9px;
+    color: #34d399;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 999px;
+  }
+  .hdr-scanner-status .dot { width: 5px; height: 5px; border-radius: 50%; background: #34d399; box-shadow: 0 0 6px #34d399; }
+
+  /* Scan Success Detection Card */
+  .scan-result-card {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .result-status-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #34d399;
+  }
+  .result-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #cbd5e1;
+    background: #0f1c2b;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .result-issuer { font-weight: 700; color: #f8fafc; }
+  .result-user { color: #94a3b8; font-size: 9px; }
+
+  /* Live Generated Code Preview */
+  .preview-code-box {
+    background: #0f1c2b;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .preview-code-left {
+    display: flex;
+    flex-direction: column;
+  }
+  .preview-lbl { font-size: 8px; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.5px; }
+  .preview-digits {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #34d399;
+  }
+  .preview-timer {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+
+  /* Big Action Button */
+  .save-vault-btn {
+    height: 30px;
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+  }
+  .save-vault-btn svg { width: 13px; height: 13px; fill: white; }
+
+  /* Secondary Existing Accounts */
+  .mini-vault-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0f1c2b;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+  .mini-title { font-weight: 700; color: #cbd5e1; }
+  .mini-code { font-family: monospace; font-weight: 800; color: #4cc9f0; }
+
+  /* MacBook Base */
+  .macbook-base {
+    width: 750px;
+    height: 13px;
+    background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
+    border-radius: 0 0 14px 14px;
+    position: relative;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.7);
+  }
+  .macbook-notch-chin {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 105px;
+    height: 4px;
+    background: #14171f;
+    border-radius: 0 0 4px 4px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Ambient Light -->
+  <div class="glow-emerald"></div>
+  <div class="glow-cyan"></div>
+
+  <!-- Left Copy Section -->
+  <div class="marquee-left">
+    <div class="brand-pill-wrap">
+      <div class="badge-tag">
+        <svg viewBox="0 0 24 24"><path d="M4 4h6v6H4V4zm2 2v2h2V6H6zm8-2h6v6h-6V4zm2 2v2h2V6h-2zM4 14h6v6H4v-6zm2 2v2h2v-2H6zm10-2h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm-2 2h2v2h-2v-2zm2 2h2v2h-2v-2z"/></svg>
+        <span>1-Click Screen QR Scanner</span>
+      </div>
+      <div class="version-tag">Instant Optical Scan</div>
+    </div>
+
+    <h1 class="headline">Scan Screen QR Codes<br><span>Without Phone or Camera</span></h1>
+    <p class="description">Zero manual 32-character secret typing. KH 2FA captures and decodes 2FA QR codes directly from any active browser tab in under a second.</p>
+
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.11 0-2 .89-2 2v12c0 1.1.89 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.11-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">Direct Screen Grab</div>
+          <div class="feat-sub">No webcam or phone needed</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">Smart Key Parsing</div>
+          <div class="feat-sub">Auto-extracts issuer & secret</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">100% Offline jsQR</div>
+          <div class="feat-sub">Zero cloud image uploads</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">Instant AES Save</div>
+          <div class="feat-sub">Locked into encrypted vault</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-trust">
+      <div class="trust-item"><div class="trust-dot"></div><span>Sub-second Detection</span></div>
+      <div class="trust-item"><div class="trust-dot"></div><span>Zero Typing Errors</span></div>
+      <div class="trust-item"><div class="trust-dot"></div><span>Local Optical Decoder</span></div>
+    </div>
+  </div>
+
+  <!-- Right MacBook Mockup -->
+  <div class="marquee-right">
+    <div class="macbook-screen">
+      <div class="screen-notch"><div class="notch-cam"></div></div>
+
+      <div class="macos-bar">
+        <div class="macos-bar-left">
+          <svg class="apple-icon-svg" viewBox="0 0 170 170"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.58-7.7-11.64-13.98-6.19-9.56-11.08-20.73-14.67-33.52-3.59-12.79-5.39-24.81-5.39-36.06 0-14.35 3.42-26.24 10.26-35.68 6.84-9.44 15.54-14.28 26.09-14.52 4.9.11 10.12 1.3 15.66 3.58 5.54 2.28 9.25 3.48 11.13 3.58 1.52 0 5.44-1.29 11.75-3.86 6.31-2.58 11.85-3.71 16.63-3.39 12.83.76 22.84 5.33 30.03 13.7-11.09 6.74-16.53 16.19-16.32 28.37.22 9.56 3.81 17.5 10.76 23.8 6.96 6.3 15.22 10.05 24.78 11.25-2.17 6.31-4.89 12.61-8.15 18.9zm-29.28-111.45c0 7.39-2.61 14.24-7.83 20.54-5.22 6.3-11.74 10.11-19.57 11.42-.43-1.09-.65-2.28-.65-3.59 0-7.17 2.72-14.02 8.15-20.54 5.43-6.52 12.06-10.33 19.9-11.41.01 1.2.01 2.39 0 3.58z"/></svg>
+          <span style="font-weight:700;">Chrome</span>
+          <span>File</span>
+          <span>Edit</span>
+          <span>View</span>
+          <span>History</span>
+          <span>Window</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <span>98% 🔋</span>
+          <span>WiFi 📶</span>
+          <span>Tue 10:45 AM</span>
+        </div>
+      </div>
+
+      <div class="chrome-window">
+        <div class="chrome-tabs-bar">
+          <div class="win-dots">
+            <div class="win-dot dot-r"></div>
+            <div class="win-dot dot-y"></div>
+            <div class="win-dot dot-g"></div>
+          </div>
+          <div class="tabs-group">
+            <div class="tab-pill active">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#ff9900"><path d="M12.015 13.567c-3.155 0-5.836-1.077-7.792-2.935-.382-.363-.263-.82.175-.82.25 0 .493.107.683.284 1.776 1.666 4.223 2.634 7.026 2.634 3.75 0 7.009-1.684 8.784-4.27.272-.397.697-.197.604.282-1.745 3.013-5.32 4.825-9.48 4.825z"/></svg>
+              <span>AWS Console · MFA Setup</span>
+            </div>
+            <div class="tab-pill"><span>GitHub Security</span></div>
+          </div>
+        </div>
+
+        <div class="chrome-nav-bar">
+          <div class="nav-arrows"><span>‹</span><span>›</span><span>↻</span></div>
+          <div class="url-input-pill">
+            <span class="url-lock">🔒</span>
+            <span style="font-weight:600; color:#f8fafc;">console.aws.amazon.com</span>
+            <span style="color:#64748b;">/iam/mfa-device</span>
+          </div>
+          <div class="ext-icons-row">
+            <div class="ext-kh-icon">
+              <svg viewBox="0 0 24 24"><path d="M4 4h6v6H4V4zm2 2v2h2V6H6zm8-2h6v6h-6V4zm2 2v2h2V6h-2zM4 14h6v6H4v-6zm2 2v2h2v-2H6z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Web Page Content: MFA Enrollment with QR -->
+        <div class="bg-web-content">
+          <div class="web-enroll-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#34d399"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            <span>Set up authenticator app</span>
+          </div>
+          <div class="web-enroll-sub">Scan this QR code using your authenticator app to pair your credentials.</div>
+
+          <div class="qr-enrollment-card">
+            <!-- QR Box with Optical Viewfinder Overlay -->
+            <div class="qr-code-wrapper">
+              <!-- Inline High Contrast Vector QR Code -->
+              <svg class="qr-code-img" viewBox="0 0 29 29" shape-rendering="crispEdges">
+                <rect width="29" height="29" fill="#ffffff"/>
+                <!-- Outer Corners -->
+                <rect x="1" y="1" width="7" height="7" fill="#000000"/>
+                <rect x="2" y="2" width="5" height="5" fill="#ffffff"/>
+                <rect x="3" y="3" width="3" height="3" fill="#000000"/>
+
+                <rect x="21" y="1" width="7" height="7" fill="#000000"/>
+                <rect x="22" y="2" width="5" height="5" fill="#ffffff"/>
+                <rect x="23" y="3" width="3" height="3" fill="#000000"/>
+
+                <rect x="1" y="21" width="7" height="7" fill="#000000"/>
+                <rect x="2" y="22" width="5" height="5" fill="#ffffff"/>
+                <rect x="3" y="23" width="3" height="3" fill="#000000"/>
+
+                <!-- Random Seed Data Patterns -->
+                <rect x="9" y="2" width="2" height="1" fill="#000000"/>
+                <rect x="13" y="2" width="1" height="2" fill="#000000"/>
+                <rect x="16" y="1" width="3" height="1" fill="#000000"/>
+                <rect x="10" y="5" width="2" height="2" fill="#000000"/>
+                <rect x="14" y="5" width="4" height="1" fill="#000000"/>
+                <rect x="1" y="10" width="2" height="3" fill="#000000"/>
+                <rect x="5" y="11" width="2" height="2" fill="#000000"/>
+                <rect x="9" y="9" width="3" height="3" fill="#000000"/>
+                <rect x="14" y="10" width="3" height="2" fill="#000000"/>
+                <rect x="19" y="10" width="2" height="4" fill="#000000"/>
+                <rect x="23" y="9" width="4" height="2" fill="#000000"/>
+                <rect x="10" y="14" width="2" height="4" fill="#000000"/>
+                <rect x="13" y="13" width="4" height="3" fill="#000000"/>
+                <rect x="18" y="16" width="3" height="2" fill="#000000"/>
+                <rect x="23" y="13" width="2" height="3" fill="#000000"/>
+                <rect x="26" y="14" width="2" height="4" fill="#000000"/>
+                <rect x="9" y="19" width="4" height="2" fill="#000000"/>
+                <rect x="14" y="18" width="3" height="3" fill="#000000"/>
+                <rect x="10" y="23" width="2" height="3" fill="#000000"/>
+                <rect x="14" y="22" width="3" height="2" fill="#000000"/>
+                <rect x="19" y="21" width="4" height="2" fill="#000000"/>
+                <rect x="25" y="22" width="3" height="3" fill="#000000"/>
+              </svg>
+
+              <!-- Viewfinder Optical Target -->
+              <div class="scan-viewfinder">
+                <div class="scan-corner corner-tl"></div>
+                <div class="scan-corner corner-tr"></div>
+                <div class="scan-corner corner-bl"></div>
+                <div class="scan-corner corner-br"></div>
+                <div class="scan-laser-line"></div>
+              </div>
+            </div>
+
+            <div class="qr-details-column">
+              <div class="qr-step-title">Step 2: Point & Scan</div>
+              <div class="qr-step-txt">Click KH 2FA "Scan QR" to extract the authentication secret.</div>
+              <div class="manual-secret-code">KEY: JBSWY3DPEHPK3PXP</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KH 2FA EXTENSION POPUP OVERLAY -->
+        <div class="kh-popup-frame">
+          <div class="popup-hdr">
+            <div class="hdr-logo-group">
+              <div class="hdr-kh-badge">
+                <svg viewBox="0 0 24 24"><path d="M4 4h6v6H4V4zm2 2v2h2V6H6zm8-2h6v6h-6V4zm2 2v2h2V6h-2zM4 14h6v6H4v-6zm2 2v2h2v-2H6z"/></svg>
+              </div>
+              <span class="hdr-brand-name">KH 2FA</span>
+            </div>
+            <div class="hdr-scanner-status"><div class="dot"></div><span>QR Detected</span></div>
+          </div>
+
+          <!-- Scan Detection Card -->
+          <div class="scan-result-card">
+            <div class="result-status-row">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#34d399"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              <span>Token Decoded Successfully</span>
+            </div>
+            <div class="result-meta-row">
+              <div class="result-issuer">AWS Cloud Prod</div>
+              <div class="result-user">infra@kh.io</div>
+            </div>
+          </div>
+
+          <!-- Live Generated Code Preview -->
+          <div class="preview-code-box">
+            <div class="preview-code-left">
+              <span class="preview-lbl">Live Verification Code</span>
+              <span class="preview-digits">391 802</span>
+            </div>
+            <div class="preview-timer">⏳ 28s</div>
+          </div>
+
+          <!-- Big Save Button -->
+          <button class="save-vault-btn">
+            <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+            <span>Save to Encrypted Vault</span>
+          </button>
+
+          <!-- Existing mini row -->
+          <div class="mini-vault-row">
+            <span class="mini-title">GitHub dev ★</span>
+            <span class="mini-code">904 613</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MacBook Base -->
+    <div class="macbook-base">
+      <div class="macbook-notch-chin"></div>
+    </div>
+  </div>
+
+</body>
+</html>

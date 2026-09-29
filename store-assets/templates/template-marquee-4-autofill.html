@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KH 2FA - Marquee Tile 4: Smart In-Field Autofill</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1400px;
+    height: 560px;
+    overflow: hidden;
+    background: #060c18;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 70px 0 65px;
+    position: relative;
+    user-select: none;
+  }
+
+  /* Ambient Lighting */
+  .glow-blue {
+    position: absolute;
+    width: 650px;
+    height: 650px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0) 70%);
+    top: -120px;
+    right: 200px;
+    pointer-events: none;
+    filter: blur(55px);
+  }
+  .glow-cyan {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0) 70%);
+    bottom: -140px;
+    left: 40px;
+    pointer-events: none;
+    filter: blur(55px);
+  }
+
+  /* Left Column */
+  .marquee-left {
+    width: 505px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 10;
+  }
+  .brand-pill-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #60a5fa;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .badge-tag svg { width: 13px; height: 13px; fill: currentColor; }
+  .version-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .headline {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.18;
+    letter-spacing: -0.6px;
+    color: #ffffff;
+  }
+  .headline span {
+    background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .description {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #94a3b8;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .feat-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 9px 12px;
+    backdrop-filter: blur(10px);
+  }
+  .feat-icon-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #60a5fa;
+    flex-shrink: 0;
+  }
+  .feat-icon-box svg { width: 14px; height: 14px; fill: currentColor; }
+  .feat-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  .feat-sub {
+    font-size: 10px;
+    color: #64748b;
+  }
+
+  .footer-trust {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #64748b;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .trust-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 6px #38bdf8;
+  }
+
+  /* Right Column: MacBook Mockup */
+  .marquee-right {
+    width: 730px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+  }
+
+  .macbook-screen {
+    width: 710px;
+    height: 446px;
+    background: #0f172a;
+    border-radius: 16px 16px 0 0;
+    border: 9px solid #1a1e27;
+    border-bottom: none;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 35px rgba(59, 130, 246, 0.15);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 105px;
+    height: 14px;
+    background: #1a1e27;
+    border-radius: 0 0 8px 8px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .notch-cam { width: 5px; height: 5px; border-radius: 50%; background: #070a13; border: 1px solid #2d3342; }
+
+  .macos-bar {
+    height: 22px;
+    background: rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    font-size: 10px;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .macos-bar-left { display: flex; gap: 12px; align-items: center; }
+  .apple-icon-svg { width: 9px; height: 11px; fill: #cbd5e1; }
+
+  .chrome-window {
+    flex: 1;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .chrome-tabs-bar {
+    height: 34px;
+    background: #141b2d;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .win-dots { display: flex; gap: 6px; }
+  .win-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-r { background: #ff5f56; }
+  .dot-y { background: #ffbd2e; }
+  .dot-g { background: #27c93f; }
+
+  .tabs-group { display: flex; gap: 4px; margin-left: 8px; }
+  .tab-pill {
+    padding: 5px 12px;
+    border-radius: 6px 6px 0 0;
+    font-size: 10px;
+    color: #94a3b8;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-pill.active {
+    background: #0b0f19;
+    color: #f8fafc;
+    font-weight: 600;
+  }
+
+  .chrome-nav-bar {
+    height: 32px;
+    background: #0b0f19;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .nav-arrows { display: flex; gap: 6px; color: #475569; font-size: 11px; }
+  .url-input-pill {
+    flex: 1;
+    height: 22px;
+    background: #151d2f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 10px;
+    color: #cbd5e1;
+    gap: 5px;
+  }
+  .url-lock { color: #34d399; font-size: 9px; }
+  .ext-icons-row { display: flex; align-items: center; gap: 8px; }
+  .ext-kh-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #3b82f6, #38bdf8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+  }
+  .ext-kh-icon svg { width: 12px; height: 12px; fill: white; }
+
+  /* Web Page Background: 2FA Login Page with In-Field Autofill */
+  .bg-web-content {
+    flex: 1;
+    background: #0d1117;
+    padding: 24px;
+    color: #c9d1d9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Two Factor Login Modal Box */
+  .auth-modal-card {
+    width: 360px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    position: relative;
+    margin-right: 180px;
+  }
+  .auth-icon-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #60a5fa;
+  }
+  .auth-title { font-size: 14px; font-weight: 700; color: #f0f6fc; }
+  .auth-subtitle {
+    font-size: 10px;
+    color: #8b949e;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* 6-Digit In-Field Input Boxes */
+  .digits-input-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 28px;
+    position: relative;
+  }
+  .digit-box {
+    width: 38px;
+    height: 44px;
+    background: #0d1117;
+    border: 1.5px solid #30363d;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 18px;
+    font-weight: 800;
+    color: #f0f6fc;
+    transition: all 0.2s;
+  }
+  .digit-box.filled {
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+  }
+
+  /* Floating KH 2FA Autofill Tooltip Banner */
+  .autofill-floating-pill {
+    position: absolute;
+    top: -38px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f1c30;
+    border: 1.5px solid #38bdf8;
+    border-radius: 20px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 189, 248, 0.4);
+    white-space: nowrap;
+    z-index: 20;
+    animation: pulse 2s infinite;
+  }
+  .autofill-icon-sparkle { color: #38bdf8; font-size: 11px; }
+  .autofill-text-main { font-size: 10px; font-weight: 700; color: #ffffff; }
+  .autofill-acc-tag { font-size: 9px; color: #94a3b8; }
+  .autofill-action-btn {
+    background: linear-gradient(135deg, #3b82f6, #38bdf8);
+    border: none;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 9px;
+    font-weight: 800;
+    color: white;
+  }
+
+  .auth-submit-btn {
+    width: 100%;
+    height: 32px;
+    background: #238636;
+    border: 1px solid rgba(240, 246, 252, 0.1);
+    border-radius: 6px;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  /* KH 2FA EXTENSION POPUP OVERLAY (Right Side) */
+  .kh-popup-frame {
+    position: absolute;
+    top: 6px;
+    right: 14px;
+    width: 280px;
+    background: #0a1324;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 12px;
+    padding: 11px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(56, 189, 248, 0.2);
+    z-index: 50;
+  }
+
+  /* Popup Header */
+  .popup-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2px;
+  }
+  .hdr-logo-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hdr-kh-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3b82f6, #38bdf8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hdr-kh-badge svg { width: 13px; height: 13px; fill: white; }
+  .hdr-brand-name {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+  }
+  .hdr-autofill-active {
+    font-size: 9px;
+    color: #38bdf8;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 999px;
+  }
+  .hdr-autofill-active .dot { width: 5px; height: 5px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 5px #38bdf8; }
+
+  /* Autofill Notification Card */
+  .autofill-notif-box {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .notif-left { display: flex; flex-direction: column; }
+  .notif-status { font-size: 9px; font-weight: 700; color: #38bdf8; }
+  .notif-desc { font-size: 8px; color: #94a3b8; }
+  .shortcut-badge {
+    font-family: monospace;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 5px;
+    background: #152238;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: #e2e8f0;
+  }
+
+  /* Pinned Card */
+  .vault-card {
+    background: #111e33;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 8px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-left { display: flex; align-items: center; gap: 8px; }
+  .card-brand-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+  .card-brand-icon svg { width: 14px; height: 14px; fill: currentColor; }
+  .card-info { display: flex; flex-direction: column; }
+  .card-issuer-row { font-size: 10px; font-weight: 700; color: #e2e8f0; }
+  .card-account-name { font-size: 9px; color: #64748b; }
+  .otp-code {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 1px;
+  }
+
+  /* Toast */
+  .toast-autofill-pill {
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 9px;
+    color: #38bdf8;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  /* MacBook Base */
+  .macbook-base {
+    width: 750px;
+    height: 13px;
+    background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
+    border-radius: 0 0 14px 14px;
+    position: relative;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.7);
+  }
+  .macbook-notch-chin {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 105px;
+    height: 4px;
+    background: #14171f;
+    border-radius: 0 0 4px 4px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Ambient Light -->
+  <div class="glow-blue"></div>
+  <div class="glow-cyan"></div>
+
+  <!-- Left Copy Section -->
+  <div class="marquee-left">
+    <div class="brand-pill-wrap">
+      <div class="badge-tag">
+        <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+        <span>Smart In-Field Autofill</span>
+      </div>
+      <div class="version-tag">Instant Verification</div>
+    </div>
+
+    <h1 class="headline">Smart In-Field 2FA Autofill<br><span>Log In in Under 2 Seconds</span></h1>
+    <p class="description">No more copying and pasting numbers across windows. KH 2FA recognizes 2FA verification fields and automatically injects your 6-digit TOTP code in one click.</p>
+
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">Smart Field Detection</div>
+          <div class="feat-sub">Recognizes OTP inputs instantly</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">1-Click Auto Injection</div>
+          <div class="feat-sub">Fills all 6 digits seamlessly</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 5H5v-2h2v2zm0-3H5v-2h2v2zm0-3H5V8h2v2zm9 8h-4v-2h4v2zm0-3h-2v-2h2v2zm0-3h-2V8h2v2zm3 6h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">Keyboard Hotkey</div>
+          <div class="feat-sub">Alt+Shift+U for instant fill</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">Zero Clipboard Risk</div>
+          <div class="feat-sub">Direct DOM input dispatch</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-trust">
+      <div class="trust-item"><div class="trust-dot"></div><span>10,000+ Sites Supported</span></div>
+      <div class="trust-item"><div class="trust-dot"></div><span>Hardware-Accelerated</span></div>
+      <div class="trust-item"><div class="trust-dot"></div><span>No Cloud Intermediary</span></div>
+    </div>
+  </div>
+
+  <!-- Right MacBook Mockup -->
+  <div class="marquee-right">
+    <div class="macbook-screen">
+      <div class="screen-notch"><div class="notch-cam"></div></div>
+
+      <div class="macos-bar">
+        <div class="macos-bar-left">
+          <svg class="apple-icon-svg" viewBox="0 0 170 170"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.58-7.7-11.64-13.98-6.19-9.56-11.08-20.73-14.67-33.52-3.59-12.79-5.39-24.81-5.39-36.06 0-14.35 3.42-26.24 10.26-35.68 6.84-9.44 15.54-14.28 26.09-14.52 4.9.11 10.12 1.3 15.66 3.58 5.54 2.28 9.25 3.48 11.13 3.58 1.52 0 5.44-1.29 11.75-3.86 6.31-2.58 11.85-3.71 16.63-3.39 12.83.76 22.84 5.33 30.03 13.7-11.09 6.74-16.53 16.19-16.32 28.37.22 9.56 3.81 17.5 10.76 23.8 6.96 6.3 15.22 10.05 24.78 11.25-2.17 6.31-4.89 12.61-8.15 18.9zm-29.28-111.45c0 7.39-2.61 14.24-7.83 20.54-5.22 6.3-11.74 10.11-19.57 11.42-.43-1.09-.65-2.28-.65-3.59 0-7.17 2.72-14.02 8.15-20.54 5.43-6.52 12.06-10.33 19.9-11.41.01 1.2.01 2.39 0 3.58z"/></svg>
+          <span style="font-weight:700;">Chrome</span>
+          <span>File</span>
+          <span>Edit</span>
+          <span>View</span>
+          <span>History</span>
+          <span>Window</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <span>99% 🔋</span>
+          <span>WiFi 📶</span>
+          <span>Tue 10:52 AM</span>
+        </div>
+      </div>
+
+      <div class="chrome-window">
+        <div class="chrome-tabs-bar">
+          <div class="win-dots">
+            <div class="win-dot dot-r"></div>
+            <div class="win-dot dot-y"></div>
+            <div class="win-dot dot-g"></div>
+          </div>
+          <div class="tabs-group">
+            <div class="tab-pill active">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              <span>GitHub · Two-Factor Verification</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chrome-nav-bar">
+          <div class="nav-arrows"><span>‹</span><span>›</span><span>↻</span></div>
+          <div class="url-input-pill">
+            <span class="url-lock">🔒</span>
+            <span style="font-weight:600; color:#f8fafc;">github.com</span>
+            <span style="color:#64748b;">/sessions/two-factor</span>
+          </div>
+          <div class="ext-icons-row">
+            <div class="ext-kh-icon">
+              <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Web Page: 2FA Login Page -->
+        <div class="bg-web-content">
+          <div class="auth-modal-card">
+            <div class="auth-icon-badge">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+            </div>
+            <div class="auth-title">Two-factor authentication</div>
+            <div class="auth-subtitle">Enter the 6-digit verification code from your authenticator device.</div>
+
+            <!-- In-Field 6 Digits with Floating Autofill Tooltip -->
+            <div class="digits-input-row">
+              <!-- Floating Autofill Pill -->
+              <div class="autofill-floating-pill">
+                <span class="autofill-icon-sparkle">⚡</span>
+                <span class="autofill-text-main">Autofill from KH 2FA</span>
+                <span class="autofill-acc-tag">(dev@lead)</span>
+                <div class="autofill-action-btn">Fill 904 613</div>
+              </div>
+
+              <!-- Filled Digits -->
+              <div class="digit-box filled">9</div>
+              <div class="digit-box filled">0</div>
+              <div class="digit-box filled">4</div>
+              <div class="digit-box filled">6</div>
+              <div class="digit-box filled">1</div>
+              <div class="digit-box filled">3</div>
+            </div>
+
+            <button class="auth-submit-btn">Verify &amp; Continue</button>
+          </div>
+        </div>
+
+        <!-- KH 2FA EXTENSION POPUP OVERLAY (Right Side) -->
+        <div class="kh-popup-frame">
+          <div class="popup-hdr">
+            <div class="hdr-logo-group">
+              <div class="hdr-kh-badge">
+                <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+              </div>
+              <span class="hdr-brand-name">KH 2FA</span>
+            </div>
+            <div class="hdr-autofill-active"><div class="dot"></div><span>Autofill Ready</span></div>
+          </div>
+
+          <!-- Autofill Notification -->
+          <div class="autofill-notif-box">
+            <div class="notif-left">
+              <span class="notif-status">⚡ GitHub OTP Detected</span>
+              <span class="notif-desc">Matching account: dev@lead</span>
+            </div>
+            <div class="shortcut-badge">Alt+Shift+U</div>
+          </div>
+
+          <!-- Pinned Card matching the site -->
+          <div class="vault-card">
+            <div class="card-left">
+              <div class="card-brand-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              </div>
+              <div class="card-info">
+                <div class="card-issuer-row">GitHub dev ★</div>
+                <div class="card-account-name">Matched domain</div>
+              </div>
+            </div>
+            <div class="otp-code">904 613</div>
+          </div>
+
+          <!-- Toast -->
+          <div class="toast-autofill-pill">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#38bdf8"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            <span>Injected 904 613 into form</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MacBook Base -->
+    <div class="macbook-base">
+      <div class="macbook-notch-chin"></div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KH 2FA - Marquee Tile 5: Multi-Theme & Encrypted Backup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1400px;
+    height: 560px;
+    overflow: hidden;
+    background: #090614;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 70px 0 65px;
+    position: relative;
+    user-select: none;
+  }
+
+  /* Ambient Lighting */
+  .glow-fuchsia {
+    position: absolute;
+    width: 650px;
+    height: 650px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.16) 0%, rgba(236, 72, 153, 0) 70%);
+    top: -120px;
+    right: 200px;
+    pointer-events: none;
+    filter: blur(55px);
+  }
+  .glow-purple {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.18) 0%, rgba(168, 85, 247, 0) 70%);
+    bottom: -140px;
+    left: 40px;
+    pointer-events: none;
+    filter: blur(55px);
+  }
+
+  /* Left Column */
+  .marquee-left {
+    width: 505px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 10;
+  }
+  .brand-pill-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(236, 72, 153, 0.12);
+    border: 1px solid rgba(236, 72, 153, 0.4);
+    color: #f472b6;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .badge-tag svg { width: 13px; height: 13px; fill: currentColor; }
+  .version-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .headline {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.18;
+    letter-spacing: -0.6px;
+    color: #ffffff;
+  }
+  .headline span {
+    background: linear-gradient(135deg, #f472b6 0%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .description {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #94a3b8;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .feat-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 9px 12px;
+    backdrop-filter: blur(10px);
+  }
+  .feat-icon-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f472b6;
+    flex-shrink: 0;
+  }
+  .feat-icon-box svg { width: 14px; height: 14px; fill: currentColor; }
+  .feat-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+  .feat-sub {
+    font-size: 10px;
+    color: #64748b;
+  }
+
+  .footer-trust {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #64748b;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .trust-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #f472b6;
+    box-shadow: 0 0 6px #f472b6;
+  }
+
+  /* Right Column: MacBook Mockup */
+  .marquee-right {
+    width: 730px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+  }
+
+  .macbook-screen {
+    width: 710px;
+    height: 446px;
+    background: #0f172a;
+    border-radius: 16px 16px 0 0;
+    border: 9px solid #1a1e27;
+    border-bottom: none;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 35px rgba(236, 72, 153, 0.15);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 105px;
+    height: 14px;
+    background: #1a1e27;
+    border-radius: 0 0 8px 8px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .notch-cam { width: 5px; height: 5px; border-radius: 50%; background: #070a13; border: 1px solid #2d3342; }
+
+  .macos-bar {
+    height: 22px;
+    background: rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    font-size: 10px;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .macos-bar-left { display: flex; gap: 12px; align-items: center; }
+  .apple-icon-svg { width: 9px; height: 11px; fill: #cbd5e1; }
+
+  .chrome-window {
+    flex: 1;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .chrome-tabs-bar {
+    height: 34px;
+    background: #141b2d;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .win-dots { display: flex; gap: 6px; }
+  .win-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-r { background: #ff5f56; }
+  .dot-y { background: #ffbd2e; }
+  .dot-g { background: #27c93f; }
+
+  .tabs-group { display: flex; gap: 4px; margin-left: 8px; }
+  .tab-pill {
+    padding: 5px 12px;
+    border-radius: 6px 6px 0 0;
+    font-size: 10px;
+    color: #94a3b8;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-pill.active {
+    background: #0b0f19;
+    color: #f8fafc;
+    font-weight: 600;
+  }
+
+  .chrome-nav-bar {
+    height: 32px;
+    background: #0b0f19;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .nav-arrows { display: flex; gap: 6px; color: #475569; font-size: 11px; }
+  .url-input-pill {
+    flex: 1;
+    height: 22px;
+    background: #151d2f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 10px;
+    color: #cbd5e1;
+    gap: 5px;
+  }
+  .url-lock { color: #34d399; font-size: 9px; }
+  .ext-icons-row { display: flex; align-items: center; gap: 8px; }
+  .ext-kh-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.6);
+  }
+  .ext-kh-icon svg { width: 12px; height: 12px; fill: white; }
+
+  /* Web Page Background: Developer Console / Cloud Security */
+  .bg-web-content {
+    flex: 1;
+    background: #0f101c;
+    padding: 20px 24px;
+    color: #c9d1d9;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .settings-web-hdr {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .settings-web-desc {
+    font-size: 11px;
+    color: #8b949e;
+    line-height: 1.4;
+    max-width: 340px;
+  }
+  .backup-status-card {
+    background: #16182a;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    padding: 12px 14px;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .backup-status-title { font-size: 11px; font-weight: 700; color: #f472b6; }
+  .backup-status-sub { font-size: 10px; color: #94a3b8; }
+
+  /* KH 2FA EXTENSION POPUP OVERLAY (Settings Screen) */
+  .kh-popup-frame {
+    position: absolute;
+    top: 6px;
+    right: 14px;
+    width: 295px;
+    background: #0e111d;
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    border-radius: 12px;
+    padding: 11px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(236, 72, 153, 0.2);
+    z-index: 50;
+  }
+
+  /* Popup Header */
+  .popup-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2px;
+  }
+  .hdr-logo-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hdr-kh-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hdr-kh-badge svg { width: 13px; height: 13px; fill: white; }
+  .hdr-brand-name {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+  }
+  .hdr-settings-tag {
+    font-size: 9px;
+    color: #f472b6;
+    font-weight: 700;
+    padding: 2px 7px;
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    border-radius: 999px;
+  }
+
+  /* Section Title */
+  .section-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  /* Theme Selector Grid */
+  .theme-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .theme-pill-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    background: #141829;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+  .theme-pill-btn.active {
+    border-color: #f472b6;
+    background: rgba(236, 72, 153, 0.12);
+    color: #ffffff;
+  }
+  .theme-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .theme-dot.cyan { background: #4cc9f0; }
+  .theme-dot.dark { background: #000000; border: 1px solid #475569; }
+  .theme-dot.nord { background: #88c0d0; }
+  .theme-dot.light { background: #f8fafc; }
+
+  /* Security Settings Rows */
+  .settings-row-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #141829;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 10px;
+    color: #e2e8f0;
+  }
+  .toggle-switch-on {
+    width: 26px;
+    height: 14px;
+    background: #f472b6;
+    border-radius: 999px;
+    position: relative;
+  }
+  .toggle-switch-on::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    background: #ffffff;
+    border-radius: 50%;
+  }
+
+  /* Encrypted Backup & Restore Box */
+  .backup-action-box {
+    background: rgba(236, 72, 153, 0.08);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .backup-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .backup-title-txt { font-size: 10px; font-weight: 700; color: #f8fafc; }
+  .backup-aes-badge {
+    font-size: 8px;
+    font-weight: 800;
+    color: #34d399;
+    padding: 1px 5px;
+    background: rgba(52, 211, 153, 0.15);
+    border-radius: 4px;
+  }
+  .backup-btn-row {
+    display: flex;
+    gap: 6px;
+  }
+  .btn-export {
+    flex: 1;
+    height: 26px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .btn-import {
+    padding: 0 10px;
+    height: 26px;
+    background: #1a1e33;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Version Footer */
+  .popup-ver-footer {
+    font-size: 8px;
+    color: #64748b;
+    text-align: center;
+    padding-top: 2px;
+  }
+
+  /* MacBook Base */
+  .macbook-base {
+    width: 750px;
+    height: 13px;
+    background: linear-gradient(180deg, #2b303c 0%, #1a1e27 100%);
+    border-radius: 0 0 14px 14px;
+    position: relative;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.7);
+  }
+  .macbook-notch-chin {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 105px;
+    height: 4px;
+    background: #14171f;
+    border-radius: 0 0 4px 4px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Ambient Light -->
+  <div class="glow-fuchsia"></div>
+  <div class="glow-purple"></div>
+
+  <!-- Left Copy Section -->
+  <div class="marquee-left">
+    <div class="brand-pill-wrap">
+      <div class="badge-tag">
+        <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.64 10.56 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+        <span>Custom Themes &amp; Backup</span>
+      </div>
+      <div class="version-tag">Total Data Control</div>
+    </div>
+
+    <h1 class="headline">Multi-Theme &amp; Offline Backup<br><span>Total Control Over Your Data</span></h1>
+    <p class="description">Tailor your authenticator with OLED Dark, Midnight Cyan, and Nord Arctic themes. Export client-side AES-256 encrypted backups anytime with zero vendor lock-in.</p>
+
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.64 10.56 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">4 Elegant Themes</div>
+          <div class="feat-sub">Midnight, OLED, Nord, Light</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">AES-256 Export</div>
+          <div class="feat-sub">Encrypted portable JSON</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">Standard TOTP Import</div>
+          <div class="feat-sub">Migrate from any authenticator</div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        </div>
+        <div>
+          <div class="feat-title">Zero Cloud Tracking</div>
+          <div class="feat-sub">100% local machine storage</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-trust">
+      <div class="trust-item"><div class="trust-dot"></div><span>Open Standards (RFC 6238)</span></div>
+      <div class="trust-item"><div class="trust-dot"></div><span>Local Key Custody</span></div>
+      <div class="trust-item"><div class="trust-dot"></div><span>No Account Required</span></div>
+    </div>
+  </div>
+
+  <!-- Right MacBook Mockup -->
+  <div class="marquee-right">
+    <div class="macbook-screen">
+      <div class="screen-notch"><div class="notch-cam"></div></div>
+
+      <div class="macos-bar">
+        <div class="macos-bar-left">
+          <svg class="apple-icon-svg" viewBox="0 0 170 170"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.58-7.7-11.64-13.98-6.19-9.56-11.08-20.73-14.67-33.52-3.59-12.79-5.39-24.81-5.39-36.06 0-14.35 3.42-26.24 10.26-35.68 6.84-9.44 15.54-14.28 26.09-14.52 4.9.11 10.12 1.3 15.66 3.58 5.54 2.28 9.25 3.48 11.13 3.58 1.52 0 5.44-1.29 11.75-3.86 6.31-2.58 11.85-3.71 16.63-3.39 12.83.76 22.84 5.33 30.03 13.7-11.09 6.74-16.53 16.19-16.32 28.37.22 9.56 3.81 17.5 10.76 23.8 6.96 6.3 15.22 10.05 24.78 11.25-2.17 6.31-4.89 12.61-8.15 18.9zm-29.28-111.45c0 7.39-2.61 14.24-7.83 20.54-5.22 6.3-11.74 10.11-19.57 11.42-.43-1.09-.65-2.28-.65-3.59 0-7.17 2.72-14.02 8.15-20.54 5.43-6.52 12.06-10.33 19.9-11.41.01 1.2.01 2.39 0 3.58z"/></svg>
+          <span style="font-weight:700;">Chrome</span>
+          <span>File</span>
+          <span>Edit</span>
+          <span>View</span>
+          <span>History</span>
+          <span>Window</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <span>99% 🔋</span>
+          <span>WiFi 📶</span>
+          <span>Tue 10:55 AM</span>
+        </div>
+      </div>
+
+      <div class="chrome-window">
+        <div class="chrome-tabs-bar">
+          <div class="win-dots">
+            <div class="win-dot dot-r"></div>
+            <div class="win-dot dot-y"></div>
+            <div class="win-dot dot-g"></div>
+          </div>
+          <div class="tabs-group">
+            <div class="tab-pill active">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#f472b6"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              <span>Developer Workspace · Cloud</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chrome-nav-bar">
+          <div class="nav-arrows"><span>‹</span><span>›</span><span>↻</span></div>
+          <div class="url-input-pill">
+            <span class="url-lock">🔒</span>
+            <span style="font-weight:600; color:#f8fafc;">cloud.internal</span>
+            <span style="color:#64748b;">/preferences/security</span>
+          </div>
+          <div class="ext-icons-row">
+            <div class="ext-kh-icon">
+              <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Web Page: Background -->
+        <div class="bg-web-content">
+          <div class="settings-web-hdr">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#f472b6"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            <span>Hardware &amp; Key Custody Preferences</span>
+          </div>
+          <div class="settings-web-desc">Manage encrypted backup vaults and local security authenticators across your organization.</div>
+
+          <div class="backup-status-card">
+            <div class="backup-status-title">✓ Vault In Full Compliance</div>
+            <div class="backup-status-sub">Zero unencrypted plain-text tokens found. All keys stored with AES-256-GCM.</div>
+          </div>
+        </div>
+
+        <!-- KH 2FA EXTENSION POPUP OVERLAY (Settings View) -->
+        <div class="kh-popup-frame">
+          <div class="popup-hdr">
+            <div class="hdr-logo-group">
+              <div class="hdr-kh-badge">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              </div>
+              <span class="hdr-brand-name">KH 2FA</span>
+            </div>
+            <div class="hdr-settings-tag">Preferences</div>
+          </div>
+
+          <!-- Section 1: Themes -->
+          <div class="section-label">Appearance &amp; Themes</div>
+          <div class="theme-options-grid">
+            <div class="theme-pill-btn active">
+              <div class="theme-dot cyan"></div>
+              <span>Midnight Cyan</span>
+            </div>
+            <div class="theme-pill-btn">
+              <div class="theme-dot dark"></div>
+              <span>OLED Black</span>
+            </div>
+            <div class="theme-pill-btn">
+              <div class="theme-dot nord"></div>
+              <span>Nord Arctic</span>
+            </div>
+            <div class="theme-pill-btn">
+              <div class="theme-dot light"></div>
+              <span>Clean Light</span>
+            </div>
+          </div>
+
+          <!-- Section 2: Security & PIN -->
+          <div class="section-label">Vault Security</div>
+          <div class="settings-row-item">
+            <span>Require Master PIN</span>
+            <div class="toggle-switch-on"></div>
+          </div>
+          <div class="settings-row-item">
+            <span>Auto-Lock Timer</span>
+            <span style="font-weight:700; color:#f472b6;">5 Minutes</span>
+          </div>
+
+          <!-- Section 3: Data Backup -->
+          <div class="backup-action-box">
+            <div class="backup-top-row">
+              <span class="backup-title-txt">Encrypted Vault Backup</span>
+              <span class="backup-aes-badge">AES-256</span>
+            </div>
+            <div class="backup-btn-row">
+              <button class="btn-export">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                <span>Export .json</span>
+              </button>
+              <button class="btn-import">
+                <span>Restore</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="popup-ver-footer">KH 2FA v1.2.0 · 100% Offline &amp; Client-Side</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MacBook Base -->
+    <div class="macbook-base">
+      <div class="macbook-notch-chin"></div>
+    </div>
+  </div>
+
+</body>
+</html>
