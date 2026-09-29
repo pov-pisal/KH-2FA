@@ -65,7 +65,6 @@ English
 |------------|------|---------------|
 | `storage` | permissions | Stores the client-side encrypted vault and user preferences (such as auto-lock timer and theme) locally in `chrome.storage.local`. |
 | `activeTab` | permissions | Allows the user to autofill 2FA codes and trigger screen QR scanning on the currently focused web page upon direct user action. |
-| `downloads` | permissions | Enables users to save their exported encrypted backup file (`KH-2FA-backup-*.json`) directly to their local Downloads directory. |
 | `tabs` | permissions | Used to capture the active tab for QR code scanning (`chrome.tabs.captureVisibleTab`) and to match domain names for autofilling 2FA codes. |
 | `contextMenus` | permissions | Adds a convenient right-click context menu item ("Fill 2FA code with KH 2FA") on editable fields for fast code entry. |
 | `idle` | permissions | Detects when the user locks their workstation or the screen goes idle (`chrome.idle.onStateChanged`) to immediately auto-lock the vault and protect user privacy. |
@@ -129,3 +128,17 @@ English
 | 1.2.0 | 2026-09-29 | Redesigned popup UI: 380x560px rock-solid popup viewport, full-view modal sheets, crisp vector SVG icons, pure JavaScript jsQR scanner engine, top-aligned PIN entry card, and floating glassmorphic notifications. | Ready to publish |
 | 1.1.0 | 2026-09-27 | Screen QR scanner, privacy peek mask, brute-force PIN lockout, system idle auto-lock, star favorites, RFC 6238 TOTP engine (SHA-256/512, Steam Guard, custom periods), OLED and Nord themes. | Published |
 | 1.0.0 | 2026-09-14 | Initial release with AES-256-GCM encrypted vault, TOTP generator, PIN lock, backup/export, and in-field autofill. | Published |
+
+---
+
+## Enhanced Safe Browsing & Trust Status
+
+Chrome's **Enhanced Safe Browsing** displays the advisory notice *"This extension is not trusted by Enhanced Safe Browsing"* on any newly published extension or new developer account until a multi-month compliance record is established.
+
+### How to Fast-Track Trust on the Chrome Web Store:
+1. **Enable 2-Step Verification (2SV)** on your Google Developer Account.
+2. **Complete Trader & Identity Verification** in the Chrome Web Store Developer Console -> Account.
+3. **Verify Contact Email** by confirming the link sent by Google.
+4. **Link Verified Website** (Google Search Console) to your publisher profile.
+5. **Least Privilege Principle**: All unnecessary permissions (including `downloads`) have been removed. Data remains 100% client-side encrypted and is never collected or sold.
+6. Once active in the store with clean policy compliance for 60–90 days, Google's automated systems automatically grant **Trusted Developer** status and remove the notice for all users.

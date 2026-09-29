@@ -13,7 +13,7 @@
       "128": "icons/icon-128.png"
     }
   },
-  "permissions": ["storage", "activeTab", "downloads", "tabs", "contextMenus", "idle"],
+  "permissions": ["storage", "activeTab", "tabs", "contextMenus", "idle"],
   "commands": {
     "_execute_action": {
       "suggested_key": {

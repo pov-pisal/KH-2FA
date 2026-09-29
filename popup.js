@@ -878,30 +878,22 @@ async function handleBackup() {
     }
   }
 
-  // ── Method 2: chrome.downloads with base64 data URI ─────────────────────
-  // Calling directly from the popup page (not service worker) supports data: URIs.
-  if (chrome.downloads) {
-    try {
-      const base64 = btoa(unescape(encodeURIComponent(payload)));
-      const dataUrl = "data:application/json;base64," + base64;
-      await new Promise((resolve, reject) => {
-        chrome.downloads.download(
-          { url: dataUrl, filename, saveAs: false, conflictAction: "uniquify" },
-          (downloadId) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-            } else {
-              resolve(downloadId);
-            }
-          }
-        );
-      });
-      showToast("✓ Backup downloaded to Downloads folder");
-      return;
-    } catch (err) {
-      console.warn("chrome.downloads failed:", err.message);
-      // fall through to Method 3
-    }
+  // ── Method 2: Standard HTML5 Blob download (Universal, clean, no special permission needed) ───
+  try {
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    showToast("✓ Backup downloaded to Downloads folder");
+    return;
+  } catch (err) {
+    console.warn("Blob download failed:", err.message);
+    // fall through to Method 3
   }
 
   // ── Method 3: Copy to clipboard as last resort ───────────────────────────
