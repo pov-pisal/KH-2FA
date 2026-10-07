@@ -15,14 +15,15 @@ export function isValidSecret(input) {
 
 export function base32ToBytes(input) {
   const clean = normalizeSecret(input).replace(/=+$/, "");
-  let bits = "";
+  const bitsArray = [];
   for (const char of clean) {
     const index = base32Alphabet.indexOf(char);
     if (index === -1) {
       throw new Error("Invalid Base32 secret");
     }
-    bits += index.toString(2).padStart(5, "0");
+    bitsArray.push(index.toString(2).padStart(5, "0"));
   }
+  const bits = bitsArray.join("");
 
   const bytes = [];
   for (let i = 0; i + 8 <= bits.length; i += 8) {
