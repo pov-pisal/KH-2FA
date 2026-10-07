@@ -396,6 +396,20 @@ const FALLBACK_PALETTES = [
   { color: "#3B82F6", bg: "rgba(59, 130, 246, 0.16)", border: "rgba(59, 130, 246, 0.35)" },
 ];
 
+
+function escapeHTML(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/[&<>'"]/g,
+    tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag] || tag)
+  );
+}
+
 function hashString(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -436,9 +450,11 @@ export function getBrandInfo(issuer = "", label = "") {
   const firstLetter = displayName.charAt(0).toUpperCase() || "🔐";
   const palette = FALLBACK_PALETTES[hashString(displayName) % FALLBACK_PALETTES.length];
 
-  const fallbackSvg = `<svg viewBox="0 0 24 24" width="22" height="22" aria-label="${displayName}">
+  const escapedDisplayName = escapeHTML(displayName);
+  const escapedFirstLetter = escapeHTML(firstLetter);
+  const fallbackSvg = `<svg viewBox="0 0 24 24" width="22" height="22" aria-label="${escapedDisplayName}">
     <rect width="24" height="24" rx="6" fill="${palette.bg}"/>
-    <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="12" fill="${palette.color}">${firstLetter}</text>
+    <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="12" fill="${palette.color}">${escapedFirstLetter}</text>
   </svg>`;
 
   return {
