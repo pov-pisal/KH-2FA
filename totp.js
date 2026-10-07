@@ -4,6 +4,15 @@ export function normalizeSecret(secret) {
   return secret.replace(/\s+/g, "").toUpperCase();
 }
 
+export function isValidSecret(input) {
+  try {
+    base32ToBytes(input);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function base32ToBytes(input) {
   const clean = normalizeSecret(input).replace(/=+$/, "");
   let bits = "";
