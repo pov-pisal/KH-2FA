@@ -120,11 +120,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const hostname = message.hostname || "";
         const url = message.url || "";
 
-        for (const acc of accounts) {
+        const items = await Promise.all(accounts.map(async (acc) => {
           const isMatch = matchesDomain(acc, hostname, url);
           const brand = getBrandInfo(acc.issuer, acc.label);
           const code = await generateTOTP(acc.secret, Date.now(), acc);
-          const item = {
+          return {
             id: acc.id,
             issuer: acc.issuer || brand.name || "Account",
             label: acc.label || "",
@@ -138,7 +138,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             },
             isMatch,
           };
-          if (isMatch) {
+        }));
+
+        for (const item of items) {
+          if (item.isMatch) {
             matched.push(item);
           } else {
             others.push(item);
