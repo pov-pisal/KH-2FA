@@ -2,11 +2,11 @@ const encoder = new TextEncoder();
 
 function toBase64(buffer) {
   const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
+  const chars = new Array(bytes.length);
+  for (let i = 0; i < bytes.length; i += 1) {
+    chars[i] = String.fromCharCode(bytes[i]);
   }
-  return btoa(binary);
+  return btoa(chars.join(""));
 }
 
 function fromBase64(base64) {
