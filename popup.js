@@ -3,7 +3,7 @@ import {
   generateTOTP,
   parseOtpauth,
   normalizeSecret,
-  base32ToBytes,
+  isValidSecret,
 } from "./totp.js";
 import {
   getVaultRecord,
@@ -1197,9 +1197,7 @@ async function saveAccount() {
   }
 
   const normalizedSecret = normalizeSecret(secretValue);
-  try {
-    base32ToBytes(normalizedSecret);
-  } catch (error) {
+  if (!isValidSecret(normalizedSecret)) {
     elements.modalError.textContent = "Secret must be valid Base32.";
     return;
   }
