@@ -1,4 +1,4 @@
-// Content script for KH 2FA: In-field 2FA icon, OTP autofill, and keyboard shortcut listener
+// Content script for KH 2FA: OTP autofill and keyboard shortcut listener
 
 const DEFAULT_SHORTCUT = {
   key: "a",
@@ -71,10 +71,18 @@ window.addEventListener(
 
 function findOtpInputs() {
   const candidates = Array.from(document.querySelectorAll("input"));
-  const matcher = /(otp|totp|2fa|code|auth|verification|security|mfa|token)/i;
+  const matcher = /(otp|totp|2fa|verification|security|mfa)/i;
 
   return candidates.filter((input) => {
-    if (input.disabled || input.readOnly || input.type === "hidden" || input.type === "checkbox" || input.type === "radio") {
+    if (
+      input.disabled ||
+      input.readOnly ||
+      input.type === "hidden" ||
+      input.type === "checkbox" ||
+      input.type === "radio" ||
+      input.type === "submit" ||
+      input.type === "button"
+    ) {
       return false;
     }
     const attrs = [input.name, input.id, input.placeholder, input.autocomplete, input.className]
@@ -82,6 +90,9 @@ function findOtpInputs() {
       .join(" ");
     return (
       matcher.test(attrs) ||
+      /\bcode\b/i.test(input.name || "") ||
+      /\bcode\b/i.test(input.id || "") ||
+      /\bcode\b/i.test(input.placeholder || "") ||
       /one-time-code/i.test(input.autocomplete || "") ||
       (input.maxLength >= 4 && input.maxLength <= 8 && /numeric/i.test(input.inputMode || ""))
     );
@@ -101,16 +112,6 @@ function fillInput(input, value) {
   input.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
-// --- Floating In-Field Atomic Badge ---
-
-const ATOM_SVG = `
-<svg viewBox="0 0 24 24" width="14" height="14" fill="none" style="display:block;">
-  <circle cx="12" cy="12" r="3" fill="#38bdf8"></circle>
-  <ellipse cx="12" cy="12" rx="9" ry="3.5" stroke="#38bdf8" stroke-width="1.6" transform="rotate(30 12 12)"></ellipse>
-  <ellipse cx="12" cy="12" rx="9" ry="3.5" stroke="#a78bfa" stroke-width="1.6" transform="rotate(-30 12 12)"></ellipse>
-</svg>
-`;
-
 let activeDropdown = null;
 
 function closeDropdown() {
@@ -121,7 +122,7 @@ function closeDropdown() {
 }
 
 document.addEventListener("click", (e) => {
-  if (activeDropdown && !activeDropdown.contains(e.target) && !e.target.closest(".atomic-field-badge")) {
+  if (activeDropdown && !activeDropdown.contains(e.target)) {
     closeDropdown();
   }
 });
@@ -156,7 +157,7 @@ function showToastMessage(input, message, isError = false) {
   }, 2200);
 }
 
-function showAccountsDropdown(input, accounts, badge) {
+function showAccountsDropdown(input, accounts) {
   closeDropdown();
   const rect = input.getBoundingClientRect();
 
@@ -270,10 +271,7 @@ function showAccountsDropdown(input, accounts, badge) {
   activeDropdown = dropdown;
 }
 
-function handleAutofillAction(input, badge) {
-  badge.style.transform = "scale(0.9)";
-  setTimeout(() => (badge.style.transform = ""), 150);
-
+function handleAutofillAction(input) {
   chrome.runtime.sendMessage(
     {
       action: "GET_OTP_FOR_PAGE",
@@ -311,94 +309,14 @@ function handleAutofillAction(input, badge) {
         showToastMessage(input, `✓ Filled ${matched[0].code} for ${matched[0].issuer}`);
       } else if (matched.length > 1) {
         // Multiple matches: show dropdown
-        showAccountsDropdown(input, matched, badge);
+        showAccountsDropdown(input, matched);
       } else if (all.length > 0) {
         // No direct domain match: show all accounts so user can pick
-        showAccountsDropdown(input, all, badge);
+        showAccountsDropdown(input, all);
       }
     }
   );
 }
-
-function injectBadgeForInput(input) {
-  if (input.dataset.atomicInjected) return;
-  input.dataset.atomicInjected = "true";
-
-  const badge = document.createElement("div");
-  badge.className = "atomic-field-badge";
-  badge.title = "Fill 2FA code with KH 2FA";
-  badge.style.cssText = `
-    position: absolute;
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
-    background: #0f172a;
-    border: 1px solid #38bdf8;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    cursor: pointer;
-    z-index: 2147483640;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-  `;
-  badge.innerHTML = ATOM_SVG;
-
-  badge.addEventListener("mouseenter", () => {
-    badge.style.transform = "scale(1.1)";
-    badge.style.boxShadow = "0 0 10px rgba(56, 189, 248, 0.5)";
-  });
-  badge.addEventListener("mouseleave", () => {
-    badge.style.transform = "scale(1)";
-    badge.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
-  });
-
-  badge.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleAutofillAction(input, badge);
-  });
-
-  function updatePos() {
-    if (!input.isConnected) {
-      badge.remove();
-      return;
-    }
-    const rect = input.getBoundingClientRect();
-    if (rect.width === 0 && rect.height === 0) {
-      badge.style.display = "none";
-      return;
-    }
-    badge.style.display = "flex";
-    const top = window.scrollY + rect.top + Math.max(0, (rect.height - 22) / 2);
-    const left = window.scrollX + rect.right - 28;
-    badge.style.top = `${top}px`;
-    badge.style.left = `${left}px`;
-  }
-
-  updatePos();
-  document.body.appendChild(badge);
-
-  window.addEventListener("resize", updatePos, { passive: true });
-  window.addEventListener("scroll", updatePos, { passive: true });
-}
-
-function scanAndInject() {
-  const inputs = findOtpInputs();
-  inputs.forEach(injectBadgeForInput);
-}
-
-// Initial scan
-scanAndInject();
-
-// Observe DOM mutations to inject badge when 2FA modal or page loads dynamically
-const observer = new MutationObserver(() => {
-  scanAndInject();
-});
-observer.observe(document.body || document.documentElement, {
-  childList: true,
-  subtree: true,
-});
 
 // --- Message Listeners ---
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -419,7 +337,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const targetInput =
       activeEl && activeEl.tagName === "INPUT" ? activeEl : findOtpInput();
     if (targetInput) {
-      handleAutofillAction(targetInput, targetInput);
+      handleAutofillAction(targetInput);
     }
     sendResponse({ ok: true });
     return true;
