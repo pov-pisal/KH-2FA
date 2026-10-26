@@ -1750,7 +1750,7 @@ async function decodeImageForQR(imgSource) {
       }
     }
   } catch (err) {
-    console.warn("jsQR decode error:", err);
+    console.debug("jsQR decode error:", err);
   }
 
   // 2. Fallback to native BarcodeDetector if available
@@ -1764,7 +1764,7 @@ async function decodeImageForQR(imgSource) {
         }
       }
     } catch (e) {
-      console.warn("BarcodeDetector error:", e);
+      console.debug("BarcodeDetector error:", e);
     }
   }
   return null;
@@ -1840,7 +1840,7 @@ async function handleScanScreenQR() {
       if (chrome.runtime.lastError) {
         // Explicitly reading chrome.runtime.lastError prevents Chrome from logging Unchecked runtime.lastError!
         const ignored = chrome.runtime.lastError.message;
-        console.warn("Content script unreachable:", ignored);
+        console.debug("Content script unreachable:", ignored);
         showToast("No 2FA QR code found on screen");
         return;
       }
