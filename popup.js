@@ -486,8 +486,10 @@ function renderEditAccountsList() {
     textWrap.className = "edit-text";
     const issuer = document.createElement("strong");
     issuer.textContent = account.issuer || brand.name || "Account";
+    issuer.title = issuer.textContent;
     const label = document.createElement("span");
     label.textContent = account.label || "(no label)";
+    label.title = account.label || "";
     textWrap.append(issuer, label);
 
     meta.append(brandIcon, textWrap);

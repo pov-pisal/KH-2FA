@@ -107,6 +107,8 @@ main {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -115,6 +117,8 @@ main {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -678,6 +682,7 @@ button.small {
 
 .list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   flex: 1;
   overflow-y: auto;
@@ -685,6 +690,7 @@ button.small {
   align-content: start;
   padding-right: 2px;
   min-height: 0;
+  width: 100%;
 }
 
 .account {
@@ -699,6 +705,9 @@ button.small {
   cursor: pointer;
   position: relative;
   user-select: none;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .account:hover {
@@ -779,6 +788,7 @@ button.small {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  overflow: hidden;
 }
 
 .account-title {
@@ -786,6 +796,7 @@ button.small {
   align-items: baseline;
   gap: 4px;
   min-width: 0;
+  width: 100%;
   line-height: 1.25;
 }
 
@@ -796,7 +807,13 @@ button.small {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 120px;
+  min-width: 0;
+  max-width: 100%;
+  flex-shrink: 1;
+}
+
+.account-title:has(span) strong {
+  max-width: 130px;
   flex-shrink: 0;
 }
 
@@ -814,6 +831,7 @@ button.small {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
 }
 
 .account-code {
@@ -876,6 +894,7 @@ button.small {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .progress-ring {
@@ -1364,7 +1383,9 @@ button.small {
 
 .edit-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
+  width: 100%;
 }
 
 .edit-item {
@@ -1376,6 +1397,9 @@ button.small {
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--panel-2);
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .edit-meta {
