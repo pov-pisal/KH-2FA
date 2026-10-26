@@ -3,32 +3,66 @@ const META_KEY = "meta";
 const SESSION_KEY = "session";
 
 function getStorage(keys) {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(keys, resolve);
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(keys, (result) => {
+      if (chrome.runtime.lastError) {
+        return reject(new Error(chrome.runtime.lastError.message));
+      }
+      resolve(result);
+    });
   });
 }
 
 function setStorage(data) {
-  return new Promise((resolve) => {
-    chrome.storage.local.set(data, resolve);
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set(data, () => {
+      if (chrome.runtime.lastError) {
+        return reject(new Error(chrome.runtime.lastError.message));
+      }
+      resolve();
+    });
   });
 }
 
 function getSessionStorage(keys) {
-  return new Promise((resolve) => {
-    chrome.storage.session.get(keys, resolve);
+  return new Promise((resolve, reject) => {
+    if (!chrome.storage.session) {
+      return resolve({});
+    }
+    chrome.storage.session.get(keys, (result) => {
+      if (chrome.runtime.lastError) {
+        return reject(new Error(chrome.runtime.lastError.message));
+      }
+      resolve(result);
+    });
   });
 }
 
 function setSessionStorage(data) {
-  return new Promise((resolve) => {
-    chrome.storage.session.set(data, resolve);
+  return new Promise((resolve, reject) => {
+    if (!chrome.storage.session) {
+      return resolve();
+    }
+    chrome.storage.session.set(data, () => {
+      if (chrome.runtime.lastError) {
+        return reject(new Error(chrome.runtime.lastError.message));
+      }
+      resolve();
+    });
   });
 }
 
 function clearSessionStorage(keys) {
-  return new Promise((resolve) => {
-    chrome.storage.session.remove(keys, resolve);
+  return new Promise((resolve, reject) => {
+    if (!chrome.storage.session) {
+      return resolve();
+    }
+    chrome.storage.session.remove(keys, () => {
+      if (chrome.runtime.lastError) {
+        return reject(new Error(chrome.runtime.lastError.message));
+      }
+      resolve();
+    });
   });
 }
 
@@ -76,4 +110,16 @@ export async function setSession(session) {
 
 export async function clearSession() {
   await clearSessionStorage([SESSION_KEY]);
+}
+
+export async function clearAllData() {
+  await clearSession();
+  await new Promise((resolve, reject) => {
+    chrome.storage.local.clear(() => {
+      if (chrome.runtime.lastError) {
+        return reject(new Error(chrome.runtime.lastError.message));
+      }
+      resolve();
+    });
+  });
 }

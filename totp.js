@@ -1,13 +1,13 @@
 const base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 export function normalizeSecret(secret) {
-  return secret.replace(/\s+/g, "").toUpperCase();
+  return (secret || "").toString().replace(/\s+/g, "").toUpperCase();
 }
 
 export function isValidSecret(input) {
   try {
-    base32ToBytes(input);
-    return true;
+    const bytes = base32ToBytes(input);
+    return bytes.length > 0;
   } catch {
     return false;
   }
@@ -15,6 +15,8 @@ export function isValidSecret(input) {
 
 export function base32ToBytes(input) {
   const clean = normalizeSecret(input).replace(/=+$/, "");
+  if (!clean) return new Uint8Array(0);
+
   const bitsArray = [];
   for (const char of clean) {
     const index = base32Alphabet.indexOf(char);
@@ -48,7 +50,7 @@ export async function generateTOTP(secret, now = Date.now(), options = {}) {
   const counter = Math.floor(now / 1000 / period);
   const buffer = new ArrayBuffer(8);
   const view = new DataView(buffer);
-  view.setUint32(4, counter);
+  view.setBigUint64(0, BigInt(counter));
 
   const key = await crypto.subtle.importKey(
     "raw",

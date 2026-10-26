@@ -25,6 +25,7 @@
           <div class="subtitle-wrap">
             <span class="status-dot" aria-hidden="true"></span>
             <span class="subtitle">Secure TOTP vault</span>
+            <span id="accountCount" class="account-count-badge" aria-label="Account count"></span>
           </div>
         </div>
         <button
@@ -45,38 +46,56 @@
           <div id="createPinFields" class="stack hidden" aria-hidden="true">
             <label class="field">
               <span>New PIN</span>
-              <input
-                id="newPin"
-                type="password"
-                inputmode="numeric"
-                autocomplete="new-password"
-                minlength="6"
-                placeholder="Minimum 6 digits"
-              />
+              <div class="pin-field-wrap">
+                <input
+                  id="newPin"
+                  type="password"
+                  inputmode="numeric"
+                  autocomplete="new-password"
+                  minlength="6"
+                  placeholder="Minimum 6 digits"
+                />
+                <button type="button" class="pin-toggle-btn" data-target="newPin" aria-label="Show PIN" title="Show PIN">
+                  <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  <svg class="icon-eye-off" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </button>
+              </div>
             </label>
             <label class="field">
               <span>Confirm PIN</span>
-              <input
-                id="confirmPin"
-                type="password"
-                inputmode="numeric"
-                autocomplete="new-password"
-                minlength="6"
-                placeholder="Repeat PIN"
-              />
+              <div class="pin-field-wrap">
+                <input
+                  id="confirmPin"
+                  type="password"
+                  inputmode="numeric"
+                  autocomplete="new-password"
+                  minlength="6"
+                  placeholder="Repeat PIN"
+                />
+                <button type="button" class="pin-toggle-btn" data-target="confirmPin" aria-label="Show PIN" title="Show PIN">
+                  <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  <svg class="icon-eye-off" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </button>
+              </div>
             </label>
           </div>
 
           <label id="unlockPinField" class="field">
             <span>PIN</span>
-            <input
-              id="unlockPin"
-              type="password"
-              inputmode="numeric"
-              autocomplete="current-password"
-              minlength="6"
-              placeholder="Enter PIN"
-            />
+            <div class="pin-field-wrap">
+              <input
+                id="unlockPin"
+                type="password"
+                inputmode="numeric"
+                autocomplete="current-password"
+                minlength="6"
+                placeholder="Enter PIN"
+              />
+              <button type="button" class="pin-toggle-btn" data-target="unlockPin" aria-label="Show PIN" title="Show PIN">
+                <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="icon-eye-off" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              </button>
+            </div>
           </label>
 
           <div class="row">
@@ -102,7 +121,7 @@
               title="Toggle Privacy Mask (Hide codes)"
               aria-label="Toggle Privacy Mask"
             >
-              <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
             </button>
             <button
@@ -122,6 +141,11 @@
           <div id="emptyState" class="card empty hidden" aria-hidden="true">
             <h3>No accounts yet</h3>
             <p>Add your first TOTP account or scan a QR code to get started.</p>
+          </div>
+
+          <div id="noResultsState" class="card empty hidden" aria-hidden="true">
+            <h3>No results</h3>
+            <p>No accounts match your search.</p>
           </div>
 
           <div id="accountsList" class="list" role="list"></div>
@@ -244,6 +268,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </header>
+        <p id="deleteAccountName" class="delete-account-name"></p>
         <p class="muted">This action cannot be undone.</p>
         <div class="row center">
           <button id="confirmDeleteBtn" class="primary">Delete</button>
@@ -306,7 +331,7 @@
             <span class="settings-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             </span>
-            <span class="settings-label">Change password</span>
+            <span class="settings-label">Change PIN</span>
             <span class="settings-chevron">›</span>
           </button>
           <button class="settings-item" data-settings="backup" role="listitem">
@@ -338,6 +363,17 @@
             <span class="settings-label">Shortcuts</span>
             <span class="settings-chevron">›</span>
           </button>
+          <button
+            class="settings-item danger-item"
+            data-settings="reset"
+            role="listitem"
+          >
+            <span class="settings-icon danger-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </span>
+            <span class="settings-label">Reset All Data</span>
+            <span class="settings-chevron">›</span>
+          </button>
         </div>
 
         <div class="settings-detail">
@@ -346,40 +382,58 @@
             class="settings-section hidden"
             aria-hidden="true"
           >
-            <h3>Change password</h3>
+            <h3>Change PIN</h3>
             <div class="stack">
               <label class="field">
                 <span>Current PIN</span>
-                <input
-                  id="currentPinInput"
-                  type="password"
-                  inputmode="numeric"
-                  autocomplete="current-password"
-                  minlength="6"
-                  placeholder="Enter current PIN"
-                />
+                <div class="pin-field-wrap">
+                  <input
+                    id="currentPinInput"
+                    type="password"
+                    inputmode="numeric"
+                    autocomplete="current-password"
+                    minlength="6"
+                    placeholder="Enter current PIN"
+                  />
+                  <button type="button" class="pin-toggle-btn" data-target="currentPinInput" aria-label="Show PIN" title="Show PIN">
+                    <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </button>
+                </div>
               </label>
               <label class="field">
                 <span>New PIN</span>
-                <input
-                  id="newPinInput"
-                  type="password"
-                  inputmode="numeric"
-                  autocomplete="new-password"
-                  minlength="6"
-                  placeholder="Minimum 6 digits"
-                />
+                <div class="pin-field-wrap">
+                  <input
+                    id="newPinInput"
+                    type="password"
+                    inputmode="numeric"
+                    autocomplete="new-password"
+                    minlength="6"
+                    placeholder="Minimum 6 digits"
+                  />
+                  <button type="button" class="pin-toggle-btn" data-target="newPinInput" aria-label="Show PIN" title="Show PIN">
+                    <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </button>
+                </div>
               </label>
               <label class="field">
                 <span>Confirm new PIN</span>
-                <input
-                  id="confirmNewPinInput"
-                  type="password"
-                  inputmode="numeric"
-                  autocomplete="new-password"
-                  minlength="6"
-                  placeholder="Repeat new PIN"
-                />
+                <div class="pin-field-wrap">
+                  <input
+                    id="confirmNewPinInput"
+                    type="password"
+                    inputmode="numeric"
+                    autocomplete="new-password"
+                    minlength="6"
+                    placeholder="Repeat new PIN"
+                  />
+                  <button type="button" class="pin-toggle-btn" data-target="confirmNewPinInput" aria-label="Show PIN" title="Show PIN">
+                    <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="icon-eye-off" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </button>
+                </div>
               </label>
             </div>
             <div class="row center">
@@ -453,6 +507,16 @@
                 class="hidden-file-input"
                 aria-label="Select backup file"
               />
+              <div class="import-mode-row">
+                <label class="import-mode-option">
+                  <input type="radio" name="importMode" value="replace" checked />
+                  <span>Replace all</span>
+                </label>
+                <label class="import-mode-option">
+                  <input type="radio" name="importMode" value="merge" />
+                  <span>Merge (keep existing)</span>
+                </label>
+              </div>
               <div class="backup-actions">
                 <button id="importBtn" class="backup-btn import-btn">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -565,6 +629,27 @@
                 <li>Click the ✏️ pencil icon next to <em>KH 2FA</em></li>
                 <li>Press your desired shortcut (e.g. <code>Alt+A</code>)</li>
               </ol>
+            </div>
+          </section>
+
+          <section
+            id="settingsReset"
+            class="settings-section hidden"
+            aria-hidden="true"
+          >
+            <h3>Reset All Data</h3>
+            <div class="reset-warning-box">
+              <p><strong>⚠️ Warning: This will permanently delete:</strong></p>
+              <ul>
+                <li>All 2FA / TOTP accounts</li>
+                <li>Your encrypted vault &amp; PIN</li>
+                <li>All preferences and custom shortcuts</li>
+              </ul>
+              <p>This action <strong>cannot be undone</strong>. Ensure you have exported a backup if needed.</p>
+            </div>
+            <div class="row center">
+              <button id="confirmResetBtn" class="danger-btn" type="button">Delete Everything</button>
+              <button id="cancelResetBtn" class="ghost" type="button">Cancel</button>
             </div>
           </section>
         </div>

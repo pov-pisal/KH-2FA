@@ -13,6 +13,7 @@ import {
   getSession,
   setSession,
   clearSession as clearStoredSession,
+  clearAllData,
 } from "./storage.js";
 import { getBrandInfo } from "./brandIcons.js";
 
@@ -100,7 +101,28 @@ const elements = {
   digitsInput: document.getElementById("digitsInput"),
   algorithmInput: document.getElementById("algorithmInput"),
   periodInput: document.getElementById("periodInput"),
+  noResultsState: document.getElementById("noResultsState"),
+  accountCount: document.getElementById("accountCount"),
+  deleteAccountName: document.getElementById("deleteAccountName"),
+  confirmResetBtn: document.getElementById("confirmResetBtn"),
+  cancelResetBtn: document.getElementById("cancelResetBtn"),
+  settingsReset: document.getElementById("settingsReset"),
 };
+
+// ── Modal helpers ────────────────────────────────────────────────────────────
+function showModal(modal) {
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
+  modal.removeAttribute("inert");
+}
+
+function hideModal(modal) {
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+  modal.setAttribute("inert", "");
+}
 
 let vaultRecord = null;
 let vault = null;
@@ -389,16 +411,14 @@ function openModal(editAccount = null) {
   if (elements.periodInput) elements.periodInput.value = String(editAccount?.period || "30");
   elements.modalError.textContent = "";
   updateModalBrandPreview();
-  elements.modal.classList.remove("hidden");
-  elements.modal.setAttribute("aria-hidden", "false");
-  elements.modal.removeAttribute("inert");
+  showModal(elements.modal);
+
+
   elements.secretInput?.focus();
 }
 
 function closeModal() {
-  elements.modal.classList.add("hidden");
-  elements.modal.setAttribute("aria-hidden", "true");
-  elements.modal.setAttribute("inert", "");
+  hideModal(elements.modal);
   elements.secretInput.value = "";
   elements.issuerInput.value = "";
   elements.labelInput.value = "";
@@ -413,31 +433,29 @@ function closeModal() {
 
 function openDeleteModal(accountId) {
   pendingDeleteId = accountId;
-  elements.deleteModal.classList.remove("hidden");
-  elements.deleteModal.setAttribute("aria-hidden", "false");
-  elements.deleteModal.removeAttribute("inert");
+  const account = vault?.accounts?.find((a) => a.id === accountId);
+  if (elements.deleteAccountName) {
+    const brand = account ? getBrandInfo(account.issuer, account.label) : null;
+    const name = account?.issuer || brand?.name || "Account";
+    elements.deleteAccountName.textContent = account?.label ? `${name} (${account.label})` : name;
+  }
+  showModal(elements.deleteModal);
   elements.confirmDeleteBtn?.focus();
 }
 
 function closeDeleteModal() {
-  elements.deleteModal.classList.add("hidden");
-  elements.deleteModal.setAttribute("aria-hidden", "true");
-  elements.deleteModal.setAttribute("inert", "");
+  hideModal(elements.deleteModal);
   pendingDeleteId = null;
 }
 
 function openEditAccountsModal() {
   if (!vault) return;
-  elements.editAccountsModal.classList.remove("hidden");
-  elements.editAccountsModal.setAttribute("aria-hidden", "false");
-  elements.editAccountsModal.removeAttribute("inert");
+  showModal(elements.editAccountsModal);
   renderEditAccountsList();
 }
 
 function closeEditAccountsModal() {
-  elements.editAccountsModal.classList.add("hidden");
-  elements.editAccountsModal.setAttribute("aria-hidden", "true");
-  elements.editAccountsModal.setAttribute("inert", "");
+  hideModal(elements.editAccountsModal);
 }
 
 function renderEditAccountsList() {
@@ -504,9 +522,7 @@ function openSettingsModal() {
     showToast("Unlock vault first");
     return;
   }
-  elements.settingsModal.classList.remove("hidden");
-  elements.settingsModal.setAttribute("aria-hidden", "false");
-  elements.settingsModal.removeAttribute("inert");
+  showModal(elements.settingsModal);
   elements.changePinError.textContent = "";
   elements.currentPinInput.value = "";
   elements.newPinInput.value = "";
@@ -528,9 +544,7 @@ function openSettingsModal() {
 }
 
 function closeSettingsModal() {
-  elements.settingsModal.classList.add("hidden");
-  elements.settingsModal.setAttribute("aria-hidden", "true");
-  elements.settingsModal.setAttribute("inert", "");
+  hideModal(elements.settingsModal);
   showSettingsList();
 }
 
@@ -541,6 +555,7 @@ function hideAllSettingsSections() {
     elements.settingsBackup,
     elements.settingsPreferences,
     elements.settingsShortcuts,
+    elements.settingsReset,
   ].forEach((section) => {
     if (!section) return;
     section.classList.add("hidden");
@@ -570,6 +585,7 @@ function openSettingsSection(key) {
     backup: elements.settingsBackup,
     preferences: elements.settingsPreferences,
     shortcuts: elements.settingsShortcuts,
+    reset: elements.settingsReset,
   };
   const section = map[key];
   if (!section) return;
@@ -784,6 +800,7 @@ async function savePreferences() {
 }
 
 function cancelPreferences() {
+  applyTheme(getTheme());
   preferencesDraft = {
     lockTimeoutMs: getLockTimeoutMs(),
     sortMode: getSortMode(),
@@ -841,6 +858,21 @@ async function handleChangePin() {
     showToast("PIN updated");
   } catch (error) {
     elements.changePinError.textContent = "Current PIN is incorrect.";
+  }
+}
+
+async function handleResetAll() {
+  try {
+    await clearAllData();
+    clearSession();
+    vaultRecord = null;
+    sessionData = null;
+    meta = null;
+    hideModal(elements.settingsModal);
+    showLockedView({ createMode: true });
+    showToast("All data has been reset successfully");
+  } catch (err) {
+    showToast(`Reset failed: ${err.message}`);
   }
 }
 
@@ -991,14 +1023,30 @@ async function handleImportBackup() {
       vault = { accounts: [], createdAt: Date.now() };
     }
 
+    const importMode = document.querySelector('input[name="importMode"]:checked')?.value || "replace";
+
     // Clean and normalize secrets
-    vault.accounts = importedAccounts.map((account) => ({
+    const mappedAccounts = importedAccounts.map((account) => ({
       id: account.id || crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
       issuer: account.issuer || "",
       label: account.label || "",
       secret: account.secret.replace(/\s+/g, "").toUpperCase(),
+      digits: account.digits || "6",
+      algorithm: account.algorithm || "SHA-1",
+      period: Number(account.period) || 30,
+      pinned: Boolean(account.pinned),
       createdAt: account.createdAt || Date.now(),
     }));
+
+    if (importMode === "merge" && Array.isArray(vault.accounts) && vault.accounts.length > 0) {
+      const existingSecrets = new Set(vault.accounts.map((a) => a.secret));
+      const newItems = mappedAccounts.filter((a) => !existingSecrets.has(a.secret));
+      vault.accounts = [...vault.accounts, ...newItems];
+      showToast(`✓ Merged ${newItems.length} accounts (${mappedAccounts.length - newItems.length} existing skipped)`);
+    } else {
+      vault.accounts = mappedAccounts;
+      showToast(`✓ Backup imported (${mappedAccounts.length} accounts)`);
+    }
 
     // Re-encrypt with current PIN
     try {
@@ -1228,9 +1276,11 @@ async function saveAccount() {
     vault.accounts.unshift(account);
   }
 
+  const wasEditing = !!editingId;
   await saveVault();
   closeModal();
   renderAccounts();
+  showToast(wasEditing ? "Account updated" : "Account added");
 }
 
 // ── Drag-to-reorder handlers ─────────────────────────────────────────────────
@@ -1311,6 +1361,34 @@ function formatOTPDisplay(raw) {
   return clean;
 }
 
+function updateAccountCount() {
+  if (!elements.accountCount) return;
+  const count = vault?.accounts?.length || 0;
+  elements.accountCount.textContent = count > 0 ? String(count) : "";
+}
+
+async function moveAccount(accountId, direction) {
+  if (!vault?.accounts || vault.accounts.length < 2) return;
+  const idx = vault.accounts.findIndex((a) => a.id === accountId);
+  if (idx === -1) return;
+  const targetIdx = idx + direction;
+  if (targetIdx < 0 || targetIdx >= vault.accounts.length) return;
+
+  const [moved] = vault.accounts.splice(idx, 1);
+  vault.accounts.splice(targetIdx, 0, moved);
+
+  meta = await updateMeta({ sortMode: "manual" });
+  if (elements.sortSelect) elements.sortSelect.value = "manual";
+  if (preferencesDraft) preferencesDraft.sortMode = "manual";
+
+  await saveVault();
+  renderAccounts();
+
+  const movedEl = elements.accountsList.querySelector(`[data-id="${accountId}"]`);
+  movedEl?.focus();
+  showToast("Account reordered");
+}
+
 function renderAccounts() {
   if (!vault) return;
   const query = elements.searchInput.value.trim().toLowerCase();
@@ -1321,7 +1399,12 @@ function renderAccounts() {
   const ordered = sortAccounts(filtered);
 
   elements.accountsList.innerHTML = "";
-  elements.emptyState.classList.toggle("hidden", vault.accounts.length !== 0);
+  const totalAccounts = vault.accounts.length;
+  elements.emptyState.classList.toggle("hidden", totalAccounts !== 0);
+  if (elements.noResultsState) {
+    elements.noResultsState.classList.toggle("hidden", !(totalAccounts > 0 && ordered.length === 0));
+  }
+  updateAccountCount();
 
   if (ordered.length === 0) {
     return;
@@ -1345,11 +1428,14 @@ function renderAccounts() {
     item.addEventListener("drop",      (e) => handleDrop(e, account.id));
     item.addEventListener("dragend",   handleDragEnd);
 
-    // Keyboard support: Enter / Space to copy
+    // Keyboard support: Enter / Space to copy, Alt+Up/Down to reorder
     item.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
+      if (e.key === "Enter" || (e.key === " " && e.target === item)) {
         e.preventDefault();
         item.click();
+      } else if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+        e.preventDefault();
+        moveAccount(account.id, e.key === "ArrowUp" ? -1 : 1);
       }
     });
 
@@ -1977,6 +2063,7 @@ async function init() {
       };
     }
     preferencesDraft.theme = elements.themeSelect.value;
+    applyTheme(preferencesDraft.theme);
   });
 
   if (elements.sortSelect) {
@@ -2018,7 +2105,28 @@ async function init() {
   elements.modalScanScreenBtn?.addEventListener("click", handleScanScreenQR);
   elements.qrFileInput?.addEventListener("change", handleQrFileUpload);
 
-  // Quick search shortcut: press '/' to focus search input
+  // PIN eye show/hide toggle buttons
+  document.querySelectorAll(".pin-toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.dataset.target;
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      btn.classList.toggle("active", isPassword);
+      btn.title = isPassword ? "Hide PIN" : "Show PIN";
+      btn.setAttribute("aria-label", isPassword ? "Hide PIN" : "Show PIN");
+      input.focus();
+    });
+  });
+
+  // Reset all data confirmation
+  elements.confirmResetBtn?.addEventListener("click", handleResetAll);
+  elements.cancelResetBtn?.addEventListener("click", () => {
+    showSettingsList();
+  });
+
+  // Quick search shortcut: press '/' to focus search input, Esc to clear search
   document.addEventListener("keydown", (e) => {
     if (
       e.key === "/" &&
@@ -2027,6 +2135,10 @@ async function init() {
     ) {
       e.preventDefault();
       elements.searchInput?.focus();
+    } else if (e.key === "Escape" && document.activeElement === elements.searchInput) {
+      elements.searchInput.value = "";
+      renderAccounts();
+      elements.searchInput.blur();
     }
   });
 

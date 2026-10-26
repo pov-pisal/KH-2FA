@@ -1638,3 +1638,232 @@ button.small {
   padding: 1px 4px;
   border-radius: 4px;
 }
+
+
+/* ── Account Count Badge ──────────────────────────────────────────── */
+.account-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(76, 201, 240, 0.15);
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+.account-count-badge:empty {
+  display: none;
+}
+
+/* ── No Results State ─────────────────────────────────────────────── */
+#noResultsState {
+  margin: 12px 0 0;
+  text-align: center;
+  padding: 32px 16px;
+  background: var(--panel);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+}
+
+#noResultsState h3 {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: 15px;
+}
+
+#noResultsState p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* ── Delete Account Name ──────────────────────────────────────────── */
+.delete-account-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  word-break: break-word;
+}
+
+.delete-account-name:empty {
+  display: none;
+}
+
+/* ── PIN Show/Hide Toggle ─────────────────────────────────────────── */
+.pin-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pin-field-wrap input {
+  width: 100%;
+  padding-right: 36px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 36px 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.pin-field-wrap input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.3);
+}
+
+.pin-toggle-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.pin-toggle-btn:hover {
+  color: var(--primary);
+  background: rgba(76, 201, 240, 0.1);
+}
+
+.pin-toggle-btn .icon-eye-off {
+  display: none;
+}
+
+.pin-toggle-btn.active .icon-eye {
+  display: none;
+}
+
+.pin-toggle-btn.active .icon-eye-off {
+  display: block;
+}
+
+/* ── Import Mode Row ──────────────────────────────────────────────── */
+.import-mode-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.import-mode-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 11px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.import-mode-option:hover {
+  border-color: var(--primary);
+}
+
+.import-mode-option:has(input:checked) {
+  border-color: var(--primary);
+  background: rgba(76, 201, 240, 0.08);
+}
+
+.import-mode-option input[type="radio"] {
+  margin: 0;
+  accent-color: var(--primary);
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Reset / Danger ───────────────────────────────────────────────── */
+.danger-item {
+  border-color: rgba(248, 113, 113, 0.3) !important;
+}
+
+.danger-item:hover {
+  border-color: var(--danger) !important;
+  background: rgba(248, 113, 113, 0.06) !important;
+}
+
+.danger-icon {
+  background: rgba(248, 113, 113, 0.12) !important;
+  color: var(--danger) !important;
+}
+
+.danger-btn {
+  background: var(--danger);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.danger-btn:hover {
+  background: #ef4444;
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.35);
+  transform: translateY(-1px);
+}
+
+.reset-warning-box {
+  padding: 12px 14px;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.reset-warning-box p {
+  margin: 0 0 6px;
+}
+
+.reset-warning-box p:last-child {
+  margin-bottom: 0;
+}
+
+.reset-warning-box ul {
+  margin: 4px 0 8px;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.reset-warning-box ul li {
+  margin-bottom: 2px;
+}
+
+/* ── File Select Button ───────────────────────────────────────────── */
+.file-select-btn {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.file-select-btn:hover {
+  border-color: var(--primary);
+  background: rgba(76, 201, 240, 0.08);
+  transform: translateY(-1px);
+}
