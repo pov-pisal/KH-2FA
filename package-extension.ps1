@@ -21,6 +21,7 @@ $rootFiles = @(
     "storage.js",
     "brandIcons.js",
     "jsQR.js",
+    "qrcode.js",
     "popup.html",
     "popup.css",
     "popup.js",

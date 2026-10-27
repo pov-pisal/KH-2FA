@@ -69,11 +69,34 @@ window.addEventListener(
 
 // --- OTP Autofill Helpers ---
 
+function getSplitInputGroup(targetInput) {
+  if (!targetInput) return null;
+
+  const container =
+    targetInput.closest("form, fieldset, [class*='otp' i], [class*='2fa' i], [class*='code' i], [class*='verification' i], [class*='pin' i]") ||
+    targetInput.parentElement;
+  if (!container) return null;
+
+  const inputs = Array.from(
+    container.querySelectorAll("input:not([type=hidden]):not([type=submit]):not([type=button]):not([disabled]):not([readonly])")
+  );
+
+  if (inputs.length >= 4 && inputs.length <= 8) {
+    const isSplit = inputs.every(
+      (el) => el.maxLength === 1 || el.getAttribute("maxlength") === "1" || el.size === 1
+    );
+    if (isSplit || inputs.includes(targetInput)) {
+      return inputs;
+    }
+  }
+  return null;
+}
+
 function findOtpInputs() {
   const candidates = Array.from(document.querySelectorAll("input"));
   const matcher = /(otp|totp|2fa|verification|security|mfa)/i;
 
-  return candidates.filter((input) => {
+  const filtered = candidates.filter((input) => {
     if (
       input.disabled ||
       input.readOnly ||
@@ -97,6 +120,21 @@ function findOtpInputs() {
       (input.maxLength >= 4 && input.maxLength <= 8 && /numeric/i.test(input.inputMode || ""))
     );
   });
+
+  // Also detect split-box OTP containers (e.g. 6 individual single-character inputs)
+  const containers = document.querySelectorAll(
+    "form, fieldset, [class*='otp' i], [class*='2fa' i], [class*='code' i], [class*='verification' i], [class*='pin' i]"
+  );
+  for (const container of containers) {
+    const group = Array.from(
+      container.querySelectorAll("input:not([type=hidden]):not([type=submit]):not([type=button]):not([disabled]):not([readonly])")
+    ).filter((el) => el.maxLength === 1 || el.getAttribute("maxlength") === "1");
+    if (group.length >= 4 && group.length <= 8 && !filtered.includes(group[0])) {
+      filtered.push(group[0]);
+    }
+  }
+
+  return filtered;
 }
 
 function findOtpInput() {
@@ -105,10 +143,34 @@ function findOtpInput() {
 }
 
 function fillInput(input, value) {
-  if (!input) return;
+  if (!input || !value) return;
+  const cleanCode = String(value).replace(/\s+/g, "");
+  const splitGroup = getSplitInputGroup(input);
+
+  if (splitGroup && splitGroup.length >= 4 && splitGroup.length <= cleanCode.length) {
+    for (let i = 0; i < splitGroup.length; i += 1) {
+      const el = splitGroup[i];
+      const char = cleanCode[i] || "";
+      el.focus();
+      el.value = char;
+      try {
+        el.dispatchEvent(new InputEvent("input", { bubbles: true, data: char, inputType: "insertText" }));
+      } catch {
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    splitGroup[splitGroup.length - 1]?.focus();
+    return;
+  }
+
   input.focus();
-  input.value = value;
-  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.value = cleanCode;
+  try {
+    input.dispatchEvent(new InputEvent("input", { bubbles: true, data: cleanCode, inputType: "insertText" }));
+  } catch {
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
   input.dispatchEvent(new Event("change", { bubbles: true }));
 }
 

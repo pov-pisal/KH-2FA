@@ -29,6 +29,14 @@
           </div>
         </div>
         <button
+          id="sidePanelBtn"
+          class="ghost icon-btn"
+          aria-label="Open in side panel"
+          title="Open in side panel"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+        </button>
+        <button
           id="editAccountsBtn"
           class="ghost icon-btn"
           aria-label="Edit accounts"
@@ -40,20 +48,35 @@
 
       <main>
         <section id="lockedView" class="card hidden" aria-hidden="true" inert>
+          <div id="syncDetectedBanner" class="sync-detected-banner hidden" role="status">
+            <div class="sync-detected-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+            </div>
+            <div class="sync-detected-body">
+              <strong>Google Account Synced Vault Found</strong>
+              <span>Enter your PIN below to unlock all your accounts.</span>
+            </div>
+          </div>
+
           <h2 id="lockTitle">Unlock vault</h2>
-          <p id="lockSubtitle">Enter your PIN to unlock.</p>
+          <p id="lockSubtitle">Enter your PIN or Password to unlock.</p>
 
           <div id="createPinFields" class="stack hidden" aria-hidden="true">
+            <div class="sync-check-row">
+              <button id="checkSyncBtn" class="ghost sync-check-btn" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                <span>Check Google Account Sync</span>
+              </button>
+            </div>
             <label class="field">
-              <span>New PIN</span>
+              <span>New PIN / Password</span>
               <div class="pin-field-wrap">
                 <input
                   id="newPin"
                   type="password"
-                  inputmode="numeric"
                   autocomplete="new-password"
                   minlength="6"
-                  placeholder="Minimum 6 digits"
+                  placeholder="PIN or Password (min 6 chars)"
                 />
                 <button type="button" class="pin-toggle-btn" data-target="newPin" aria-label="Show PIN" title="Show PIN">
                   <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -62,15 +85,14 @@
               </div>
             </label>
             <label class="field">
-              <span>Confirm PIN</span>
+              <span>Confirm PIN / Password</span>
               <div class="pin-field-wrap">
                 <input
                   id="confirmPin"
                   type="password"
-                  inputmode="numeric"
                   autocomplete="new-password"
                   minlength="6"
-                  placeholder="Repeat PIN"
+                  placeholder="Repeat PIN or Password"
                 />
                 <button type="button" class="pin-toggle-btn" data-target="confirmPin" aria-label="Show PIN" title="Show PIN">
                   <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -81,15 +103,14 @@
           </div>
 
           <label id="unlockPinField" class="field">
-            <span>PIN</span>
+            <span>PIN / Password</span>
             <div class="pin-field-wrap">
               <input
                 id="unlockPin"
                 type="password"
-                inputmode="numeric"
                 autocomplete="current-password"
                 minlength="6"
-                placeholder="Enter PIN"
+                placeholder="Enter PIN or Password"
               />
               <button type="button" class="pin-toggle-btn" data-target="unlockPin" aria-label="Show PIN" title="Show PIN">
                 <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -117,8 +138,8 @@
             </div>
             <button
               id="peekToggleBtn"
-              class="ghost icon-btn"
-              title="Toggle Privacy Mask (Hide codes)"
+              class="ghost icon-btn active"
+              title="Disable Privacy Mask (Show codes)"
               aria-label="Toggle Privacy Mask"
             >
               <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -246,6 +267,10 @@
         </div>
 
         <div class="row center">
+          <button id="modalViewQrBtn" class="secondary hidden" type="button" style="margin-right:8px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>View QR</span>
+          </button>
           <button id="saveAccountBtn" class="primary">Save</button>
           <button id="cancelAccountBtn" class="ghost">Cancel</button>
         </div>
@@ -331,7 +356,7 @@
             <span class="settings-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             </span>
-            <span class="settings-label">Change PIN</span>
+            <span class="settings-label">Change PIN / Password</span>
             <span class="settings-chevron">›</span>
           </button>
           <button class="settings-item" data-settings="backup" role="listitem">
@@ -339,6 +364,20 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
             </span>
             <span class="settings-label">Backup &amp; Restore</span>
+            <span class="settings-chevron">›</span>
+          </button>
+          <button
+            class="settings-item"
+            data-settings="google-sync"
+            role="listitem"
+          >
+            <span class="settings-icon sync-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+            </span>
+            <span class="settings-label-wrap">
+              <span class="settings-label">Google Account Sync</span>
+              <span id="syncStatusBadge" class="sync-badge">Off</span>
+            </span>
             <span class="settings-chevron">›</span>
           </button>
           <button
@@ -385,15 +424,14 @@
             <h3>Change PIN</h3>
             <div class="stack">
               <label class="field">
-                <span>Current PIN</span>
+                <span>Current PIN / Password</span>
                 <div class="pin-field-wrap">
                   <input
                     id="currentPinInput"
                     type="password"
-                    inputmode="numeric"
                     autocomplete="current-password"
                     minlength="6"
-                    placeholder="Enter current PIN"
+                    placeholder="Enter current PIN / Password"
                   />
                   <button type="button" class="pin-toggle-btn" data-target="currentPinInput" aria-label="Show PIN" title="Show PIN">
                     <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -402,15 +440,14 @@
                 </div>
               </label>
               <label class="field">
-                <span>New PIN</span>
+                <span>New PIN / Password</span>
                 <div class="pin-field-wrap">
                   <input
                     id="newPinInput"
                     type="password"
-                    inputmode="numeric"
                     autocomplete="new-password"
                     minlength="6"
-                    placeholder="Minimum 6 digits"
+                    placeholder="New PIN or Password (min 6 chars)"
                   />
                   <button type="button" class="pin-toggle-btn" data-target="newPinInput" aria-label="Show PIN" title="Show PIN">
                     <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -419,15 +456,14 @@
                 </div>
               </label>
               <label class="field">
-                <span>Confirm new PIN</span>
+                <span>Confirm new PIN / Password</span>
                 <div class="pin-field-wrap">
                   <input
                     id="confirmNewPinInput"
                     type="password"
-                    inputmode="numeric"
                     autocomplete="new-password"
                     minlength="6"
-                    placeholder="Repeat new PIN"
+                    placeholder="Repeat new PIN or Password"
                   />
                   <button type="button" class="pin-toggle-btn" data-target="confirmNewPinInput" aria-label="Show PIN" title="Show PIN">
                     <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -437,7 +473,7 @@
               </label>
             </div>
             <div class="row center">
-              <button id="changePinBtn" class="primary">Update PIN</button>
+              <button id="changePinBtn" class="primary">Update PIN / Password</button>
             </div>
             <p id="changePinError" class="error" role="alert"></p>
           </section>
@@ -536,6 +572,67 @@
           </section>
 
           <section
+            id="settingsGoogleSync"
+            class="settings-section hidden"
+            aria-hidden="true"
+          >
+            <div class="sync-section-header">
+              <div class="sync-header-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+              </div>
+              <div class="sync-header-text">
+                <h3>Google Account Sync</h3>
+                <p>Sync your encrypted 2FA vault across all computers using your signed-in Google Chrome profile.</p>
+              </div>
+            </div>
+
+            <div class="sync-toggle-card">
+              <div class="sync-toggle-info">
+                <strong>Sync with Google Chrome</strong>
+                <span id="syncStateText">Disabled</span>
+              </div>
+              <label class="switch" aria-label="Toggle Google Account Sync">
+                <input type="checkbox" id="syncToggle" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div id="syncStatusCard" class="sync-status-card hidden">
+              <div class="sync-status-row">
+                <span class="sync-status-indicator online"></span>
+                <span id="syncStatusDetail">Up to date</span>
+              </div>
+              <div class="sync-meta-row">
+                <span>Last Synced:</span>
+                <strong id="syncLastTime">Never</strong>
+              </div>
+              <div class="sync-meta-row">
+                <span>Cloud Storage:</span>
+                <span id="syncStorageUsage">0 KB / 100 KB</span>
+              </div>
+
+              <div class="sync-actions-row">
+                <button id="syncNowBtn" class="primary sync-btn-action" type="button">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                  <span>Sync Now</span>
+                </button>
+                <button id="syncClearBtn" class="ghost danger-btn-text" type="button">
+                  <span>Remove from Cloud</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sync-info-box">
+              <div class="sync-info-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>Zero-Knowledge End-to-End Encryption</span>
+              </div>
+              <p>Your 2FA secrets are encrypted on this device using <strong>AES-256-GCM</strong> with your personal PIN before syncing. Google and Chrome cannot decrypt or view your accounts.</p>
+              <p class="sync-notice-sm">💡 <strong>Requirement:</strong> You must be signed in to Google Chrome with "Sync" enabled in browser settings (<code>chrome://settings/syncSetup</code>).</p>
+            </div>
+          </section>
+
+          <section
             id="settingsPreferences"
             class="settings-section hidden"
             aria-hidden="true"
@@ -571,6 +668,22 @@
                 <option value="label-asc">Label A → Z</option>
                 <option value="label-desc">Label Z → A</option>
                 <option value="manual">Manual order</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <span>Auto-clear clipboard</span>
+              <select id="clipboardClearSelect" aria-label="Auto-clear clipboard">
+                <option value="0">Never</option>
+                <option value="15">15 seconds</option>
+                <option value="30">30 seconds (Default)</option>
+                <option value="60">60 seconds</option>
+              </select>
+            </div>
+            <div class="settings-row">
+              <span>Code visibility</span>
+              <select id="codeVisibilitySelect" aria-label="Code visibility">
+                <option value="blur" selected>Blurred by default (Hover to reveal)</option>
+                <option value="visible">Always show codes</option>
               </select>
             </div>
             <div class="row center">
@@ -656,6 +769,46 @@
       </div>
     </div>
 
+
+    <!-- QR Code View Modal (Transfer to Mobile) -->
+    <div
+      id="qrModal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      inert
+    >
+      <div class="modal-content qr-view-modal">
+        <header>
+          <h2 id="qrModalTitle">Account QR Code</h2>
+          <button id="closeQrModalBtn" class="ghost icon-btn-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </header>
+        <div class="qr-display-body">
+          <div class="qr-brand-row">
+            <div id="qrModalBrandIcon" class="account-brand-icon"></div>
+            <div class="qr-brand-meta">
+              <strong id="qrModalIssuer">Issuer</strong>
+              <span id="qrModalLabel">user@example.com</span>
+            </div>
+          </div>
+          <div id="qrCodeContainer" class="qr-svg-wrapper"></div>
+          <p class="qr-scan-instruction">Scan with Google Authenticator, Aegis, 2FAS, or any 2FA app to transfer this account to your phone.</p>
+          <div class="qr-secret-box">
+            <span class="qr-secret-label">Secret Key:</span>
+            <div class="qr-secret-row">
+              <code id="qrModalSecret" class="qr-secret-code"></code>
+              <button id="copyQrSecretBtn" class="ghost copy-secret-btn" type="button" title="Copy secret key">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
     <script src="jsQR.js"></script>
     <script type="module" src="popup.js"></script>
   </body>

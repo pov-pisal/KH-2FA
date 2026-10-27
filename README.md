@@ -1,6 +1,6 @@
 # 🛡️ KH 2FA
 
-[![Version](https://img.shields.io/badge/version-1.3.2-blue.svg)](https://github.com/pov-pisal/KH-2FA)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 
@@ -66,7 +66,8 @@ A modern, secure, and private browser extension for managing Two-Factor Authenti
 | **Encryption** | AES-256-GCM (NIST Approved, authenticated encryption) |
 | **Key Derivation** | PBKDF2 with SHA-256 (150,000 iterations) |
 | **Salt & Nonce** | Cryptographically secure random 16-byte salt & 12-byte IV |
-| **Vault Storage** | Private local browser storage (`chrome.storage.local`) |
+| **Vault Storage** | Private local browser storage (chrome.storage.local) |
+| **Cloud Sync (Optional)** | End-to-End Encrypted via chrome.storage.sync (chunked AES-256-GCM ciphertext) |
 | **Session Keys** | In-memory only (`chrome.storage.session`), purged on lock or browser exit |
 | **Telemetry / Tracking** | **None.** Zero third-party scripts, zero analytics, zero external network requests |
 

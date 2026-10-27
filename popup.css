@@ -1891,3 +1891,436 @@ button.small {
   background: rgba(76, 201, 240, 0.08);
   transform: translateY(-1px);
 }
+
+/* ── Google Account Sync Styles ─────────────────────────────────── */
+.settings-label-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sync-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: rgba(154, 166, 178, 0.15);
+  color: var(--muted);
+  border: 1px solid rgba(154, 166, 178, 0.25);
+  line-height: 1.2;
+}
+
+.sync-badge.active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.sync-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+
+.sync-header-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: rgba(76, 201, 240, 0.12);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+}
+
+.sync-header-text h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sync-header-text p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.sync-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.sync-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-toggle-info strong {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.sync-toggle-info span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Switch styling */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border);
+  transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.switch input:checked + .slider {
+  background-color: var(--primary);
+}
+
+.switch input:focus-visible + .slider {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.slider.round {
+  border-radius: 24px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Sync Status Card */
+.sync-status-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--panel-2);
+  border: 1px solid rgba(76, 201, 240, 0.25);
+  border-radius: 12px;
+}
+
+.sync-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sync-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.sync-status-indicator.online {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.sync-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.sync-meta-row strong,
+.sync-meta-row span:last-child {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.sync-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.sync-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.danger-btn-text {
+  font-size: 11px;
+  color: var(--danger);
+  padding: 6px 10px;
+}
+
+.danger-btn-text:hover {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--danger);
+}
+
+/* Info Box */
+.sync-info-box {
+  padding: 12px 14px;
+  background: rgba(76, 201, 240, 0.05);
+  border: 1px solid rgba(76, 201, 240, 0.18);
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text);
+  display: grid;
+  gap: 6px;
+}
+
+.sync-info-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 12px;
+}
+
+.sync-info-box p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.sync-info-box strong {
+  color: var(--text);
+}
+
+.sync-info-box code {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--primary);
+}
+
+.sync-notice-sm {
+  margin-top: 4px;
+  font-size: 10.5px;
+}
+
+/* Synced Detected Banner on Locked View */
+.sync-detected-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.sync-detected-icon {
+  color: #22c55e;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.sync-detected-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.sync-detected-body strong {
+  font-size: 12px;
+  color: #4ade80;
+}
+
+.sync-detected-body span {
+  color: var(--text);
+}
+
+.sync-check-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.sync-check-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px dashed rgba(76, 201, 240, 0.4);
+  background: rgba(76, 201, 240, 0.05);
+}
+
+.sync-check-btn:hover {
+  background: rgba(76, 201, 240, 0.12);
+  border-color: var(--primary);
+}
+
+
+
+/* ── QR Code View Modal (Mobile Transfer) ── */
+.qr-view-modal {
+  max-width: 330px !important;
+  text-align: center;
+}
+.qr-display-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px 4px;
+}
+.qr-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.qr-brand-meta {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  min-width: 0;
+}
+.qr-brand-meta strong {
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qr-brand-meta span {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qr-svg-wrapper {
+  background: #ffffff !important;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  width: 200px;
+  height: 200px;
+  box-sizing: border-box;
+}
+.qr-svg-wrapper svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+.qr-scan-instruction {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+  text-align: center;
+}
+.qr-secret-box {
+  width: 100%;
+  background: var(--bg-surface-soft, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  box-sizing: border-box;
+}
+.qr-secret-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  display: block;
+}
+.qr-secret-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 4px;
+}
+.qr-secret-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-color, #38bdf8);
+  word-break: break-all;
+  user-select: all;
+}
+.copy-secret-btn {
+  padding: 4px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ── 5s Countdown Expiration Warning ── */
+.account.expiring-soon .account-code {
+  color: #f87171 !important;
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.35);
+  transition: color 0.3s ease;
+}
+.account.expiring-soon .progress-ring .ring-progress {
+  stroke: #ef4444 !important;
+  filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.5));
+  transition: stroke 0.3s ease;
+}

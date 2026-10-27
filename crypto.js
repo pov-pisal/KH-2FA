@@ -60,6 +60,7 @@ export async function encryptVault(pin, data) {
     salt: toBase64(salt.buffer),
     iterations,
     version: 1,
+    updatedAt: Date.now(),
   };
 }
 

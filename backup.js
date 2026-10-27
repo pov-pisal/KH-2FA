@@ -1,7 +1,13 @@
 import { encryptVault, decryptVault } from "./crypto.js";
 import {
+  parseGoogleMigrationUri,
+  parseOtpauth,
+  isValidSecret,
+} from "./totp.js";
+import {
   getVaultRecord,
   setVaultRecord,
+  setSyncVaultRecord,
   getSession,
   getMeta,
   updateMeta,
@@ -115,24 +121,98 @@ function handleDownload() {
 // ─── Import ───────────────────────────────────────────────────────────────────
 async function handleImport(jsonText) {
   clearStatus(el.importStatus);
-  const content = (jsonText || el.importText.value || "").trim();
-  if (!content) {
-    setStatus(el.importStatus, "Paste JSON or drop/select a file first.", "error");
+  const rawContent = (jsonText || el.importText.value || "").trim();
+  if (!rawContent) {
+    setStatus(el.importStatus, "Paste JSON, Google migration link, or drop/select a file first.", "error");
     return;
   }
 
   setStatus(el.importStatus, "Parsing…", "info");
+  const content = rawContent.replace(/^\uFEFF/, "");
 
-  let payload;
-  try {
-    payload = JSON.parse(content.replace(/^\uFEFF/, ""));
-  } catch (e) {
-    setStatus(el.importStatus, `Invalid JSON: ${e.message}`, "error");
-    return;
+  let accounts = null;
+
+  // 0. Check for Google Authenticator migration payload
+  if (content.startsWith("otpauth-migration://")) {
+    const googleAccounts = parseGoogleMigrationUri(content);
+    if (googleAccounts && googleAccounts.length > 0) {
+      accounts = googleAccounts;
+    } else {
+      setStatus(el.importStatus, "Invalid Google Authenticator migration payload.", "error");
+      return;
+    }
+  } else if (content.includes("otpauth://")) {
+    const lines = content.split(/[\r\n]+/);
+    const parsedList = [];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("otpauth://")) {
+        const parsed = parseOtpauth(trimmed);
+        if (parsed) parsedList.push(parsed);
+      }
+    }
+    if (parsedList.length > 0) {
+      accounts = parsedList;
+    }
   }
 
-  // ── Path 1: decrypted accounts ──────────────────────────────────────────
-  let accounts = Array.isArray(payload) ? payload : Array.isArray(payload?.accounts) ? payload.accounts : null;
+  let payload = null;
+  if (!accounts) {
+    try {
+      payload = JSON.parse(content);
+    } catch (e) {
+      setStatus(el.importStatus, `Unrecognized format: Not valid JSON or otpauth URI (${e.message})`, "error");
+      return;
+    }
+
+    if (Array.isArray(payload)) {
+      accounts = payload;
+    } else if (Array.isArray(payload?.accounts)) {
+      accounts = payload.accounts;
+    } else if (payload?.db && Array.isArray(payload.db.entries)) {
+      accounts = payload.db.entries
+        .filter((e) => e.type === "totp" && e.info?.secret)
+        .map((e) => ({
+          issuer: e.issuer || "",
+          label: e.name || "",
+          secret: e.info.secret,
+          digits: String(e.info.digits || 6),
+          period: Number(e.info.period) || 30,
+          algorithm: e.info.algo || "SHA-1",
+        }));
+    } else if (Array.isArray(payload?.services)) {
+      accounts = payload.services
+        .filter((s) => s.secret || s.otp?.secret)
+        .map((s) => ({
+          issuer: s.name || s.issuer || "",
+          label: s.otp?.account || "",
+          secret: s.secret || s.otp?.secret,
+          digits: String(s.otp?.digits || 6),
+          period: Number(s.otp?.period) || 30,
+          algorithm: s.otp?.algorithm || "SHA-1",
+        }));
+    } else if (Array.isArray(payload?.items)) {
+      accounts = [];
+      for (const item of payload.items) {
+        const totpUrl = item.login?.totp;
+        if (totpUrl && typeof totpUrl === "string") {
+          const parsed = parseOtpauth(totpUrl);
+          if (parsed) {
+            accounts.push({ ...parsed, issuer: parsed.issuer || item.name || "" });
+          } else if (isValidSecret(totpUrl)) {
+            accounts.push({
+              issuer: item.name || "Account",
+              label: item.login?.username || "",
+              secret: totpUrl,
+              digits: "6",
+              period: 30,
+              algorithm: "SHA-1",
+            });
+          }
+        }
+      }
+    }
+  }
 
   if (accounts) {
     const valid = accounts.length > 0 && accounts.every(a => a && typeof a.secret === "string");
@@ -155,6 +235,7 @@ async function handleImport(jsonText) {
     try {
       vaultRecord = await encryptVault(sessionPin, vault);
       await setVaultRecord(vaultRecord);
+      if (meta?.syncEnabled) { try { await setSyncVaultRecord(vaultRecord); await updateMeta({ lastSyncedAt: vaultRecord.updatedAt || Date.now() }); } catch(err){} }
       el.importText.value = "";
       populateExport();
       setStatus(el.importStatus, `✓ Imported ${vault.accounts.length} accounts successfully!`, "success");
@@ -173,6 +254,7 @@ async function handleImport(jsonText) {
   if (encVault) {
     try {
       await setVaultRecord(encVault);
+      if (meta?.syncEnabled) { try { await setSyncVaultRecord(encVault); await updateMeta({ lastSyncedAt: encVault.updatedAt || Date.now() }); } catch(err){} }
       await updateMeta({ locked: true, lastActive: 0 });
       el.importText.value = "";
       setStatus(el.importStatus, "✓ Encrypted vault imported! Return to the extension and unlock with your PIN.", "success");

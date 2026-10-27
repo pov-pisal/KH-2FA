@@ -1,7 +1,9 @@
+import { qrcode } from "./qrcode.js";
 import { encryptVault, decryptVault } from "./crypto.js";
 import {
   generateTOTP,
   parseOtpauth,
+  parseGoogleMigrationUri,
   normalizeSecret,
   isValidSecret,
 } from "./totp.js";
@@ -14,6 +16,14 @@ import {
   setSession,
   clearSession as clearStoredSession,
   clearAllData,
+  isSyncAvailable,
+  getSyncVaultRecord,
+  setSyncVaultRecord,
+  clearSyncVault,
+  getSyncStorageStats,
+  getLockoutState,
+  setLockoutState,
+  clearLockoutState,
 } from "./storage.js";
 import { getBrandInfo } from "./brandIcons.js";
 
@@ -23,8 +33,23 @@ const elements = {
   lockedView: document.getElementById("lockedView"),
   lockTitle: document.getElementById("lockTitle"),
   lockSubtitle: document.getElementById("lockSubtitle"),
+  syncDetectedBanner: document.getElementById("syncDetectedBanner"),
+  checkSyncBtn: document.getElementById("checkSyncBtn"),
   createPinFields: document.getElementById("createPinFields"),
   unlockPinField: document.getElementById("unlockPinField"),
+  sidePanelBtn: document.getElementById("sidePanelBtn"),
+  modalViewQrBtn: document.getElementById("modalViewQrBtn"),
+  qrModal: document.getElementById("qrModal"),
+  closeQrModalBtn: document.getElementById("closeQrModalBtn"),
+  qrModalTitle: document.getElementById("qrModalTitle"),
+  qrModalBrandIcon: document.getElementById("qrModalBrandIcon"),
+  qrModalIssuer: document.getElementById("qrModalIssuer"),
+  qrModalLabel: document.getElementById("qrModalLabel"),
+  qrCodeContainer: document.getElementById("qrCodeContainer"),
+  qrModalSecret: document.getElementById("qrModalSecret"),
+  copyQrSecretBtn: document.getElementById("copyQrSecretBtn"),
+  clipboardClearSelect: document.getElementById("clipboardClearSelect"),
+  codeVisibilitySelect: document.getElementById("codeVisibilitySelect"),
   newPin: document.getElementById("newPin"),
   confirmPin: document.getElementById("confirmPin"),
   unlockPin: document.getElementById("unlockPin"),
@@ -79,6 +104,16 @@ const elements = {
   backupDate: document.getElementById("backupDate"),
   settingsChangePin: document.getElementById("settingsChangePin"),
   settingsBackup: document.getElementById("settingsBackup"),
+  settingsGoogleSync: document.getElementById("settingsGoogleSync"),
+  syncStatusBadge: document.getElementById("syncStatusBadge"),
+  syncToggle: document.getElementById("syncToggle"),
+  syncStateText: document.getElementById("syncStateText"),
+  syncStatusCard: document.getElementById("syncStatusCard"),
+  syncStatusDetail: document.getElementById("syncStatusDetail"),
+  syncLastTime: document.getElementById("syncLastTime"),
+  syncStorageUsage: document.getElementById("syncStorageUsage"),
+  syncNowBtn: document.getElementById("syncNowBtn"),
+  syncClearBtn: document.getElementById("syncClearBtn"),
   settingsPreferences: document.getElementById("settingsPreferences"),
   settingsShortcuts: document.getElementById("settingsShortcuts"),
   shortcutCard: document.getElementById("shortcutCard"),
@@ -135,13 +170,67 @@ let editingId = null;
 let pendingDeleteId = null;
 let preferencesDraft = null;
 let dragSrcId = null;          // id of account being dragged
-let privacyMaskActive = false;
+let privacyMaskActive = true;
 let failedPinAttempts = 0;
 let lockoutSecondsRemaining = 0;
 let lockoutInterval = null;
 const codes = new Map();
 
 let toastTimeoutId = null;
+
+let clipboardClearTimer = null;
+function scheduleClipboardClear(code, delaySec) {
+  if (!delaySec || delaySec <= 0) return;
+  clearTimeout(clipboardClearTimer);
+  clipboardClearTimer = setTimeout(async () => {
+    try {
+      await navigator.clipboard.writeText("");
+      showToast("🔒 Clipboard cleared for security");
+    } catch {}
+  }, delaySec * 1000);
+}
+
+function showAccountQrModal(account) {
+  if (!account || !elements.qrModal) return;
+  const brand = getBrandInfo(account.issuer, account.label);
+  const issuer = account.issuer || brand.name || "Account";
+  const label = account.label || "";
+  const secret = (account.secret || "").replace(/\s+/g, "").toUpperCase();
+
+  elements.qrModalTitle.textContent = `${issuer} QR Code`;
+  elements.qrModalIssuer.textContent = issuer;
+  elements.qrModalLabel.textContent = label;
+  elements.qrModalBrandIcon.style.background = brand.bgColor;
+  elements.qrModalBrandIcon.style.borderColor = brand.borderColor;
+  elements.qrModalBrandIcon.innerHTML = brand.svg;
+  elements.qrModalSecret.textContent = secret;
+
+  const encIssuer = encodeURIComponent(issuer);
+  const encLabel = label ? `${encIssuer}:${encodeURIComponent(label)}` : encIssuer;
+  const digits = account.digits || 6;
+  const period = account.period || 30;
+  const algo = account.algorithm || "SHA-1";
+  const otpauthUri = `otpauth://totp/${encLabel}?secret=${secret}&issuer=${encIssuer}&digits=${digits}&period=${period}&algorithm=${algo}`;
+
+  try {
+    const qr = qrcode(0, "M");
+    qr.addData(otpauthUri);
+    qr.make();
+    elements.qrCodeContainer.innerHTML = qr.createSvgTag({ scalable: true });
+  } catch (err) {
+    console.error("Failed to generate QR code SVG:", err);
+    elements.qrCodeContainer.textContent = "Could not render QR code.";
+  }
+
+  showModal(elements.qrModal);
+}
+
+function closeAccountQrModal() {
+  if (elements.qrModal) {
+    hideModal(elements.qrModal);
+    elements.qrCodeContainer.innerHTML = "";
+  }
+}
 
 function showToast(message, duration = 1800) {
   if (toastTimeoutId) {
@@ -157,7 +246,7 @@ function showToast(message, duration = 1800) {
   }, visibleDuration);
 }
 
-function showLockedView({ createMode }) {
+function showLockedView({ createMode, syncDetected = false }) {
   elements.lockedView.classList.remove("hidden");
   elements.lockedView.setAttribute("aria-hidden", "false");
   elements.lockedView.removeAttribute("inert");
@@ -166,6 +255,12 @@ function showLockedView({ createMode }) {
   elements.mainView.setAttribute("inert", "");
   elements.lockError.textContent = "";
 
+  if (syncDetected) {
+    elements.syncDetectedBanner?.classList.remove("hidden");
+  } else {
+    elements.syncDetectedBanner?.classList.add("hidden");
+  }
+
   if (createMode) {
     elements.lockTitle.textContent = "Create PIN";
     elements.lockSubtitle.textContent = "Set a PIN to encrypt your vault.";
@@ -173,8 +268,10 @@ function showLockedView({ createMode }) {
     elements.unlockPinField.classList.add("hidden");
     elements.unlockBtn.textContent = "Create";
   } else {
-    elements.lockTitle.textContent = "Unlock vault";
-    elements.lockSubtitle.textContent = "Enter your PIN to unlock.";
+    elements.lockTitle.textContent = syncDetected ? "Synced Vault Found" : "Unlock vault";
+    elements.lockSubtitle.textContent = syncDetected
+      ? "Enter your existing PIN to restore all your 2FA accounts."
+      : "Enter your PIN to unlock.";
     elements.createPinFields.classList.add("hidden");
     elements.unlockPinField.classList.remove("hidden");
     elements.unlockBtn.textContent = "Unlock";
@@ -185,12 +282,21 @@ function showLockedView({ createMode }) {
 }
 
 function showMainView() {
+  elements.syncDetectedBanner?.classList.add("hidden");
   elements.lockedView.classList.add("hidden");
   elements.lockedView.setAttribute("aria-hidden", "true");
   elements.lockedView.setAttribute("inert", "");
   elements.mainView.classList.remove("hidden");
   elements.mainView.setAttribute("aria-hidden", "false");
   elements.mainView.removeAttribute("inert");
+
+  if (elements.peekToggleBtn) {
+    elements.peekToggleBtn.classList.toggle("active", privacyMaskActive);
+    elements.peekToggleBtn.title = privacyMaskActive
+      ? "Disable Privacy Mask (Show codes)"
+      : "Enable Privacy Mask (Blur codes until hover)";
+  }
+
   renderAccounts();
   elements.searchInput?.focus();
 }
@@ -270,13 +376,26 @@ function clearSession() {
 }
 
 function isPinValid(pin) {
-  return /^\d{6,}$/.test(pin);
+  return typeof pin === "string" && pin.trim().length >= 6;
+}
+
+async function persistVaultRecord(record) {
+  vaultRecord = record;
+  await setVaultRecord(record);
+  if (meta?.syncEnabled) {
+    try {
+      await setSyncVaultRecord(record);
+      meta = await updateMeta({ lastSyncedAt: record.updatedAt || Date.now() });
+    } catch (err) {
+      console.warn("Failed to sync vault to Google sync storage:", err);
+    }
+  }
 }
 
 async function saveVault() {
   if (!vault || !sessionPin) return;
   vaultRecord = await encryptVault(sessionPin, vault);
-  await setVaultRecord(vaultRecord);
+  await persistVaultRecord(vaultRecord);
 }
 
 async function setLocked(locked) {
@@ -287,19 +406,32 @@ async function setLocked(locked) {
   meta = await updateMeta({ locked, lastActive: locked ? 0 : Date.now() });
 }
 
-function setLockout(seconds) {
+async function setLockout(seconds, persist = true) {
   lockoutSecondsRemaining = seconds;
   elements.unlockBtn.disabled = true;
   elements.unlockPin.disabled = true;
+  if (persist) {
+    try {
+      await setLockoutState({
+        failedAttempts: failedPinAttempts,
+        lockoutUntil: Date.now() + seconds * 1000,
+      });
+    } catch (e) {
+      console.warn("Could not save lockout state:", e);
+    }
+  }
   if (elements.lockoutNotice) {
     elements.lockoutNotice.classList.remove("hidden");
     elements.lockoutNotice.textContent = `Too many failed attempts. Try again in ${lockoutSecondsRemaining}s.`;
   }
   clearInterval(lockoutInterval);
-  lockoutInterval = setInterval(() => {
+  lockoutInterval = setInterval(async () => {
     lockoutSecondsRemaining -= 1;
     if (lockoutSecondsRemaining <= 0) {
       clearInterval(lockoutInterval);
+      try {
+        await clearLockoutState();
+      } catch {}
       elements.unlockBtn.disabled = false;
       elements.unlockPin.disabled = false;
       if (elements.lockoutNotice) {
@@ -322,18 +454,18 @@ async function handleUnlock() {
     const pin = elements.newPin.value.trim();
     const confirm = elements.confirmPin.value.trim();
     if (!isPinValid(pin)) {
-      elements.lockError.textContent = "PIN must be at least 6 digits.";
+      elements.lockError.textContent = "PIN or Password must be at least 6 characters.";
       return;
     }
     if (pin !== confirm) {
-      elements.lockError.textContent = "PINs do not match.";
+      elements.lockError.textContent = "PINs or Passwords do not match.";
       return;
     }
 
     vault = { accounts: [], createdAt: Date.now() };
     sessionPin = pin;
     vaultRecord = await encryptVault(pin, vault);
-    await setVaultRecord(vaultRecord);
+    await persistVaultRecord(vaultRecord);
     await setLocked(false);
     showMainView();
     return;
@@ -341,13 +473,16 @@ async function handleUnlock() {
 
   const pin = elements.unlockPin.value.trim();
   if (!isPinValid(pin)) {
-    elements.lockError.textContent = "Invalid PIN.";
+    elements.lockError.textContent = "Invalid PIN or Password.";
     return;
   }
 
   try {
     vault = await decryptVault(pin, vaultRecord);
     failedPinAttempts = 0;
+    try {
+      await clearLockoutState();
+    } catch {}
     if (elements.lockoutNotice) {
       elements.lockoutNotice.classList.add("hidden");
       elements.lockoutNotice.textContent = "";
@@ -359,10 +494,14 @@ async function handleUnlock() {
     showMainView();
   } catch (error) {
     failedPinAttempts += 1;
-    elements.lockError.textContent = "Incorrect PIN.";
+    elements.lockError.textContent = "Incorrect PIN or Password.";
     if (failedPinAttempts >= 3) {
-      const waitSeconds = failedPinAttempts === 3 ? 5 : failedPinAttempts === 4 ? 15 : 30;
-      setLockout(waitSeconds);
+      const waitSeconds = failedPinAttempts === 3 ? 10 : failedPinAttempts === 4 ? 30 : 60;
+      await setLockout(waitSeconds);
+    } else {
+      try {
+        await setLockoutState({ failedAttempts: failedPinAttempts, lockoutUntil: 0 });
+      } catch {}
     }
   }
 }
@@ -403,6 +542,11 @@ function updateModalBrandPreview() {
 function openModal(editAccount = null) {
   editingId = editAccount?.id || null;
   elements.modalTitle.textContent = editingId ? "Edit account" : "Add account";
+  if (editingId && elements.modalViewQrBtn) {
+    elements.modalViewQrBtn.classList.remove("hidden");
+  } else if (elements.modalViewQrBtn) {
+    elements.modalViewQrBtn.classList.add("hidden");
+  }
   elements.secretInput.value = editAccount?.secret || "";
   elements.issuerInput.value = editAccount?.issuer || "";
   elements.labelInput.value = editAccount?.label || "";
@@ -428,6 +572,7 @@ function closeModal() {
   elements.modalError.textContent = "";
   updateModalBrandPreview();
   editingId = null;
+  if (elements.modalViewQrBtn) elements.modalViewQrBtn.classList.add("hidden");
   elements.addAccountBtn?.focus();
 }
 
@@ -536,6 +681,20 @@ function openSettingsModal() {
   if (elements.sortSelect) {
     elements.sortSelect.value = getSortMode();
   }
+  if (elements.clipboardClearSelect) {
+    elements.clipboardClearSelect.value = String(meta?.clipboardClearSec ?? 30);
+  }
+  // Code visibility: default to blur unless explicitly set to false
+  privacyMaskActive = meta?.defaultMaskCodes !== false;
+  if (elements.peekToggleBtn) {
+    elements.peekToggleBtn.classList.toggle("active", privacyMaskActive);
+    elements.peekToggleBtn.title = privacyMaskActive
+      ? "Disable Privacy Mask (Show codes)"
+      : "Enable Privacy Mask (Blur codes until hover)";
+  }
+  if (elements.codeVisibilitySelect) {
+    elements.codeVisibilitySelect.value = privacyMaskActive ? "blur" : "visible";
+  }
   preferencesDraft = {
     lockTimeoutMs: getLockTimeoutMs(),
     sortMode: getSortMode(),
@@ -555,6 +714,7 @@ function hideAllSettingsSections() {
   [
     elements.settingsChangePin,
     elements.settingsBackup,
+    elements.settingsGoogleSync,
     elements.settingsPreferences,
     elements.settingsShortcuts,
     elements.settingsReset,
@@ -567,6 +727,7 @@ function hideAllSettingsSections() {
 
 function showSettingsList() {
   hideAllSettingsSections();
+  updateSyncBadge();
   elements.settingsList?.classList.remove("hidden");
   elements.settingsList?.setAttribute("aria-hidden", "false");
   elements.settingsBackBtn?.classList.add("hidden");
@@ -585,6 +746,7 @@ function openSettingsSection(key) {
   const map = {
     "change-pin": elements.settingsChangePin,
     backup: elements.settingsBackup,
+    "google-sync": elements.settingsGoogleSync,
     preferences: elements.settingsPreferences,
     shortcuts: elements.settingsShortcuts,
     reset: elements.settingsReset,
@@ -594,6 +756,9 @@ function openSettingsSection(key) {
   hideSettingsList();
   section.classList.remove("hidden");
   section.setAttribute("aria-hidden", "false");
+  if (key === "google-sync") {
+    refreshSyncUI();
+  }
   if (key === "change-pin") {
     elements.currentPinInput?.focus();
   }
@@ -602,6 +767,8 @@ function openSettingsSection(key) {
       lockTimeoutMs: getLockTimeoutMs(),
       sortMode: getSortMode(),
       theme: getTheme(),
+      clipboardClearSec: Number(meta?.clipboardClearSec ?? 30),
+      defaultMaskCodes: meta?.defaultMaskCodes !== false,
     };
     elements.lockTimeoutSelect.value = String(preferencesDraft.lockTimeoutMs);
     if (elements.themeSelect) {
@@ -609,6 +776,12 @@ function openSettingsSection(key) {
     }
     if (elements.sortSelect) {
       elements.sortSelect.value = preferencesDraft.sortMode;
+    }
+    if (elements.clipboardClearSelect) {
+      elements.clipboardClearSelect.value = String(preferencesDraft.clipboardClearSec);
+    }
+    if (elements.codeVisibilitySelect) {
+      elements.codeVisibilitySelect.value = preferencesDraft.defaultMaskCodes ? "blur" : "visible";
     }
   }
   if (key === "backup") {
@@ -786,16 +959,34 @@ async function updateShortcutDisplay() {
 
 async function savePreferences() {
   if (!preferencesDraft) return;
+  const newClipSec = Number(elements.clipboardClearSelect?.value ?? 30);
+  const newMaskCodes = elements.codeVisibilitySelect ? elements.codeVisibilitySelect.value !== "visible" : (preferencesDraft.defaultMaskCodes ?? true);
+
   meta = await updateMeta({
     lockTimeoutMs: preferencesDraft.lockTimeoutMs,
     sortMode: preferencesDraft.sortMode,
     theme: preferencesDraft.theme,
+    clipboardClearSec: newClipSec,
+    defaultMaskCodes: newMaskCodes,
   });
   if (sessionData) {
     sessionData.lastActive = Date.now();
     await setSession(sessionData);
   }
   applyTheme(preferencesDraft.theme);
+
+  // Sync privacy mask state with new preference immediately
+  privacyMaskActive = newMaskCodes;
+  if (elements.peekToggleBtn) {
+    elements.peekToggleBtn.classList.toggle("active", privacyMaskActive);
+    elements.peekToggleBtn.title = privacyMaskActive
+      ? "Disable Privacy Mask (Show codes)"
+      : "Enable Privacy Mask (Blur codes until hover)";
+  }
+  document.querySelectorAll(".account-code").forEach((el) => {
+    el.classList.toggle("masked", privacyMaskActive);
+  });
+
   renderAccounts();
   showToast("Preferences saved");
   closeSettingsModal();
@@ -807,6 +998,8 @@ function cancelPreferences() {
     lockTimeoutMs: getLockTimeoutMs(),
     sortMode: getSortMode(),
     theme: getTheme(),
+    clipboardClearSec: Number(meta?.clipboardClearSec ?? 30),
+    defaultMaskCodes: meta?.defaultMaskCodes !== false,
   };
   elements.lockTimeoutSelect.value = String(preferencesDraft.lockTimeoutMs);
   if (elements.themeSelect) {
@@ -814,6 +1007,12 @@ function cancelPreferences() {
   }
   if (elements.sortSelect) {
     elements.sortSelect.value = preferencesDraft.sortMode;
+  }
+  if (elements.clipboardClearSelect) {
+    elements.clipboardClearSelect.value = String(preferencesDraft.clipboardClearSec);
+  }
+  if (elements.codeVisibilitySelect) {
+    elements.codeVisibilitySelect.value = preferencesDraft.defaultMaskCodes ? "blur" : "visible";
   }
 }
 
@@ -838,11 +1037,11 @@ async function handleChangePin() {
   const confirmPin = elements.confirmNewPinInput.value.trim();
 
   if (!isPinValid(currentPin) || !isPinValid(newPin)) {
-    elements.changePinError.textContent = "PIN must be at least 6 digits.";
+    elements.changePinError.textContent = "PIN or Password must be at least 6 characters.";
     return;
   }
   if (newPin !== confirmPin) {
-    elements.changePinError.textContent = "New PINs do not match.";
+    elements.changePinError.textContent = "New PINs or Passwords do not match.";
     return;
   }
 
@@ -852,20 +1051,20 @@ async function handleChangePin() {
     vaultRecord = await encryptVault(newPin, vault);
     sessionPin = newPin;
     sessionData = { pin: newPin, lastActive: Date.now() };
-    await setVaultRecord(vaultRecord);
+    await persistVaultRecord(vaultRecord);
     await setSession(sessionData);
     elements.currentPinInput.value = "";
     elements.newPinInput.value = "";
     elements.confirmNewPinInput.value = "";
-    showToast("PIN updated");
+    showToast("PIN / Password updated");
   } catch (error) {
-    elements.changePinError.textContent = "Current PIN is incorrect.";
+    elements.changePinError.textContent = "Current PIN or Password is incorrect.";
   }
 }
 
 async function handleResetAll() {
   try {
-    await clearAllData();
+    await clearAllData({ clearCloudSync: true });
     clearSession();
     vaultRecord = null;
     sessionData = null;
@@ -981,31 +1180,102 @@ async function handleCopyBackup() {
 
 async function handleImportBackup() {
   clearImportError();
-  const content = elements.importText?.value?.trim();
-  if (!content) {
-    showImportError("Paste a backup JSON or upload a file");
+  const rawContent = elements.importText?.value?.trim();
+  if (!rawContent) {
+    showImportError("Paste a backup JSON, Google migration link, or upload a file");
     return;
   }
 
   showImportError("Parsing backup data... Please wait.");
+  const cleanContent = rawContent.replace(/^\uFEFF/, "");
 
-  let payload;
-  try {
-    // Clean potential BOM or extra whitespaces
-    const cleanContent = content.replace(/^\uFEFF/, "");
-    payload = JSON.parse(cleanContent);
-  } catch (parseError) {
-    showImportError(`Invalid JSON format: ${parseError.message}`);
-    console.error("JSON parse error:", parseError);
-    return;
+  let importedAccounts = null;
+
+  // 0. Check for Google Authenticator migration payload
+  if (cleanContent.startsWith("otpauth-migration://")) {
+    const googleAccounts = parseGoogleMigrationUri(cleanContent);
+    if (googleAccounts && googleAccounts.length > 0) {
+      importedAccounts = googleAccounts;
+    } else {
+      showImportError("Invalid or corrupted Google Authenticator migration payload");
+      return;
+    }
+  } else if (cleanContent.includes("otpauth://")) {
+    // 0b. Plain text containing one or more otpauth:// lines
+    const lines = cleanContent.split(/[\r\n]+/);
+    const parsedList = [];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("otpauth://")) {
+        const parsed = parseOtpauth(trimmed);
+        if (parsed) parsedList.push(parsed);
+      }
+    }
+    if (parsedList.length > 0) {
+      importedAccounts = parsedList;
+    }
   }
 
-  // 1. Check if it's a decrypted accounts list
-  let importedAccounts = null;
-  if (Array.isArray(payload)) {
-    importedAccounts = payload;
-  } else if (payload && Array.isArray(payload.accounts)) {
-    importedAccounts = payload.accounts;
+  let payload = null;
+  if (!importedAccounts) {
+    try {
+      payload = JSON.parse(cleanContent);
+    } catch (parseError) {
+      showImportError(`Unrecognized format: Not valid JSON or otpauth URI (${parseError.message})`);
+      return;
+    }
+
+    // 1. Check if it's a decrypted accounts list
+    if (Array.isArray(payload)) {
+      importedAccounts = payload;
+    } else if (payload && Array.isArray(payload.accounts)) {
+      importedAccounts = payload.accounts;
+    } else if (payload?.db && Array.isArray(payload.db.entries)) {
+      // Aegis export format
+      importedAccounts = payload.db.entries
+        .filter((e) => e.type === "totp" && e.info?.secret)
+        .map((e) => ({
+          issuer: e.issuer || "",
+          label: e.name || "",
+          secret: e.info.secret,
+          digits: String(e.info.digits || 6),
+          period: Number(e.info.period) || 30,
+          algorithm: e.info.algo || "SHA-1",
+        }));
+    } else if (Array.isArray(payload?.services)) {
+      // 2FAS export format
+      importedAccounts = payload.services
+        .filter((s) => s.secret || s.otp?.secret)
+        .map((s) => ({
+          issuer: s.name || s.issuer || "",
+          label: s.otp?.account || "",
+          secret: s.secret || s.otp?.secret,
+          digits: String(s.otp?.digits || 6),
+          period: Number(s.otp?.period) || 30,
+          algorithm: s.otp?.algorithm || "SHA-1",
+        }));
+    } else if (Array.isArray(payload?.items)) {
+      // Bitwarden export format
+      importedAccounts = [];
+      for (const item of payload.items) {
+        const totpUrl = item.login?.totp;
+        if (totpUrl && typeof totpUrl === "string") {
+          const parsed = parseOtpauth(totpUrl);
+          if (parsed) {
+            importedAccounts.push({ ...parsed, issuer: parsed.issuer || item.name || "" });
+          } else if (isValidSecret(totpUrl)) {
+            importedAccounts.push({
+              issuer: item.name || "Account",
+              label: item.login?.username || "",
+              secret: totpUrl,
+              digits: "6",
+              period: 30,
+              algorithm: "SHA-1",
+            });
+          }
+        }
+      }
+    }
   }
 
   if (importedAccounts) {
@@ -1053,7 +1323,7 @@ async function handleImportBackup() {
     // Re-encrypt with current PIN
     try {
       vaultRecord = await encryptVault(sessionPin, vault);
-      await setVaultRecord(vaultRecord);
+      await persistVaultRecord(vaultRecord);
       clearInputs();
       showToast("✓ Backup imported successfully");
       renderAccounts();
@@ -1088,7 +1358,7 @@ async function handleImportBackup() {
     showImportError("Found encrypted vault record. Saving directly...");
     // Save directly
     try {
-      await setVaultRecord(encryptedVault);
+      await persistVaultRecord(encryptedVault);
       clearInputs();
       await setLocked(true);
       showLockedView({ createMode: false });
@@ -1589,8 +1859,10 @@ function updateProgress(now = Date.now()) {
     }
     if (remaining <= 5) {
       ring.classList.add("expiring");
+      item.classList.add("expiring-soon");
     } else {
       ring.classList.remove("expiring");
+      item.classList.remove("expiring-soon");
     }
   });
 }
@@ -1612,6 +1884,7 @@ async function handleAccountAction(event) {
     if (action === "copy") {
       const code = (codes.get(id) || (await generateTOTP(account.secret, Date.now(), account))).replace(/\s+/g, "");
       await navigator.clipboard.writeText(code);
+      scheduleClipboardClear(code, Number(meta?.clipboardClearSec ?? 30));
       showToast("Copied");
     }
 
@@ -1656,6 +1929,7 @@ async function handleAccountAction(event) {
     if (!cleanOtp || cleanOtp.includes("-")) return;
 
     await navigator.clipboard.writeText(cleanOtp);
+    scheduleClipboardClear(cleanOtp, Number(meta?.clipboardClearSec ?? 30));
 
     // Tactile visual feedback on the card
     item.classList.add("copied");
@@ -1772,8 +2046,34 @@ async function decodeImageForQR(imgSource) {
   return null;
 }
 
-function populateAndOpenAddModal(urlOrSecret) {
+async function populateAndOpenAddModal(urlOrSecret) {
   if (!urlOrSecret) return;
+
+  // Handle Google Authenticator export QR code
+  if (typeof urlOrSecret === "string" && urlOrSecret.trim().startsWith("otpauth-migration://")) {
+    const imported = parseGoogleMigrationUri(urlOrSecret.trim());
+    if (imported && imported.length > 0) {
+      if (!vault) vault = { accounts: [], createdAt: Date.now() };
+      const newItems = imported.map((acc) => ({
+        id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+        issuer: acc.issuer || "",
+        label: acc.label || "",
+        secret: acc.secret,
+        digits: String(acc.digits || 6),
+        algorithm: acc.algorithm || "SHA-1",
+        period: Number(acc.period) || 30,
+        pinned: false,
+        createdAt: Date.now(),
+      }));
+
+      vault.accounts = [...vault.accounts, ...newItems];
+      await saveVault();
+      renderAccounts();
+      showToast(`✓ Imported ${newItems.length} accounts from Google Authenticator!`);
+      return;
+    }
+  }
+
   const parsed = parseOtpauth(urlOrSecret);
   openModal();
   if (parsed) {
@@ -1878,12 +2178,218 @@ async function handleQrFileUpload(e) {
   e.target.value = "";
 }
 
+function updateSyncBadge() {
+  if (!elements.syncStatusBadge) return;
+  const isEnabled = Boolean(meta?.syncEnabled);
+  elements.syncStatusBadge.textContent = isEnabled ? "On" : "Off";
+  if (isEnabled) {
+    elements.syncStatusBadge.classList.add("active");
+  } else {
+    elements.syncStatusBadge.classList.remove("active");
+  }
+}
+
+async function refreshSyncUI() {
+  if (!elements.settingsGoogleSync) return;
+  updateSyncBadge();
+
+  const isEnabled = Boolean(meta?.syncEnabled);
+  if (elements.syncToggle) {
+    elements.syncToggle.checked = isEnabled;
+  }
+  if (elements.syncStateText) {
+    elements.syncStateText.textContent = isEnabled
+      ? "Active — Synced with your Google account"
+      : "Disabled — Stored strictly on this local device";
+  }
+
+  if (isEnabled) {
+    elements.syncStatusCard?.classList.remove("hidden");
+    const stats = await getSyncStorageStats();
+    if (elements.syncLastTime) {
+      const last = meta?.lastSyncedAt || stats.updatedAt;
+      elements.syncLastTime.textContent = last
+        ? new Date(last).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            month: "short",
+            day: "numeric",
+          })
+        : "Just now";
+    }
+    if (elements.syncStorageUsage) {
+      const kb = (stats.totalBytes / 1024).toFixed(1);
+      elements.syncStorageUsage.textContent = `${kb} KB / 100 KB (${stats.chunkCount} chunk${stats.chunkCount === 1 ? "" : "s"})`;
+    }
+  } else {
+    elements.syncStatusCard?.classList.add("hidden");
+  }
+}
+
+async function handleSyncToggle(e) {
+  const enable = e.target.checked;
+  if (!isSyncAvailable()) {
+    showToast("Google Sync is not supported in this browser");
+    e.target.checked = false;
+    return;
+  }
+
+  if (enable) {
+    if (!vaultRecord) {
+      showToast("Create your vault first to enable sync");
+      e.target.checked = false;
+      return;
+    }
+    try {
+      await setSyncVaultRecord(vaultRecord);
+      meta = await updateMeta({
+        syncEnabled: true,
+        lastSyncedAt: vaultRecord.updatedAt || Date.now(),
+      });
+      showToast("✓ Google Account Sync enabled!");
+      await refreshSyncUI();
+    } catch (err) {
+      console.error("Sync enable error:", err);
+      showToast(`Failed to enable sync: ${err.message}`);
+      e.target.checked = false;
+    }
+  } else {
+    meta = await updateMeta({ syncEnabled: false });
+    showToast("Google Account Sync disabled (local data kept)");
+    await refreshSyncUI();
+  }
+}
+
+async function handleSyncNow() {
+  if (!meta?.syncEnabled || !vaultRecord) return;
+  try {
+    if (elements.syncNowBtn) {
+      elements.syncNowBtn.disabled = true;
+      const label = elements.syncNowBtn.querySelector("span");
+      if (label) label.textContent = "Syncing...";
+    }
+    await setSyncVaultRecord(vaultRecord);
+    meta = await updateMeta({ lastSyncedAt: Date.now() });
+    showToast("✓ Vault synced to Google Cloud!");
+    await refreshSyncUI();
+  } catch (err) {
+    showToast(`Sync failed: ${err.message}`);
+  } finally {
+    if (elements.syncNowBtn) {
+      elements.syncNowBtn.disabled = false;
+      const label = elements.syncNowBtn.querySelector("span");
+      if (label) label.textContent = "Sync Now";
+    }
+  }
+}
+
+async function handleClearCloudSync() {
+  if (!confirm("Are you sure you want to remove all synced vault data from Google Cloud? Your local data on this computer will NOT be deleted.")) {
+    return;
+  }
+  try {
+    await clearSyncVault();
+    meta = await updateMeta({ syncEnabled: false, lastSyncedAt: 0 });
+    showToast("✓ Cloud sync data removed");
+    await refreshSyncUI();
+  } catch (err) {
+    showToast(`Failed to clear cloud sync: ${err.message}`);
+  }
+}
+
+async function handleCheckSyncManual() {
+  if (!isSyncAvailable()) {
+    showToast("Google Sync is not available in this browser");
+    return;
+  }
+  try {
+    if (elements.checkSyncBtn) {
+      elements.checkSyncBtn.disabled = true;
+    }
+    const synced = await getSyncVaultRecord();
+    if (synced && synced.ciphertext) {
+      vaultRecord = synced;
+      await setVaultRecord(vaultRecord);
+      meta = await updateMeta({ syncEnabled: true, lastSyncedAt: synced.updatedAt || Date.now() });
+      showLockedView({ createMode: false, syncDetected: true });
+      showToast("✓ Synced vault found and loaded! Enter PIN to unlock.");
+    } else {
+      showToast("No synced vault found in your Google Account");
+    }
+  } catch (err) {
+    showToast(`Sync check error: ${err.message}`);
+  } finally {
+    if (elements.checkSyncBtn) {
+      elements.checkSyncBtn.disabled = false;
+    }
+  }
+}
+
 async function init() {
   [vaultRecord, meta, sessionData] = await Promise.all([
     getVaultRecord(),
     getMeta(),
     getSession(),
   ]);
+
+  // Restore persistent lockout state
+  try {
+    const lockout = await getLockoutState();
+    const now = Date.now();
+    if (lockout && lockout.lockoutUntil > now) {
+      const remainingSec = Math.ceil((lockout.lockoutUntil - now) / 1000);
+      failedPinAttempts = lockout.failedAttempts || 3;
+      setLockout(remainingSec, false);
+    } else {
+      failedPinAttempts = lockout?.failedAttempts || 0;
+    }
+  } catch (err) {
+    console.warn("Could not restore lockout state:", err);
+  }
+
+  let syncDetected = false;
+  if (!vaultRecord && isSyncAvailable()) {
+    try {
+      const syncedRecord = await getSyncVaultRecord();
+      if (syncedRecord && syncedRecord.ciphertext) {
+        vaultRecord = syncedRecord;
+        await setVaultRecord(vaultRecord);
+        meta = await updateMeta({
+          syncEnabled: true,
+          lastSyncedAt: syncedRecord.updatedAt || Date.now(),
+        });
+        syncDetected = true;
+      }
+    } catch (e) {
+      console.warn("Could not check Google sync storage on startup:", e);
+    }
+  } else if (vaultRecord && meta?.syncEnabled && isSyncAvailable()) {
+    try {
+      const syncedRecord = await getSyncVaultRecord();
+      if (syncedRecord?.ciphertext) {
+        const localTime = vaultRecord.updatedAt || 0;
+        const syncTime = syncedRecord.updatedAt || 0;
+        if (syncTime > localTime) {
+          vaultRecord = syncedRecord;
+          await setVaultRecord(vaultRecord);
+          meta = await updateMeta({ lastSyncedAt: syncTime });
+        } else if (localTime > syncTime) {
+          await setSyncVaultRecord(vaultRecord);
+          meta = await updateMeta({ lastSyncedAt: localTime });
+        }
+      } else {
+        await setSyncVaultRecord(vaultRecord);
+        meta = await updateMeta({
+          lastSyncedAt: vaultRecord.updatedAt || Date.now(),
+        });
+      }
+    } catch (e) {
+      console.warn("Background sync reconciliation error:", e);
+    }
+  }
+
+  updateSyncBadge();
 
   if (elements.lockTimeoutSelect) {
     elements.lockTimeoutSelect.value = String(getLockTimeoutMs());
@@ -1892,6 +2398,18 @@ async function init() {
     elements.sortSelect.value = getSortMode();
   }
   applyTheme(getTheme());
+
+  // Privacy mask code visibility: default to blur (active icon)
+  privacyMaskActive = meta?.defaultMaskCodes !== false;
+  if (elements.peekToggleBtn) {
+    elements.peekToggleBtn.classList.toggle("active", privacyMaskActive);
+    elements.peekToggleBtn.title = privacyMaskActive
+      ? "Disable Privacy Mask (Show codes)"
+      : "Enable Privacy Mask (Blur codes until hover)";
+  }
+  if (elements.codeVisibilitySelect) {
+    elements.codeVisibilitySelect.value = privacyMaskActive ? "blur" : "visible";
+  }
 
   if (!vaultRecord) {
     showLockedView({ createMode: true });
@@ -1910,14 +2428,14 @@ async function init() {
       } catch (error) {
         await clearStoredSession();
         await setLocked(true);
-        showLockedView({ createMode: false });
+        showLockedView({ createMode: false, syncDetected });
       }
     } else {
       if (expired && !meta.locked) {
         await clearStoredSession();
         await setLocked(true);
       }
-      showLockedView({ createMode: false });
+      showLockedView({ createMode: false, syncDetected });
     }
   }
 
@@ -1928,6 +2446,38 @@ async function init() {
   elements.unlockPin.addEventListener("keydown", onEnterUnlock);
   elements.newPin.addEventListener("keydown", onEnterUnlock);
   elements.confirmPin.addEventListener("keydown", onEnterUnlock);
+
+  elements.sidePanelBtn?.addEventListener("click", async () => {
+    if (chrome.sidePanel?.open) {
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab?.windowId) {
+          await chrome.sidePanel.open({ windowId: tab.windowId });
+          window.close();
+        }
+      } catch (err) {
+        showToast("Side panel not supported in this window");
+      }
+    } else {
+      showToast("Side panel not available in this browser");
+    }
+  });
+
+  elements.modalViewQrBtn?.addEventListener("click", () => {
+    if (editingId && vault?.accounts) {
+      const acc = vault.accounts.find((a) => a.id === editingId);
+      if (acc) showAccountQrModal(acc);
+    }
+  });
+
+  elements.closeQrModalBtn?.addEventListener("click", closeAccountQrModal);
+  elements.copyQrSecretBtn?.addEventListener("click", async () => {
+    const sec = elements.qrModalSecret?.textContent || "";
+    if (sec) {
+      await navigator.clipboard.writeText(sec);
+      showToast("Secret copied!");
+    }
+  });
 
   elements.editAccountsBtn.addEventListener("click", openEditAccountsModal);
   elements.settingsBtn.addEventListener("click", openSettingsModal);
@@ -2080,6 +2630,32 @@ async function init() {
       preferencesDraft.sortMode = elements.sortSelect.value;
     });
   }
+  elements.clipboardClearSelect?.addEventListener("change", () => {
+    if (!preferencesDraft) {
+      preferencesDraft = {
+        lockTimeoutMs: getLockTimeoutMs(),
+        sortMode: getSortMode(),
+        theme: getTheme(),
+        clipboardClearSec: Number(meta?.clipboardClearSec ?? 30),
+        defaultMaskCodes: meta?.defaultMaskCodes !== false,
+      };
+    }
+    preferencesDraft.clipboardClearSec = Number(elements.clipboardClearSelect.value);
+  });
+
+  elements.codeVisibilitySelect?.addEventListener("change", () => {
+    if (!preferencesDraft) {
+      preferencesDraft = {
+        lockTimeoutMs: getLockTimeoutMs(),
+        sortMode: getSortMode(),
+        theme: getTheme(),
+        clipboardClearSec: Number(meta?.clipboardClearSec ?? 30),
+        defaultMaskCodes: meta?.defaultMaskCodes !== false,
+      };
+    }
+    preferencesDraft.defaultMaskCodes = elements.codeVisibilitySelect.value !== "visible";
+  });
+
 
   elements.secretInput.addEventListener("input", updateModalBrandPreview);
   elements.issuerInput.addEventListener("input", updateModalBrandPreview);
@@ -2127,6 +2703,48 @@ async function init() {
   elements.cancelResetBtn?.addEventListener("click", () => {
     showSettingsList();
   });
+
+  // Google Account Sync listeners
+  elements.syncToggle?.addEventListener("change", handleSyncToggle);
+  elements.syncNowBtn?.addEventListener("click", handleSyncNow);
+  elements.syncClearBtn?.addEventListener("click", handleClearCloudSync);
+  elements.checkSyncBtn?.addEventListener("click", handleCheckSyncManual);
+
+  // Listen for sync changes across devices in real-time
+  if (chrome.storage?.onChanged) {
+    chrome.storage.onChanged.addListener(async (changes, areaName) => {
+      if (areaName === "sync" && (changes["sync_vault_meta"] || changes["vault"])) {
+        try {
+          const synced = await getSyncVaultRecord();
+          if (
+            synced &&
+            synced.ciphertext &&
+            synced.updatedAt !== vaultRecord?.updatedAt
+          ) {
+            vaultRecord = synced;
+            await setVaultRecord(vaultRecord);
+            meta = await updateMeta({ lastSyncedAt: synced.updatedAt || Date.now() });
+            if (sessionPin) {
+              try {
+                vault = await decryptVault(sessionPin, vaultRecord);
+                renderAccounts();
+                showToast("✓ Vault updated from Google Account Sync");
+              } catch (err) {
+                await setLocked(true);
+                showLockedView({ createMode: false, syncDetected: true });
+                showToast("Vault was updated from another device. Please enter PIN.");
+              }
+            } else {
+              showLockedView({ createMode: false, syncDetected: true });
+            }
+            await refreshSyncUI();
+          }
+        } catch (err) {
+          console.warn("Storage sync listener error:", err);
+        }
+      }
+    });
+  }
 
   // Quick search shortcut: press '/' to focus search input, Esc to clear search
   document.addEventListener("keydown", (e) => {

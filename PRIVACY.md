@@ -1,6 +1,6 @@
 # Privacy Policy for KH 2FA
 
-Last updated: September 27, 2026
+Last updated: October 26, 2026
 
 **KH 2FA** is committed to protecting your privacy and security. This Privacy Policy describes how KH 2FA handles your data.
 
@@ -16,6 +16,7 @@ KH 2FA does **not** collect, track, transmit, or share any personal data, browsi
 - **TOTP Authentication Secrets**: When you add a 2FA account, the secret key is encrypted on your device using AES-256-GCM with a cryptographic key derived via PBKDF2 (150,000 iterations) from your personal PIN. The encrypted ciphertext is stored strictly within your browser's private local extension storage (`chrome.storage.local`).
 - **Decrypted In-Memory Keys**: When you unlock your vault with your PIN, keys are held temporarily in memory using `chrome.storage.session`. They are cleared immediately upon manual lock, automatic inactivity timeout, system sleep/lock, or browser closure.
 - **Backups**: If you choose to export your vault, the backup file is generated locally and downloaded directly to your local device.
+- **Optional Google Account Sync (chrome.storage.sync)**: If you choose to enable Google Account Sync in Settings, your encrypted vault ciphertext is synchronized across your signed-in Chrome browsers via chrome.storage.sync. Encryption and decryption occur strictly on your local machine using AES-256-GCM with your personal PIN. Google, Chrome, and third parties cannot decrypt or view your secrets. You can disable sync or purge your cloud-stored vault at any time in Settings.
 
 ## 3. Permissions Usage
 
