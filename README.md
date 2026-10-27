@@ -10,13 +10,17 @@ A modern, secure, and private browser extension for managing Two-Factor Authenti
 
 ## ✨ Features
 
-- **🔐 Client-Side Encrypted Vault** - All TOTP secrets are encrypted locally using AES-256-GCM with PBKDF2 (150,000 rounds) derived from your personal PIN.
+- **🔐 Client-Side Encrypted Vault** - All TOTP secrets are encrypted locally using AES-256-GCM with PBKDF2 (150,000 rounds) derived from your personal PIN or passphrase.
+- **🖥️ Chrome Side Panel** - Dock KH 2FA directly into Chrome's native side panel to keep codes visible while navigating across tabs.
+- **📱 Mobile Account Transfer (View QR)** - View and scan a live on-screen SVG QR code for any stored account to transfer tokens to your phone or hardware key.
+- **🔄 Google Authenticator Migration & Multi-Format Importer** - Directly scan or import `otpauth-migration://` QR codes from Google Authenticator, as well as Aegis, 2FAS, Bitwarden, and raw `otpauth://` lists without opening new tabs.
+- **⚡ In-Field Autofill & Split 6-Box Detection** - Automatically detects 2FA verification fields on login pages (including modern 6-box single-digit inputs on GitHub, Stripe, Discord) and fills codes in 1 click.
 - **📷 1-Click Screen QR Scanner** - Capture QR codes directly from your browser tab or upload an image to add accounts effortlessly without mobile scanning apps.
-- **⚡ In-Field Autofill** - Automatically detects 2FA verification fields on login pages and fills codes in 1 click or via keyboard shortcut.
 - **⏱️ Full RFC 6238 & Steam Guard** - Supports standard 6, 7, and 8 digits, custom algorithms (SHA-1, SHA-256, SHA-512), custom periods (15s, 30s, 60s), and Steam Guard alphanumeric codes.
-- **👁️ Privacy Mask (Peek Mode)** - Conceals codes with a Gaussian blur to protect against shoulder surfing; hovering over any account card reveals the code.
+- **👁️ Privacy Mask (Peek Mode)** - Conceals codes with a Gaussian blur by default to protect against shoulder surfing; hovering over any account card reveals the code.
+- **⏱️ Auto-Clearing Clipboard** - Purges copied one-time codes from the operating system clipboard after 30 seconds for maximum security.
 - **⭐ Star / Pin Favorites** - Pin your most important accounts to the top of your vault.
-- **🛡️ Anti-Brute-Force Lockout** - Automatic cooldown timer temporarily halts unlock attempts after repeated incorrect PIN entries.
+- **🛡️ Persistent Anti-Brute-Force Lockout** - Rate-limiting lockout halts unlock attempts across sessions after repeated incorrect PIN entries.
 - **💤 System Lock & Idle Protection** - Purges decrypted session keys and locks the vault whenever your machine locks or sleeps.
 - **🎨 4 Sleek Themes** - Switch between Midnight Cyan, Pure OLED Black, Nord Arctic, and Clean Light.
 - **💾 Encrypted Backup & Restore** - Export or import your accounts anytime.

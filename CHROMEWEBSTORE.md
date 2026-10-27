@@ -68,6 +68,7 @@ English
 | `tabs` | permissions | Used to capture the active tab for QR code scanning (`chrome.tabs.captureVisibleTab`) and to match domain names for autofilling 2FA codes. |
 | `contextMenus` | permissions | Adds a convenient right-click context menu item ("Fill 2FA code with KH 2FA") on editable fields for fast code entry. |
 | `idle` | permissions | Detects when the user locks their workstation or the screen goes idle (`chrome.idle.onStateChanged`) to immediately auto-lock the vault and protect user privacy. |
+| `sidePanel` | permissions | Allows the user to dock the authenticator into Chrome's native browser side panel for multi-tab verification workflows. |
 | `<all_urls>` | content_scripts | Enables the lightweight content script to detect 2FA/OTP input fields across any authentication webpage where the user needs to log in. |
 
 ---
@@ -125,7 +126,8 @@ English
 
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
-| 1.2.0 | 2026-09-29 | Redesigned popup UI: 380x560px rock-solid popup viewport, full-view modal sheets, crisp vector SVG icons, pure JavaScript jsQR scanner engine, top-aligned PIN entry card, and floating glassmorphic notifications. | Ready to publish |
+| 1.4.0 | 2026-10-27 | Chrome Side Panel mode, mobile QR code transfer generator, Google Authenticator migration importer (otpauth-migration://), multi-format backup support (Aegis/2FAS/Bitwarden), split 6-box OTP in-field autofill, persistent brute-force lockout, alphanumeric master passphrases, default blurred privacy mask, and auto-clearing clipboard. | Ready to publish |
+| 1.2.0 | 2026-09-29 | Redesigned popup UI: 380x560px rock-solid popup viewport, full-view modal sheets, crisp vector SVG icons, pure JavaScript jsQR scanner engine, top-aligned PIN entry card, and floating glassmorphic notifications. | Published |
 | 1.1.0 | 2026-09-27 | Screen QR scanner, privacy peek mask, brute-force PIN lockout, system idle auto-lock, star favorites, RFC 6238 TOTP engine (SHA-256/512, Steam Guard, custom periods), OLED and Nord themes. | Published |
 | 1.0.0 | 2026-09-14 | Initial release with AES-256-GCM encrypted vault, TOTP generator, PIN lock, backup/export, and in-field autofill. | Published |
 
