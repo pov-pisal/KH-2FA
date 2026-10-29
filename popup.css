@@ -1357,6 +1357,93 @@ button.small {
   border-color: rgba(76, 201, 240, 0.4);
 }
 
+/* Danger Item (Reset All Data) in Settings */
+.settings-item.danger-item {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #f87171 !important;
+  transition: all 0.18s ease;
+}
+
+.settings-item.danger-item:hover {
+  border-color: rgba(239, 68, 68, 0.8) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.25) !important;
+}
+
+.settings-item.danger-item .settings-label {
+  color: #f87171 !important;
+  font-weight: 600;
+}
+
+.settings-item.danger-item .settings-chevron {
+  color: #f87171 !important;
+}
+
+.settings-icon.danger-icon {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+
+.settings-item.danger-item:hover .settings-icon.danger-icon {
+  background: rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.45) !important;
+}
+
+/* Reset All Data Sub-Page */
+#settingsReset h3 {
+  color: #f87171;
+}
+
+.reset-warning-box {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 10px 0 16px;
+}
+
+.reset-warning-box strong {
+  color: #fca5a5;
+}
+
+.reset-warning-box ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: #f87171;
+}
+
+.reset-warning-box li {
+  margin-bottom: 4px;
+}
+
+.danger-btn {
+  background: #ef4444;
+  color: #ffffff !important;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+}
+
+.danger-btn:hover {
+  background: #dc2626;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.55);
+  transform: translateY(-1px);
+}
+
+.danger-btn:active {
+  transform: translateY(0);
+}
+
 .settings-icon {
   width: 28px;
   height: 28px;
