@@ -2895,8 +2895,47 @@ async function init() {
   elements.searchInput.addEventListener("input", renderAccounts);
   elements.accountsList.addEventListener("click", handleAccountAction);
 
-  // Category filter pills delegation
+  // Category filter pills: horizontal mouse wheel scroll & drag-to-scroll
+  let isCategoryDragging = false;
+  let categoryDragStartX = 0;
+  let categoryScrollLeft = 0;
+  let hasDraggedCategory = false;
+
+  // Wheel event converts vertical scrolling to horizontal scrolling over the pills bar
+  elements.categoryFilterBar?.addEventListener("wheel", (e) => {
+    if (elements.categoryFilterBar.scrollWidth > elements.categoryFilterBar.clientWidth) {
+      e.preventDefault();
+      elements.categoryFilterBar.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX) * 1.2;
+    }
+  }, { passive: false });
+
+  // Mouse drag-to-scroll support
+  elements.categoryFilterBar?.addEventListener("mousedown", (e) => {
+    isCategoryDragging = true;
+    hasDraggedCategory = false;
+    categoryDragStartX = e.pageX - elements.categoryFilterBar.offsetLeft;
+    categoryScrollLeft = elements.categoryFilterBar.scrollLeft;
+  });
+
+  window.addEventListener("mouseup", () => {
+    isCategoryDragging = false;
+  });
+
+  elements.categoryFilterBar?.addEventListener("mousemove", (e) => {
+    if (!isCategoryDragging) return;
+    const x = e.pageX - elements.categoryFilterBar.offsetLeft;
+    const walk = (x - categoryDragStartX) * 1.5;
+    if (Math.abs(x - categoryDragStartX) > 4) {
+      hasDraggedCategory = true;
+    }
+    elements.categoryFilterBar.scrollLeft = categoryScrollLeft - walk;
+  });
+
   elements.categoryFilterBar?.addEventListener("click", (e) => {
+    if (hasDraggedCategory) {
+      hasDraggedCategory = false;
+      return;
+    }
     const pill = e.target.closest(".category-pill");
     if (!pill) return;
     setCategoryFilter(pill.dataset.category || "all");

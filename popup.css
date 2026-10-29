@@ -2038,10 +2038,14 @@ button.small {
   gap: 6px;
   padding: 2px 2px 8px 2px;
   overflow-x: auto;
-  scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
   white-space: nowrap;
+  user-select: none;
+  cursor: grab;
+}
+.category-filter-bar:active {
+  cursor: grabbing;
 }
 .category-filter-bar::-webkit-scrollbar {
   display: none;
