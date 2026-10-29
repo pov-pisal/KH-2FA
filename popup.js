@@ -631,6 +631,7 @@ function setCategoryFilter(category) {
     activePill.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
   }
 }
+window.setCategoryFilter = setCategoryFilter;
 
 function renderCategoryDropdownOptions(selectedVal = "") {
   if (!elements.categoryOptionsList) return;
