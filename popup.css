@@ -357,6 +357,66 @@ main {
   display: block;
 }
 
+/* PIN / Password Field with Eye Toggle */
+.pin-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.pin-field-wrap input {
+  width: 100%;
+  padding-right: 38px !important;
+  box-sizing: border-box;
+}
+
+.pin-toggle-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.pin-toggle-btn:hover {
+  color: var(--text);
+  background: var(--surface-hover, rgba(255, 255, 255, 0.08));
+}
+
+.pin-toggle-btn.active {
+  color: var(--primary);
+}
+
+/* Toggle visibility between eye and eye-off */
+.pin-toggle-btn .icon-eye {
+  display: block !important;
+}
+
+.pin-toggle-btn .icon-eye-off {
+  display: none !important;
+}
+
+.pin-toggle-btn.active .icon-eye {
+  display: none !important;
+}
+
+.pin-toggle-btn.active .icon-eye-off {
+  display: block !important;
+}
+
 .add-btn {
   display: inline-flex;
   align-items: center;
