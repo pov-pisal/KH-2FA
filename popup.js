@@ -623,6 +623,15 @@ function updateQuickChips(selectedCat) {
   });
 }
 
+function setCategoryFilter(category) {
+  activeCategory = category || "all";
+  renderAccounts();
+  const activePill = elements.categoryFilterBar?.querySelector(`.category-pill[data-category="${activeCategory}"]`);
+  if (activePill) {
+    activePill.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+  }
+}
+
 function renderCategoryDropdownOptions(selectedVal = "") {
   if (!elements.categoryOptionsList) return;
   elements.categoryOptionsList.innerHTML = "";
