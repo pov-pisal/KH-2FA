@@ -115,15 +115,6 @@ const elements = {
   syncNowBtn: document.getElementById("syncNowBtn"),
   syncClearBtn: document.getElementById("syncClearBtn"),
   settingsPreferences: document.getElementById("settingsPreferences"),
-  settingsShortcuts: document.getElementById("settingsShortcuts"),
-  shortcutCard: document.getElementById("shortcutCard"),
-  shortcutStatusText: document.getElementById("shortcutStatusText"),
-  shortcutDisplay: document.getElementById("shortcutDisplay"),
-  shortcutRecordingPrompt: document.getElementById("shortcutRecordingPrompt"),
-  customizeShortcutBtn: document.getElementById("customizeShortcutBtn"),
-  resetShortcutBtn: document.getElementById("resetShortcutBtn"),
-  chromeShortcutsLink: document.getElementById("chromeShortcutsLink"),
-  chromeShortcutHelp: document.getElementById("chromeShortcutHelp"),
   themeSelect: document.getElementById("themeSelect"),
   sortSelect: document.getElementById("sortSelect"),
   prefSaveBtn: document.getElementById("prefSaveBtn"),
@@ -1056,13 +1047,11 @@ function closeSettingsModal() {
 }
 
 function hideAllSettingsSections() {
-  stopRecordingShortcut();
   [
     elements.settingsChangePin,
     elements.settingsBackup,
     elements.settingsGoogleSync,
     elements.settingsPreferences,
-    elements.settingsShortcuts,
     elements.settingsClockSync,
     elements.settingsReset,
   ].forEach((section) => {
@@ -1096,7 +1085,6 @@ function openSettingsSection(key) {
     backup: elements.settingsBackup,
     "google-sync": elements.settingsGoogleSync,
     preferences: elements.settingsPreferences,
-    shortcuts: elements.settingsShortcuts,
     "clock-sync": elements.settingsClockSync,
     reset: elements.settingsReset,
   };
@@ -1139,174 +1127,7 @@ function openSettingsSection(key) {
   if (key === "backup") {
     populateExportBackup();
   }
-  if (key === "shortcuts") {
-    updateShortcutDisplay();
-  }
-}
-
-let isRecordingShortcut = false;
-let boundRecordHandler = null;
-
-function stopRecordingShortcut() {
-  if (!isRecordingShortcut) return;
-  isRecordingShortcut = false;
-  if (boundRecordHandler) {
-    window.removeEventListener("keydown", boundRecordHandler, true);
-    boundRecordHandler = null;
-  }
-  elements.shortcutDisplay?.classList.remove("recording");
-  elements.shortcutRecordingPrompt?.classList.add("hidden");
-  if (elements.customizeShortcutBtn) {
-    elements.customizeShortcutBtn.textContent = "✏️ Change Shortcut";
-  }
-  updateShortcutDisplay();
-}
-
-function startRecordingShortcut() {
-  if (isRecordingShortcut) {
-    stopRecordingShortcut();
-    return;
-  }
-  isRecordingShortcut = true;
-  if (elements.customizeShortcutBtn) {
-    elements.customizeShortcutBtn.textContent = "⏹️ Cancel";
-  }
-  elements.shortcutDisplay?.classList.add("recording");
-  if (elements.shortcutDisplay) {
-    elements.shortcutDisplay.textContent = "Press keys...";
-  }
-  elements.shortcutRecordingPrompt?.classList.remove("hidden");
-
-  boundRecordHandler = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Cancel on Escape
-    if (e.key === "Escape") {
-      stopRecordingShortcut();
-      showToast("Cancelled");
-      return;
-    }
-
-    // If only modifier key is pressed, show feedback on badge
-    if (["Control", "Alt", "Shift", "Meta"].includes(e.key)) {
-      const held = [];
-      if (e.ctrlKey) held.push("Ctrl");
-      if (e.altKey) held.push("Alt");
-      if (e.shiftKey) held.push("Shift");
-      if (e.metaKey) held.push(navigator.platform.toUpperCase().includes("MAC") ? "Cmd" : "Win");
-      if (elements.shortcutDisplay && held.length > 0) {
-        elements.shortcutDisplay.textContent = held.join("+") + " + ...";
-      }
-      return;
-    }
-
-    // Must have at least one modifier (Ctrl, Alt, or Meta) to avoid hijacking normal typing
-    if (!e.ctrlKey && !e.altKey && !e.metaKey) {
-      if (elements.shortcutDisplay) {
-        elements.shortcutDisplay.textContent = "Hold Ctrl or Alt";
-      }
-      return;
-    }
-
-    // Determine clean key name
-    let keyName = "";
-    if (e.code.startsWith("Key")) {
-      keyName = e.code.slice(3);
-    } else if (e.code.startsWith("Digit")) {
-      keyName = e.code.slice(5);
-    } else if (e.code === "Space") {
-      keyName = "Space";
-    } else if (e.key.length === 1) {
-      keyName = e.key.toUpperCase();
-    } else {
-      keyName = e.key;
-    }
-
-    const isMac = navigator.platform.toUpperCase().includes("MAC");
-    const parts = [];
-    if (e.ctrlKey) parts.push("Ctrl");
-    if (e.altKey) parts.push("Alt");
-    if (e.shiftKey) parts.push("Shift");
-    if (e.metaKey) parts.push(isMac ? "Cmd" : "Win");
-    parts.push(keyName);
-
-    const displayStr = parts.join("+");
-    const shortcutObj = {
-      key: e.key.toLowerCase(),
-      code: e.code,
-      ctrlKey: e.ctrlKey,
-      altKey: e.altKey,
-      shiftKey: e.shiftKey,
-      metaKey: e.metaKey,
-      display: displayStr,
-    };
-
-    chrome.storage?.local?.set({ customShortcut: shortcutObj }, () => {
-      stopRecordingShortcut();
-      showToast(`Shortcut set to ${displayStr}!`);
-    });
-  };
-
-  window.addEventListener("keydown", boundRecordHandler, true);
-}
-
-async function resetShortcut() {
-  stopRecordingShortcut();
-  try {
-    await chrome.storage?.local?.remove(["customShortcut"]);
-  } catch {
-    // ignore
-  }
-  await updateShortcutDisplay();
-  showToast("Shortcut reset to default (Alt+Shift+A)");
-}
-
-async function updateShortcutDisplay() {
-  if (!elements.shortcutDisplay) return;
-
-  // 1. Check custom shortcut stored in chrome.storage.local
-  let saved = null;
-  try {
-    const res = await chrome.storage?.local?.get(["customShortcut"]);
-    saved = res?.customShortcut;
-  } catch {
-    // ignore
-  }
-
-  if (saved?.display) {
-    elements.shortcutDisplay.textContent = saved.display;
-    elements.shortcutDisplay.classList.remove("not-set");
-    if (elements.shortcutStatusText) {
-      elements.shortcutStatusText.textContent = "Custom shortcut active";
-    }
-    return;
-  }
-
-  // 2. Check native browser commands
-  if (chrome?.commands?.getAll) {
-    try {
-      const commands = await chrome.commands.getAll();
-      const actionCmd = commands.find((c) => c.name === "_execute_action");
-      if (actionCmd?.shortcut) {
-        elements.shortcutDisplay.textContent = actionCmd.shortcut;
-        elements.shortcutDisplay.classList.remove("not-set");
-        if (elements.shortcutStatusText) {
-          elements.shortcutStatusText.textContent = "Global shortcut";
-        }
-        return;
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  // 3. Fallback default
-  elements.shortcutDisplay.textContent = "Alt+Shift+A";
-  elements.shortcutDisplay.classList.remove("not-set");
-  if (elements.shortcutStatusText) {
-    elements.shortcutStatusText.textContent = "Global shortcut";
-  }
+  
 }
 
 async function savePreferences() {
@@ -3046,14 +2867,6 @@ async function init() {
   elements.importBtn.addEventListener("click", handleImportBackup);
   elements.prefSaveBtn.addEventListener("click", savePreferences);
   elements.prefCancelBtn.addEventListener("click", cancelPreferences);
-  elements.customizeShortcutBtn?.addEventListener("click", startRecordingShortcut);
-  elements.shortcutDisplay?.addEventListener("click", startRecordingShortcut);
-  elements.resetShortcutBtn?.addEventListener("click", resetShortcut);
-  elements.chromeShortcutsLink?.addEventListener("click", () => {
-    elements.chromeShortcutHelp?.classList.toggle("hidden");
-    chrome.tabs?.create?.({ url: "chrome://extensions/shortcuts" });
-  });
-  updateShortcutDisplay();
 
   // Backup tabs
   document.querySelectorAll(".backup-tab").forEach((tab) => {

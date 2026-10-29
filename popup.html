@@ -473,17 +473,6 @@
             <span class="settings-chevron">›</span>
           </button>
           <button
-            class="settings-item"
-            data-settings="shortcuts"
-            role="listitem"
-          >
-            <span class="settings-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6" y2="8"></line><line x1="10" y1="8" x2="10" y2="8"></line><line x1="14" y1="8" x2="14" y2="8"></line><line x1="18" y1="8" x2="18" y2="8"></line><line x1="6" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="18" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
-            </span>
-            <span class="settings-label">Shortcuts</span>
-            <span class="settings-chevron">›</span>
-          </button>
-          <button
             class="settings-item danger-item"
             data-settings="reset"
             role="listitem"
@@ -774,59 +763,6 @@
           </section>
 
           <section
-            id="settingsShortcuts"
-            class="settings-section hidden"
-            aria-hidden="true"
-          >
-            <h3>Keyboard Shortcut</h3>
-            <p class="muted">Open KH 2FA directly from any webpage with a key combination.</p>
-
-            <div class="shortcut-card" id="shortcutCard">
-              <div class="shortcut-header">
-                <div>
-                  <strong>Quick Access</strong>
-                  <p class="muted shortcut-subtitle" id="shortcutStatusText">Global shortcut</p>
-                </div>
-                <kbd id="shortcutDisplay" class="shortcut-kbd" role="button" tabindex="0" title="Click to change shortcut">Alt+Shift+A</kbd>
-              </div>
-
-              <div id="shortcutRecordingPrompt" class="shortcut-recording-prompt hidden">
-                <span class="recording-dot"></span>
-                <span>Press your key combination (e.g. <code>Alt+A</code>)...</span>
-              </div>
-
-              <div class="shortcut-action-row">
-                <button id="customizeShortcutBtn" class="primary shortcut-btn" type="button">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  <span>Change Shortcut</span>
-                </button>
-                <button id="resetShortcutBtn" class="secondary shortcut-btn" type="button">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                  <span>Reset</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="shortcut-tip">
-              <span>Click <strong>Change Shortcut</strong>, then press any keys (e.g. <code>Alt+A</code>, <code>Ctrl+Shift+K</code>). Press <strong>Esc</strong> to cancel.</span>
-            </div>
-
-            <div class="shortcut-advanced">
-              <button id="chromeShortcutsLink" class="text-link-btn" type="button">
-                Configure via Chrome Settings
-              </button>
-            </div>
-
-            <div id="chromeShortcutHelp" class="shortcut-help-box hidden">
-              <strong>How to change in Chrome Settings:</strong>
-              <ol>
-                <li>Click the ✏️ pencil icon next to <em>KH 2FA</em></li>
-                <li>Press your desired shortcut (e.g. <code>Alt+A</code>)</li>
-              </ol>
-            </div>
-          </section>
-
-          <section
             id="settingsClockSync"
             class="settings-section hidden"
             aria-hidden="true"
@@ -834,21 +770,21 @@
             <h3>Time Sync &amp; Clock Drift</h3>
             <p class="muted">TOTP 2FA codes require accurate time. If your device clock drifts by 15+ seconds, codes will be rejected by websites.</p>
 
-            <div class="shortcut-card" style="margin-top:14px;">
-              <div class="shortcut-header">
+            <div class="settings-card" style="margin-top:14px;">
+              <div class="settings-card-header">
                 <div>
                   <strong>Device Clock Status</strong>
-                  <p class="muted shortcut-subtitle" id="clockDriftDetail">Offset: 0 ms</p>
+                  <p class="muted settings-card-subtitle" id="clockDriftDetail">Offset: 0 ms</p>
                 </div>
                 <span id="clockDriftTag" class="sync-badge">In Sync</span>
               </div>
 
-              <div class="shortcut-action-row">
-                <button id="checkClockSyncBtn" class="primary shortcut-btn" type="button">
+              <div class="settings-card-action-row">
+                <button id="checkClockSyncBtn" class="primary settings-card-btn" type="button">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                   <span>Check Clock Sync</span>
                 </button>
-                <button id="resetClockOffsetBtn" class="secondary shortcut-btn" type="button">
+                <button id="resetClockOffsetBtn" class="secondary settings-card-btn" type="button">
                   <span>Reset Offset</span>
                 </button>
               </div>
@@ -868,7 +804,7 @@
               <ul>
                 <li>All 2FA / TOTP accounts</li>
                 <li>Your encrypted vault &amp; PIN</li>
-                <li>All preferences and custom shortcuts</li>
+                <li>All preferences and custom categories</li>
               </ul>
               <p>This action <strong>cannot be undone</strong>. Ensure you have exported a backup if needed.</p>
             </div>
