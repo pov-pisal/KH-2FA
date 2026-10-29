@@ -97,6 +97,7 @@ export async function getMeta() {
     lastSyncedAt: 0,
     clipboardClearSec: 30,
     defaultMaskCodes: true,
+    timeOffsetMs: 0,
     ...(result[META_KEY] || {}),
   };
 }

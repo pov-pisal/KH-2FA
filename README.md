@@ -1,6 +1,6 @@
 # 🛡️ KH 2FA
 
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 
@@ -11,6 +11,10 @@ A modern, secure, and private browser extension for managing Two-Factor Authenti
 ## ✨ Features
 
 - **🔐 Client-Side Encrypted Vault** - All TOTP secrets are encrypted locally using AES-256-GCM with PBKDF2 (150,000 rounds) derived from your personal PIN or passphrase.
+- **⏱️ Upcoming Code Lookahead (Next Code Preview)** - When $< 5$ seconds remain, reveal and copy the upcoming period's code in 1 click without worrying about code expiration.
+- **🌐 Clock Drift & Time Sync Detector** - Built-in time synchronization diagnostic with automatic offset compensation to guarantee valid TOTP codes even if system time skews.
+- **🏷️ Category & Tag Filters** - Organize accounts into categories (`Personal`, `Work`, `Crypto`, `Finance`, `Social`, `Other`) with interactive filter pills.
+- **🔐 Password-Protected Encrypted Backups (`.enc.json`)** - Export and import backups encrypted with AES-256-GCM, safe for cloud storage, USB drives, or email.
 - **🖥️ Chrome Side Panel** - Dock KH 2FA directly into Chrome's native side panel to keep codes visible while navigating across tabs.
 - **📱 Mobile Account Transfer (View QR)** - View and scan a live on-screen SVG QR code for any stored account to transfer tokens to your phone or hardware key.
 - **🔄 Google Authenticator Migration & Multi-Format Importer** - Directly scan or import `otpauth-migration://` QR codes from Google Authenticator, as well as Aegis, 2FAS, Bitwarden, and raw `otpauth://` lists without opening new tabs.

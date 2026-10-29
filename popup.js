@@ -133,6 +133,15 @@ const elements = {
   modalScanScreenBtn: document.getElementById("modalScanScreenBtn"),
   qrFileInput: document.getElementById("qrFileInput"),
   lockoutNotice: document.getElementById("lockoutNotice"),
+  categoryFilterBar: document.getElementById("categoryFilterBar"),
+  categoryInput: document.getElementById("categoryInput"),
+  settingsClockSync: document.getElementById("settingsClockSync"),
+  clockSyncBadge: document.getElementById("clockSyncBadge"),
+  clockDriftDetail: document.getElementById("clockDriftDetail"),
+  clockDriftTag: document.getElementById("clockDriftTag"),
+  checkClockSyncBtn: document.getElementById("checkClockSyncBtn"),
+  resetClockOffsetBtn: document.getElementById("resetClockOffsetBtn"),
+  clockSyncFeedback: document.getElementById("clockSyncFeedback"),
   digitsInput: document.getElementById("digitsInput"),
   algorithmInput: document.getElementById("algorithmInput"),
   periodInput: document.getElementById("periodInput"),
@@ -165,6 +174,11 @@ let meta = null;
 let sessionPin = null;
 let sessionData = null;
 let currentCounter = null;
+let activeCategory = "all";
+
+function getEffectiveNow() {
+  return Date.now() + (meta?.timeOffsetMs || 0);
+}
 let lastActivityUpdate = 0;
 let editingId = null;
 let pendingDeleteId = null;
@@ -553,6 +567,9 @@ function openModal(editAccount = null) {
   if (elements.digitsInput) elements.digitsInput.value = String(editAccount?.digits || "6");
   if (elements.algorithmInput) elements.algorithmInput.value = editAccount?.algorithm || "SHA-1";
   if (elements.periodInput) elements.periodInput.value = String(editAccount?.period || "30");
+  if (elements.categoryInput) {
+    elements.categoryInput.value = editAccount?.category || (activeCategory !== "all" && activeCategory !== "pinned" ? activeCategory : "");
+  }
   elements.modalError.textContent = "";
   updateModalBrandPreview();
   showModal(elements.modal);
@@ -717,6 +734,7 @@ function hideAllSettingsSections() {
     elements.settingsGoogleSync,
     elements.settingsPreferences,
     elements.settingsShortcuts,
+    elements.settingsClockSync,
     elements.settingsReset,
   ].forEach((section) => {
     if (!section) return;
@@ -728,6 +746,7 @@ function hideAllSettingsSections() {
 function showSettingsList() {
   hideAllSettingsSections();
   updateSyncBadge();
+  updateClockSyncUI();
   elements.settingsList?.classList.remove("hidden");
   elements.settingsList?.setAttribute("aria-hidden", "false");
   elements.settingsBackBtn?.classList.add("hidden");
@@ -749,6 +768,7 @@ function openSettingsSection(key) {
     "google-sync": elements.settingsGoogleSync,
     preferences: elements.settingsPreferences,
     shortcuts: elements.settingsShortcuts,
+    "clock-sync": elements.settingsClockSync,
     reset: elements.settingsReset,
   };
   const section = map[key];
@@ -756,6 +776,9 @@ function openSettingsSection(key) {
   hideSettingsList();
   section.classList.remove("hidden");
   section.setAttribute("aria-hidden", "false");
+  if (key === "clock-sync") {
+    updateClockSyncUI();
+  }
   if (key === "google-sync") {
     refreshSyncUI();
   }
@@ -1225,6 +1248,22 @@ async function handleImportBackup() {
       return;
     }
 
+    // Check if it's an encrypted KH 2FA backup
+    if (payload?.format === "kh-2fa-encrypted" || (payload?.ciphertext && payload?.salt && payload?.iv)) {
+      const pass = window.prompt("🔐 This backup is encrypted. Enter password to decrypt:");
+      if (!pass) {
+        showImportError("Decryption cancelled.");
+        return;
+      }
+      try {
+        const decrypted = await decryptVault(pass, payload);
+        importedAccounts = Array.isArray(decrypted) ? decrypted : decrypted?.accounts;
+      } catch (err) {
+        showImportError(`Decryption failed: Incorrect password or corrupted file (${err.message})`);
+        return;
+      }
+    }
+
     // 1. Check if it's a decrypted accounts list
     if (Array.isArray(payload)) {
       importedAccounts = payload;
@@ -1527,6 +1566,7 @@ async function saveAccount() {
     issuer: issuerValue,
     label: labelValue,
     secret: normalizedSecret,
+    category: elements.categoryInput?.value?.trim() || undefined,
     digits: elements.digitsInput?.value || "6",
     algorithm: elements.algorithmInput?.value || "SHA-1",
     period: Number(elements.periodInput?.value) || 30,
@@ -1665,8 +1705,11 @@ function renderAccounts() {
   if (!vault) return;
   const query = elements.searchInput.value.trim().toLowerCase();
   const filtered = vault.accounts.filter((account) => {
-    const haystack = `${account.issuer} ${account.label}`.toLowerCase();
-    return haystack.includes(query);
+    const haystack = `${account.issuer} ${account.label} ${account.category || ""}`.toLowerCase();
+    if (!haystack.includes(query)) return false;
+    if (activeCategory === "all") return true;
+    if (activeCategory === "pinned") return Boolean(account.pinned);
+    return (account.category || "").toLowerCase() === activeCategory.toLowerCase();
   });
   const ordered = sortAccounts(filtered);
 
@@ -1738,6 +1781,13 @@ function renderAccounts() {
       title.append(label);
     }
 
+    if (account.category) {
+      const catBadge = document.createElement("span");
+      catBadge.className = "category-badge";
+      catBadge.textContent = account.category;
+      title.append(catBadge);
+    }
+
     const codeWrap = document.createElement("div");
     codeWrap.className = "account-code-wrap";
 
@@ -1802,7 +1852,7 @@ function renderAccounts() {
 
 async function updateCodes() {
   if (!vault) return;
-  const now = Date.now();
+  const now = getEffectiveNow();
   currentCounter = Math.floor(now / 1000);
 
   const promises = vault.accounts.map(async (account) => {
@@ -1860,9 +1910,32 @@ function updateProgress(now = Date.now()) {
     if (remaining <= 5) {
       ring.classList.add("expiring");
       item.classList.add("expiring-soon");
+
+      // Next Code Preview badge
+      let nextBtn = item.querySelector(".next-code-btn");
+      if (!nextBtn) {
+        nextBtn = document.createElement("button");
+        nextBtn.type = "button";
+        nextBtn.className = "next-code-btn";
+        nextBtn.dataset.action = "copy-next";
+        nextBtn.title = "Copy upcoming code";
+        const codeWrap = item.querySelector(".account-code-wrap");
+        if (codeWrap) codeWrap.appendChild(nextBtn);
+      }
+
+      const nextCounter = Math.floor(now / 1000 / period) + 1;
+      const nextTimestamp = nextCounter * period * 1000;
+      generateTOTP(account.secret, nextTimestamp, account).then((nextOtp) => {
+        if (nextBtn && item.classList.contains("expiring-soon")) {
+          nextBtn.dataset.nextCode = nextOtp;
+          nextBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg><span>Next: ${formatOTPDisplay(nextOtp)}</span>`;
+        }
+      }).catch(() => {});
     } else {
       ring.classList.remove("expiring");
       item.classList.remove("expiring-soon");
+      const nextBtn = item.querySelector(".next-code-btn");
+      if (nextBtn) nextBtn.remove();
     }
   });
 }
@@ -1880,6 +1953,19 @@ async function handleAccountAction(event) {
   const button = event.target.closest("button[data-action]");
   if (button) {
     const action = button.dataset.action;
+
+    if (action === "copy-next") {
+      event.stopPropagation();
+      const btn = event.target.closest(".next-code-btn");
+      const rawNextCode = btn?.dataset?.nextCode || "";
+      if (rawNextCode) {
+        const cleanCode = rawNextCode.replace(/\s+/g, "");
+        await navigator.clipboard.writeText(cleanCode);
+        scheduleClipboardClear(cleanCode, Number(meta?.clipboardClearSec ?? 30));
+        showToast("Copied next code!");
+      }
+      return;
+    }
 
     if (action === "copy") {
       const code = (codes.get(id) || (await generateTOTP(account.secret, Date.now(), account))).replace(/\s+/g, "");
@@ -2224,6 +2310,102 @@ async function refreshSyncUI() {
     }
   } else {
     elements.syncStatusCard?.classList.add("hidden");
+  }
+}
+
+
+// ─── Clock Drift & Time Synchronization ─────────────────────────────────────
+async function checkClockSync() {
+  if (elements.clockSyncFeedback) {
+    elements.clockSyncFeedback.classList.remove("hidden");
+    elements.clockSyncFeedback.innerHTML = '<span class="muted">Checking time synchronization with server…</span>';
+  }
+
+  const startTime = Date.now();
+  try {
+    const res = await fetch("https://clients3.google.com/generate_204", {
+      method: "HEAD",
+      cache: "no-store",
+    });
+    const roundTrip = Date.now() - startTime;
+    const serverHeader = res.headers.get("date");
+    if (!serverHeader) {
+      throw new Error("Server did not return a Date header.");
+    }
+
+    const serverTime = new Date(serverHeader).getTime() + Math.round(roundTrip / 2);
+    const clientTime = Date.now();
+    const driftMs = serverTime - clientTime;
+
+    if (Math.abs(driftMs) >= 2000) {
+      meta.timeOffsetMs = Math.round(driftMs);
+      await updateMeta({ timeOffsetMs: meta.timeOffsetMs });
+      updateClockSyncUI();
+      if (elements.clockSyncFeedback) {
+        elements.clockSyncFeedback.innerHTML = `
+          <strong style="color: #fbbf24;">⚠️ Clock Drift: ${(driftMs / 1000).toFixed(1)}s</strong>
+          <p style="margin: 4px 0 0; font-size: 12px;">Your computer clock is ${driftMs > 0 ? "behind" : "ahead"}. An offset of <strong>${meta.timeOffsetMs > 0 ? "+" : ""}${(meta.timeOffsetMs / 1000).toFixed(1)}s</strong> has been auto-applied so all TOTP codes work perfectly!</p>
+        `;
+      }
+      showToast("Clock offset applied!");
+      updateCodes();
+    } else {
+      meta.timeOffsetMs = 0;
+      await updateMeta({ timeOffsetMs: 0 });
+      updateClockSyncUI();
+      if (elements.clockSyncFeedback) {
+        elements.clockSyncFeedback.innerHTML = `
+          <strong style="color: #4cc9f0;">✓ Clock In Sync</strong>
+          <p style="margin: 4px 0 0; font-size: 12px;">Difference is only ${driftMs > 0 ? "+" : ""}${driftMs}ms. Your device time is accurate.</p>
+        `;
+      }
+    }
+  } catch (err) {
+    if (elements.clockSyncFeedback) {
+      elements.clockSyncFeedback.innerHTML = `
+        <span class="error">Could not check server time: ${err.message}. Please check internet connection.</span>
+      `;
+    }
+  }
+}
+
+async function resetClockOffset() {
+  meta.timeOffsetMs = 0;
+  await updateMeta({ timeOffsetMs: 0 });
+  updateClockSyncUI();
+  if (elements.clockSyncFeedback) {
+    elements.clockSyncFeedback.classList.remove("hidden");
+    elements.clockSyncFeedback.innerHTML = '<span class="muted">Clock offset reset to 0 ms.</span>';
+  }
+  showToast("Clock offset reset");
+  updateCodes();
+}
+
+function updateClockSyncUI() {
+  const offset = meta?.timeOffsetMs || 0;
+  const isOffsetActive = Math.abs(offset) >= 1000;
+  if (elements.clockSyncBadge) {
+    if (isOffsetActive) {
+      elements.clockSyncBadge.textContent = `${offset > 0 ? "+" : ""}${(offset / 1000).toFixed(1)}s`;
+      elements.clockSyncBadge.className = "sync-badge status-warning";
+    } else {
+      elements.clockSyncBadge.textContent = "In Sync";
+      elements.clockSyncBadge.className = "sync-badge";
+    }
+  }
+  if (elements.clockDriftDetail) {
+    elements.clockDriftDetail.textContent = isOffsetActive
+      ? `Compensated offset: ${offset > 0 ? "+" : ""}${(offset / 1000).toFixed(1)} seconds`
+      : "Offset: 0 ms (Device clock in sync)";
+  }
+  if (elements.clockDriftTag) {
+    if (isOffsetActive) {
+      elements.clockDriftTag.textContent = "Offset Active";
+      elements.clockDriftTag.className = "sync-badge status-warning";
+    } else {
+      elements.clockDriftTag.textContent = "In Sync";
+      elements.clockDriftTag.className = "sync-badge";
+    }
   }
 }
 
@@ -2591,6 +2773,20 @@ async function init() {
   });
   elements.searchInput.addEventListener("input", renderAccounts);
   elements.accountsList.addEventListener("click", handleAccountAction);
+
+  // Category filter pills
+  elements.categoryFilterBar?.addEventListener("click", (e) => {
+    const pill = e.target.closest(".category-pill");
+    if (!pill) return;
+    elements.categoryFilterBar.querySelectorAll(".category-pill").forEach((p) => p.classList.remove("active"));
+    pill.classList.add("active");
+    activeCategory = pill.dataset.category || "all";
+    renderAccounts();
+  });
+
+  // Clock sync buttons
+  elements.checkClockSyncBtn?.addEventListener("click", checkClockSync);
+  elements.resetClockOffsetBtn?.addEventListener("click", resetClockOffset);
 
   elements.lockTimeoutSelect.addEventListener("change", () => {
     const value = Number(elements.lockTimeoutSelect.value);

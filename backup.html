@@ -53,7 +53,35 @@
     <!-- Export -->
     <div id="exportCard" class="card">
       <h2>📤 Export Backup</h2>
-      <textarea id="exportText" class="backup-textarea" readonly placeholder="Loading backup..."></textarea>
+      <div style="margin-bottom:12px; display:flex; gap:16px; flex-wrap:wrap; font-size:13px;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="radio" name="exportFormat" value="encrypted" checked />
+          <span><strong>🔐 Encrypted (.enc.json)</strong> — Recommended</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+          <input type="radio" name="exportFormat" value="plaintext" />
+          <span>📄 Plaintext JSON (.json)</span>
+        </label>
+      </div>
+
+      <div id="exportPasswordWrap" style="margin-bottom:12px;">
+        <label style="display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:var(--text-muted);">
+          Backup Encryption Password (min 6 chars)
+        </label>
+        <div style="display:flex; gap:8px;">
+          <input
+            id="exportPassword"
+            type="password"
+            placeholder="Choose password to protect this backup file"
+            style="flex:1; padding:8px 12px; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px;"
+          />
+          <button type="button" id="useSessionPinBtn" class="backup-btn file-select-btn" style="flex:none; min-width:auto; padding:8px 12px; font-size:12px;">
+            Use Vault PIN
+          </button>
+        </div>
+      </div>
+
+      <textarea id="exportText" class="backup-textarea" readonly placeholder="Generating backup payload..."></textarea>
       <div class="backup-actions">
         <button id="copyBtn" class="backup-btn copy-btn">📋 Copy to Clipboard</button>
         <button id="downloadBtn" class="backup-btn download-btn">⬇️ Download File</button>
@@ -68,12 +96,30 @@
       <!-- Drag & Drop zone -->
       <div id="dropZone" class="drop-zone">
         <div class="drop-icon">📂</div>
-        <div>Drag &amp; drop a backup <strong>.json</strong> file here</div>
+        <div>Drag &amp; drop a backup <strong>.json</strong> or <strong>.enc.json</strong> file here</div>
         <div style="margin-top:6px;font-size:12px">or click to browse</div>
       </div>
-      <input id="importFile" type="file" accept=".json,application/json" />
+      <input id="importFile" type="file" accept=".json,.enc.json,application/json,text/plain" />
 
-      <textarea id="importText" class="backup-textarea" placeholder='Or paste JSON here: {"accounts":[...]}'></textarea>
+      <div id="importEncryptedBox" class="status-msg info" style="display:none; margin-bottom:12px;">
+        <strong style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <span>🔐 Encrypted Backup Detected</span>
+        </strong>
+        <p style="margin:0 0 8px; font-size:12px;">This file is protected with AES-256-GCM. Enter its password to unlock:</p>
+        <div style="display:flex; gap:8px;">
+          <input
+            id="importPassword"
+            type="password"
+            placeholder="Enter backup password"
+            style="flex:1; padding:8px 12px; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px;"
+          />
+          <button id="decryptImportBtn" class="backup-btn import-btn" style="flex:none; min-width:auto; padding:8px 16px;">
+            Unlock &amp; Import
+          </button>
+        </div>
+      </div>
+
+      <textarea id="importText" class="backup-textarea" placeholder='Or paste JSON here (plaintext or {"format":"kh-2fa-encrypted", ...})'></textarea>
       <div class="backup-actions">
         <button id="importBtn" class="backup-btn import-btn">✓ Import</button>
       </div>

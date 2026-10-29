@@ -17,28 +17,38 @@ import {
 let vaultRecord = null;
 let vault = null;
 let sessionPin = null;
+let pendingEncryptedPayload = null;
 
 const el = {
-  exportText:     document.getElementById("exportText"),
-  copyBtn:        document.getElementById("copyBtn"),
-  downloadBtn:    document.getElementById("downloadBtn"),
-  exportStatus:   document.getElementById("exportStatus"),
-  dropZone:       document.getElementById("dropZone"),
-  importFile:     document.getElementById("importFile"),
-  importText:     document.getElementById("importText"),
-  importBtn:      document.getElementById("importBtn"),
-  importStatus:   document.getElementById("importStatus"),
-  exportCard:     document.getElementById("exportCard"),
-  importCard:     document.getElementById("importCard"),
-  lockedSection:  document.getElementById("lockedSection"),
+  exportCard:         document.getElementById("exportCard"),
+  importCard:         document.getElementById("importCard"),
+  lockedSection:      document.getElementById("lockedSection"),
+  exportFormatRadios: document.querySelectorAll('input[name="exportFormat"]'),
+  exportPasswordWrap: document.getElementById("exportPasswordWrap"),
+  exportPassword:     document.getElementById("exportPassword"),
+  useSessionPinBtn:   document.getElementById("useSessionPinBtn"),
+  exportText:         document.getElementById("exportText"),
+  copyBtn:            document.getElementById("copyBtn"),
+  downloadBtn:        document.getElementById("downloadBtn"),
+  exportStatus:       document.getElementById("exportStatus"),
+  dropZone:           document.getElementById("dropZone"),
+  importFile:         document.getElementById("importFile"),
+  importEncryptedBox: document.getElementById("importEncryptedBox"),
+  importPassword:     document.getElementById("importPassword"),
+  decryptImportBtn:   document.getElementById("decryptImportBtn"),
+  importText:         document.getElementById("importText"),
+  importBtn:          document.getElementById("importBtn"),
+  importStatus:       document.getElementById("importStatus"),
 };
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 function setStatus(el, message, type /* success | error | info */) {
+  if (!el) return;
   el.textContent = message;
   el.className = `status-msg show ${type}`;
 }
 function clearStatus(el) {
+  if (!el) return;
   el.className = "status-msg";
   el.textContent = "";
 }
@@ -70,40 +80,87 @@ async function init() {
     return;
   }
 
-  populateExport();
+  // Default export password to session PIN
+  if (el.exportPassword) {
+    el.exportPassword.value = sessionPin;
+  }
+
+  await populateExport();
   wireEvents();
 }
 
-// ─── Export ───────────────────────────────────────────────────────────────────
-function buildPayload() {
-  if (!vault?.accounts) return "";
-  return JSON.stringify(
-    { exportedAt: new Date().toISOString(), accounts: vault.accounts, createdAt: vault.createdAt },
-    null,
-    2
-  );
+function getSelectedExportFormat() {
+  const checked = document.querySelector('input[name="exportFormat"]:checked');
+  return checked ? checked.value : "encrypted";
 }
 
-function populateExport() {
-  el.exportText.value = buildPayload();
+// ─── Export ───────────────────────────────────────────────────────────────────
+async function buildPayload() {
+  if (!vault?.accounts) return "";
+  const format = getSelectedExportFormat();
+
+  if (format === "plaintext") {
+    return JSON.stringify(
+      { exportedAt: new Date().toISOString(), accounts: vault.accounts, createdAt: vault.createdAt },
+      null,
+      2
+    );
+  }
+
+  // Encrypted format
+  const password = el.exportPassword?.value?.trim() || sessionPin;
+  if (!password || password.length < 6) {
+    setStatus(el.exportStatus, "Password must be at least 6 characters.", "error");
+    return "";
+  }
+
+  try {
+    const rawData = {
+      exportedAt: new Date().toISOString(),
+      accounts: vault.accounts,
+      createdAt: vault.createdAt,
+    };
+    const encryptedRecord = await encryptVault(password, rawData);
+    return JSON.stringify(
+      {
+        format: "kh-2fa-encrypted",
+        exportedAt: new Date().toISOString(),
+        ...encryptedRecord,
+      },
+      null,
+      2
+    );
+  } catch (err) {
+    setStatus(el.exportStatus, `Encryption failed: ${err.message}`, "error");
+    return "";
+  }
+}
+
+async function populateExport() {
+  if (!el.exportText) return;
+  el.exportText.value = "Generating backup payload…";
+  const payload = await buildPayload();
+  el.exportText.value = payload;
 }
 
 async function handleCopy() {
-  const payload = buildPayload();
+  const payload = await buildPayload();
   if (!payload) { setStatus(el.exportStatus, "No data to copy.", "error"); return; }
   await navigator.clipboard.writeText(payload);
   setStatus(el.exportStatus, "✓ Copied to clipboard!", "success");
   setTimeout(() => clearStatus(el.exportStatus), 3000);
 }
 
-function handleDownload() {
-  const payload = buildPayload();
+async function handleDownload() {
+  const payload = await buildPayload();
   if (!payload) { setStatus(el.exportStatus, "No data to download.", "error"); return; }
 
+  const format = getSelectedExportFormat();
   const timestamp = new Date().toISOString().split("T")[0];
-  const filename = `kh-2fa-backup-${timestamp}.json`;
+  const filename = format === "encrypted"
+    ? `kh-2fa-encrypted-backup-${timestamp}.enc.json`
+    : `kh-2fa-backup-${timestamp}.json`;
 
-  // In a full Chrome tab, Blob + link.click() works perfectly.
   const blob = new Blob([payload], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -114,13 +171,93 @@ function handleDownload() {
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 
-  setStatus(el.exportStatus, "✓ Backup downloaded!", "success");
+  setStatus(el.exportStatus, `✓ ${filename} downloaded!`, "success");
   setTimeout(() => clearStatus(el.exportStatus), 3000);
 }
 
 // ─── Import ───────────────────────────────────────────────────────────────────
+async function applyImportedAccounts(accountsList, sourceInfo = "backup") {
+  if (!accountsList || accountsList.length === 0) {
+    setStatus(el.importStatus, "No valid accounts found in payload.", "error");
+    return;
+  }
+
+  setStatus(el.importStatus, `Found ${accountsList.length} accounts — saving to vault…`, "info");
+
+  if (!vault) vault = { accounts: [], createdAt: Date.now() };
+
+  // Merge accounts without duplicates by secret
+  const existingSecrets = new Set(vault.accounts.map((a) => a.secret.toUpperCase()));
+  let addedCount = 0;
+
+  for (const a of accountsList) {
+    const cleanSecret = (a.secret || "").replace(/\s+/g, "").toUpperCase();
+    if (!cleanSecret) continue;
+
+    if (!existingSecrets.has(cleanSecret)) {
+      vault.accounts.push({
+        id: a.id || crypto.randomUUID(),
+        issuer: a.issuer || "",
+        label: a.label || "",
+        secret: cleanSecret,
+        category: a.category || undefined,
+        pinned: Boolean(a.pinned),
+        digits: a.digits || "6",
+        period: Number(a.period) || 30,
+        algorithm: a.algorithm || "SHA-1",
+        createdAt: a.createdAt || Date.now(),
+      });
+      existingSecrets.add(cleanSecret);
+      addedCount += 1;
+    }
+  }
+
+  try {
+    vaultRecord = await encryptVault(sessionPin, vault);
+    await setVaultRecord(vaultRecord);
+    const meta = await getMeta();
+    if (meta?.syncEnabled) {
+      try {
+        await setSyncVaultRecord(vaultRecord);
+        await updateMeta({ lastSyncedAt: vaultRecord.updatedAt || Date.now() });
+      } catch (err) {}
+    }
+    el.importText.value = "";
+    if (el.importEncryptedBox) el.importEncryptedBox.style.display = "none";
+    pendingEncryptedPayload = null;
+    await populateExport();
+    setStatus(el.importStatus, `✓ Successfully imported ${addedCount} new account(s) (Total: ${vault.accounts.length})!`, "success");
+  } catch (e) {
+    setStatus(el.importStatus, `Failed to save vault: ${e.message}`, "error");
+  }
+}
+
+async function handleDecryptImport() {
+  if (!pendingEncryptedPayload) return;
+  const password = el.importPassword?.value?.trim();
+  if (!password) {
+    setStatus(el.importStatus, "Please enter the backup decryption password.", "error");
+    return;
+  }
+
+  setStatus(el.importStatus, "Decrypting backup…", "info");
+  try {
+    const decrypted = await decryptVault(password, pendingEncryptedPayload);
+    const rawAccounts = Array.isArray(decrypted) ? decrypted : decrypted?.accounts;
+    if (!rawAccounts || !Array.isArray(rawAccounts)) {
+      throw new Error("Decrypted data does not contain an accounts list.");
+    }
+    await applyImportedAccounts(rawAccounts, "encrypted backup");
+  } catch (err) {
+    setStatus(el.importStatus, `Decryption failed: Incorrect password or corrupted file (${err.message}).`, "error");
+  }
+}
+
 async function handleImport(jsonText) {
   clearStatus(el.importStatus);
+  if (el.importEncryptedBox) el.importEncryptedBox.style.display = "none";
+  pendingEncryptedPayload = null;
+
   const rawContent = (jsonText || el.importText.value || "").trim();
   if (!rawContent) {
     setStatus(el.importStatus, "Paste JSON, Google migration link, or drop/select a file first.", "error");
@@ -162,6 +299,20 @@ async function handleImport(jsonText) {
       payload = JSON.parse(content);
     } catch (e) {
       setStatus(el.importStatus, `Unrecognized format: Not valid JSON or otpauth URI (${e.message})`, "error");
+      return;
+    }
+
+    // Check if it's an encrypted KH 2FA backup
+    if (payload?.format === "kh-2fa-encrypted" || (payload?.ciphertext && payload?.salt && payload?.iv)) {
+      pendingEncryptedPayload = payload;
+      if (el.importEncryptedBox) {
+        el.importEncryptedBox.style.display = "block";
+        if (el.importPassword) {
+          el.importPassword.value = "";
+          el.importPassword.focus();
+        }
+      }
+      setStatus(el.importStatus, "Encrypted backup detected. Enter password above to unlock.", "info");
       return;
     }
 
@@ -220,47 +371,7 @@ async function handleImport(jsonText) {
       setStatus(el.importStatus, "Invalid backup: each account needs a 'secret' field.", "error");
       return;
     }
-
-    setStatus(el.importStatus, `Found ${accounts.length} accounts — encrypting…`, "info");
-
-    if (!vault) vault = { accounts: [], createdAt: Date.now() };
-    vault.accounts = accounts.map(a => ({
-      id: a.id || crypto.randomUUID(),
-      issuer: a.issuer || "",
-      label: a.label || "",
-      secret: a.secret.replace(/\s+/g, "").toUpperCase(),
-      createdAt: a.createdAt || Date.now(),
-    }));
-
-    try {
-      vaultRecord = await encryptVault(sessionPin, vault);
-      await setVaultRecord(vaultRecord);
-      if (meta?.syncEnabled) { try { await setSyncVaultRecord(vaultRecord); await updateMeta({ lastSyncedAt: vaultRecord.updatedAt || Date.now() }); } catch(err){} }
-      el.importText.value = "";
-      populateExport();
-      setStatus(el.importStatus, `✓ Imported ${vault.accounts.length} accounts successfully!`, "success");
-    } catch (e) {
-      setStatus(el.importStatus, `Encryption failed: ${e.message}`, "error");
-    }
-    return;
-  }
-
-  // ── Path 2: encrypted vault record ──────────────────────────────────────
-  const encVault =
-    (payload?.ciphertext && payload?.iv && payload?.salt) ? payload :
-    (payload?.vault?.ciphertext && payload?.vault?.iv)    ? payload.vault :
-    null;
-
-  if (encVault) {
-    try {
-      await setVaultRecord(encVault);
-      if (meta?.syncEnabled) { try { await setSyncVaultRecord(encVault); await updateMeta({ lastSyncedAt: encVault.updatedAt || Date.now() }); } catch(err){} }
-      await updateMeta({ locked: true, lastActive: 0 });
-      el.importText.value = "";
-      setStatus(el.importStatus, "✓ Encrypted vault imported! Return to the extension and unlock with your PIN.", "success");
-    } catch (e) {
-      setStatus(el.importStatus, `Failed to save vault: ${e.message}`, "error");
-    }
+    await applyImportedAccounts(accounts, "json");
     return;
   }
 
@@ -271,7 +382,7 @@ async function handleImport(jsonText) {
 function readFile(file) {
   return file.text().then(text => {
     el.importText.value = text;
-    setStatus(el.importStatus, `✓ "${file.name}" loaded — click Import to continue.`, "info");
+    handleImport(text);
   }).catch(e => {
     setStatus(el.importStatus, `Failed to read file: ${e.message}`, "error");
   });
@@ -279,34 +390,60 @@ function readFile(file) {
 
 // ─── Wire events ──────────────────────────────────────────────────────────────
 function wireEvents() {
-  el.copyBtn.addEventListener("click", handleCopy);
-  el.downloadBtn.addEventListener("click", handleDownload);
-  el.importBtn.addEventListener("click", () => handleImport());
+  el.copyBtn?.addEventListener("click", handleCopy);
+  el.downloadBtn?.addEventListener("click", handleDownload);
+  el.importBtn?.addEventListener("click", () => handleImport());
+  el.decryptImportBtn?.addEventListener("click", handleDecryptImport);
+
+  el.exportFormatRadios?.forEach(radio => {
+    radio.addEventListener("change", () => {
+      const format = getSelectedExportFormat();
+      if (el.exportPasswordWrap) {
+        el.exportPasswordWrap.style.display = format === "encrypted" ? "block" : "none";
+      }
+      populateExport();
+    });
+  });
+
+  el.exportPassword?.addEventListener("input", () => {
+    populateExport();
+  });
+
+  el.useSessionPinBtn?.addEventListener("click", () => {
+    if (el.exportPassword && sessionPin) {
+      el.exportPassword.value = sessionPin;
+      populateExport();
+      setStatus(el.exportStatus, "Vault PIN applied to backup password.", "info");
+      setTimeout(() => clearStatus(el.exportStatus), 2000);
+    }
+  });
+
+  el.importPassword?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleDecryptImport();
+  });
 
   // Drag & Drop
-  el.dropZone.addEventListener("dragover", e => {
+  el.dropZone?.addEventListener("dragover", e => {
     e.preventDefault();
     el.dropZone.classList.add("drag-over");
   });
-  el.dropZone.addEventListener("dragleave", () => el.dropZone.classList.remove("drag-over"));
-  el.dropZone.addEventListener("drop", e => {
+  el.dropZone?.addEventListener("dragleave", () => el.dropZone.classList.remove("drag-over"));
+  el.dropZone?.addEventListener("drop", e => {
     e.preventDefault();
     el.dropZone.classList.remove("drag-over");
     const file = e.dataTransfer?.files?.[0];
     if (file) readFile(file);
   });
 
-  // Click on drop zone opens file picker (works in a tab, not a popup!)
-  el.dropZone.addEventListener("click", () => el.importFile.click());
-  el.importFile.addEventListener("change", e => {
+  el.dropZone?.addEventListener("click", () => el.importFile.click());
+  el.importFile?.addEventListener("change", e => {
     const file = e.target.files?.[0];
     if (file) readFile(file);
     el.importFile.value = "";
   });
 
-  // Allow drag onto textarea too
-  el.importText.addEventListener("dragover", e => e.preventDefault());
-  el.importText.addEventListener("drop", e => {
+  el.importText?.addEventListener("dragover", e => e.preventDefault());
+  el.importText?.addEventListener("drop", e => {
     e.preventDefault();
     const file = e.dataTransfer?.files?.[0];
     if (file) readFile(file);

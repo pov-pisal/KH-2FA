@@ -159,6 +159,17 @@
             </button>
           </div>
 
+          <div id="categoryFilterBar" class="category-filter-bar" role="tablist" aria-label="Account categories">
+            <button class="category-pill active" data-category="all" role="tab" aria-selected="true">All</button>
+            <button class="category-pill" data-category="pinned" role="tab" aria-selected="false">★ Pinned</button>
+            <button class="category-pill" data-category="Personal" role="tab" aria-selected="false">Personal</button>
+            <button class="category-pill" data-category="Work" role="tab" aria-selected="false">Work</button>
+            <button class="category-pill" data-category="Crypto" role="tab" aria-selected="false">Crypto</button>
+            <button class="category-pill" data-category="Finance" role="tab" aria-selected="false">Finance</button>
+            <button class="category-pill" data-category="Social" role="tab" aria-selected="false">Social</button>
+            <button class="category-pill" data-category="Other" role="tab" aria-selected="false">Other</button>
+          </div>
+
           <div id="emptyState" class="card empty hidden" aria-hidden="true">
             <h3>No accounts yet</h3>
             <p>Add your first TOTP account or scan a QR code to get started.</p>
@@ -232,6 +243,18 @@
               type="text"
               placeholder="myemail@gmail.com"
             />
+          </label>
+          <label class="field">
+            <span>Category</span>
+            <select id="categoryInput">
+              <option value="">None</option>
+              <option value="Personal">Personal</option>
+              <option value="Work">Work</option>
+              <option value="Crypto">Crypto</option>
+              <option value="Finance">Finance</option>
+              <option value="Social">Social</option>
+              <option value="Other">Other</option>
+            </select>
           </label>
 
           <details class="advanced-account-settings">
@@ -389,6 +412,20 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </span>
             <span class="settings-label">Preferences</span>
+            <span class="settings-chevron">›</span>
+          </button>
+          <button
+            class="settings-item"
+            data-settings="clock-sync"
+            role="listitem"
+          >
+            <span class="settings-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </span>
+            <span class="settings-label-wrap">
+              <span class="settings-label">Time Sync &amp; Clock Drift</span>
+              <span id="clockSyncBadge" class="sync-badge">In Sync</span>
+            </span>
             <span class="settings-chevron">›</span>
           </button>
           <button
@@ -743,6 +780,37 @@
                 <li>Press your desired shortcut (e.g. <code>Alt+A</code>)</li>
               </ol>
             </div>
+          </section>
+
+          <section
+            id="settingsClockSync"
+            class="settings-section hidden"
+            aria-hidden="true"
+          >
+            <h3>Time Sync &amp; Clock Drift</h3>
+            <p class="muted">TOTP 2FA codes require accurate time. If your device clock drifts by 15+ seconds, codes will be rejected by websites.</p>
+
+            <div class="shortcut-card" style="margin-top:14px;">
+              <div class="shortcut-header">
+                <div>
+                  <strong>Device Clock Status</strong>
+                  <p class="muted shortcut-subtitle" id="clockDriftDetail">Offset: 0 ms</p>
+                </div>
+                <span id="clockDriftTag" class="sync-badge">In Sync</span>
+              </div>
+
+              <div class="shortcut-action-row">
+                <button id="checkClockSyncBtn" class="primary shortcut-btn" type="button">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                  <span>Check Clock Sync</span>
+                </button>
+                <button id="resetClockOffsetBtn" class="secondary shortcut-btn" type="button">
+                  <span>Reset Offset</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="clockSyncFeedback" class="sync-status-card hidden" style="margin-top:12px;"></div>
           </section>
 
           <section
