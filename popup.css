@@ -2330,8 +2330,9 @@ button.small {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 2px 10px 2px;
+  padding: 2px 2px 8px 2px;
   overflow-x: auto;
+  scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
   white-space: nowrap;
@@ -2343,8 +2344,8 @@ button.small {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 3px 10px;
+  gap: 5px;
+  padding: 3px 9px;
   font-size: 11.5px;
   font-weight: 600;
   border-radius: 999px;
@@ -2357,30 +2358,147 @@ button.small {
 }
 .category-pill:hover {
   color: var(--text);
-  border-color: var(--accent);
+  border-color: var(--primary);
   background: var(--surface-hover, rgba(255, 255, 255, 0.05));
 }
 .category-pill.active {
-  background: rgba(76, 201, 240, 0.14);
+  background: rgba(76, 201, 240, 0.15);
   border-color: var(--primary);
   color: var(--primary);
-  box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
+  box-shadow: 0 0 10px rgba(76, 201, 240, 0.22);
+}
+.category-pill .pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+.category-pill.active .pill-count {
+  background: rgba(76, 201, 240, 0.28);
+  color: #fff;
 }
 
 /* Category Badge inside Account Row */
 .category-badge {
-  display: inline-block;
-  font-size: 9.5px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
   font-weight: 700;
-  padding: 1px 5px;
+  padding: 1.5px 6px;
   border-radius: 4px;
   background: rgba(167, 139, 250, 0.12);
   border: 1px solid rgba(167, 139, 250, 0.3);
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  margin-left: 5px;
+  margin-left: 6px;
   vertical-align: middle;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.category-badge:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Specific Category Color Themes */
+.cat-personal {
+  background: rgba(52, 211, 153, 0.12) !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+  color: #34d399 !important;
+}
+.cat-work {
+  background: rgba(56, 189, 248, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  color: #38bdf8 !important;
+}
+.cat-crypto {
+  background: rgba(192, 132, 252, 0.12) !important;
+  border-color: rgba(192, 132, 252, 0.35) !important;
+  color: #c084fc !important;
+}
+.cat-finance {
+  background: rgba(251, 191, 36, 0.12) !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
+  color: #fbbf24 !important;
+}
+.cat-social {
+  background: rgba(244, 114, 182, 0.12) !important;
+  border-color: rgba(244, 114, 182, 0.35) !important;
+  color: #f472b6 !important;
+}
+.cat-gaming {
+  background: rgba(251, 146, 60, 0.12) !important;
+  border-color: rgba(251, 146, 60, 0.35) !important;
+  color: #fb923c !important;
+}
+
+/* Quick Category Suggestion Chips in Modal */
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.field-label-row label {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 12px;
+}
+.auto-detected-badge {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(76, 201, 240, 0.15);
+  border: 1px solid rgba(76, 201, 240, 0.3);
+  color: var(--primary);
+  text-transform: none;
+  animation: fadeInBadge 0.2s ease;
+}
+@keyframes fadeInBadge {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.category-input-wrap {
+  width: 100%;
+}
+.category-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.quick-chip {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.quick-chip:hover {
+  color: var(--text);
+  border-color: var(--primary);
+  background: var(--surface-hover, rgba(255, 255, 255, 0.05));
+}
+.quick-chip.selected {
+  background: rgba(76, 201, 240, 0.18);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
 }
 
 

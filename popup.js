@@ -135,6 +135,9 @@ const elements = {
   lockoutNotice: document.getElementById("lockoutNotice"),
   categoryFilterBar: document.getElementById("categoryFilterBar"),
   categoryInput: document.getElementById("categoryInput"),
+  categoryQuickChips: document.getElementById("categoryQuickChips"),
+  categoryAutoDetectedBadge: document.getElementById("categoryAutoDetectedBadge"),
+  categoryDatalist: document.getElementById("categoryDatalist"),
   settingsClockSync: document.getElementById("settingsClockSync"),
   clockSyncBadge: document.getElementById("clockSyncBadge"),
   clockDriftDetail: document.getElementById("clockDriftDetail"),
@@ -175,6 +178,7 @@ let sessionPin = null;
 let sessionData = null;
 let currentCounter = null;
 let activeCategory = "all";
+let categoryManuallyTouched = false;
 
 function getEffectiveNow() {
   return Date.now() + (meta?.timeOffsetMs || 0);
@@ -520,6 +524,180 @@ async function handleUnlock() {
   }
 }
 
+function getCategoryClass(cat) {
+  if (!cat) return "";
+  const c = String(cat).toLowerCase().trim();
+  if (c === "personal") return "cat-personal";
+  if (c === "work") return "cat-work";
+  if (c === "crypto") return "cat-crypto";
+  if (c === "finance") return "cat-finance";
+  if (c === "social") return "cat-social";
+  if (c === "gaming") return "cat-gaming";
+  return "";
+}
+
+function applyCategoryColor(badgeEl, cat) {
+  if (!badgeEl || !cat) return;
+  const cls = getCategoryClass(cat);
+  if (cls) {
+    badgeEl.classList.add(cls);
+  } else {
+    let hash = 0;
+    const str = String(cat).trim();
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    const hue = Math.abs(hash) % 360;
+    badgeEl.style.color = `hsl(${hue}, 85%, 72%)`;
+    badgeEl.style.backgroundColor = `hsla(${hue}, 85%, 60%, 0.14)`;
+    badgeEl.style.borderColor = `hsla(${hue}, 85%, 60%, 0.35)`;
+  }
+}
+
+function detectCategoryFromBrand(issuer, label) {
+  const text = `${issuer || ""} ${label || ""}`.toLowerCase();
+  if (/\b(binance|coinbase|kraken|crypto|metamask|ledger|kucoin|bybit|bitfinex|okx|gemini|trezor|phantom|trustwallet|exodus|bitget|gate\.io|huobi|htx)\b/i.test(text)) {
+    return "Crypto";
+  }
+  if (/\b(paypal|stripe|chase|bank|wells\s*fargo|revolut|wise|fidelity|vanguard|schwab|citi|capital\s*one|barclays|hsbc|venmo|cash\s*app|mint|intuit|quickbooks|xero)\b/i.test(text)) {
+    return "Finance";
+  }
+  if (/\b(aws|amazon\s*web\s*services|github|gitlab|bitbucket|slack|jira|atlassian|notion|google\s*cloud|gcp|azure|linear|zoom|trello|figma|vercel|heroku|digitalocean|cloudflare|docker|sentry|datadog|circleci|travis|jenkins|confluence|asana|monday|salesforce|hubspot|zendesk|okta|auth0|fastly|ovh|linode|vultr)\b/i.test(text)) {
+    return "Work";
+  }
+  if (/\b(facebook|instagram|twitter|x\.com|reddit|discord|linkedin|tiktok|snapchat|pinterest|telegram|signal|whatsapp|wechat|threads|tumblr|mastodon|bsky|bluesky)\b/i.test(text)) {
+    return "Social";
+  }
+  if (/\b(steam|epic\s*games|playstation|psn|xbox|blizzard|battlenet|riot\s*games|ubisoft|nintendo|roblox|twitch|ea\s*games|origin|gog)\b/i.test(text)) {
+    return "Gaming";
+  }
+  if (/\b(dropbox|google|apple|icloud|microsoft|proton|protonmail|netflix|spotify|disney|hulu|uber|airbnb|amazon)\b/i.test(text)) {
+    return "Personal";
+  }
+  return "";
+}
+
+function populateCategoryDatalist() {
+  if (!elements.categoryDatalist) return;
+  const standardPresets = ["Personal", "Work", "Finance", "Crypto", "Social", "Gaming", "Other"];
+  const customSet = new Set(standardPresets);
+  if (vault?.accounts) {
+    for (const acc of vault.accounts) {
+      if (acc.category && acc.category.trim()) {
+        customSet.add(acc.category.trim());
+      }
+    }
+  }
+  elements.categoryDatalist.innerHTML = "";
+  for (const cat of customSet) {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    elements.categoryDatalist.appendChild(opt);
+  }
+}
+
+function updateQuickChips(selectedCat) {
+  if (!elements.categoryQuickChips) return;
+  const target = (selectedCat || "").trim().toLowerCase();
+  elements.categoryQuickChips.querySelectorAll(".quick-chip").forEach((chip) => {
+    const chipCat = (chip.dataset.cat || "").trim().toLowerCase();
+    chip.classList.toggle("selected", Boolean(target && chipCat === target));
+  });
+}
+
+function setCategoryFilter(category) {
+  activeCategory = category || "all";
+  renderAccounts();
+  const activePill = elements.categoryFilterBar?.querySelector(`.category-pill[data-category="${activeCategory}"]`);
+  if (activePill) {
+    activePill.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+  }
+}
+
+function renderCategoryFilterBar() {
+  if (!elements.categoryFilterBar || !vault) return;
+  const accounts = vault.accounts || [];
+  if (accounts.length === 0) {
+    elements.categoryFilterBar.classList.add("hidden");
+    return;
+  }
+  elements.categoryFilterBar.classList.remove("hidden");
+
+  const total = accounts.length;
+  const pinnedCount = accounts.filter((a) => Boolean(a.pinned)).length;
+
+  const catMap = new Map();
+  let uncategorizedCount = 0;
+
+  for (const acc of accounts) {
+    const raw = (acc.category || "").trim();
+    if (!raw) {
+      uncategorizedCount++;
+    } else {
+      const key = raw.toLowerCase();
+      if (!catMap.has(key)) {
+        catMap.set(key, { name: raw, count: 0 });
+      }
+      catMap.get(key).count++;
+    }
+  }
+
+  if (activeCategory !== "all" && activeCategory !== "pinned" && activeCategory !== "uncategorized") {
+    if (!catMap.has(activeCategory.toLowerCase())) {
+      activeCategory = "all";
+    }
+  }
+
+  elements.categoryFilterBar.innerHTML = "";
+
+  // All pill
+  const allBtn = document.createElement("button");
+  const isAllActive = activeCategory === "all";
+  allBtn.className = `category-pill ${isAllActive ? "active" : ""}`;
+  allBtn.dataset.category = "all";
+  allBtn.setAttribute("role", "tab");
+  allBtn.setAttribute("aria-selected", isAllActive ? "true" : "false");
+  allBtn.innerHTML = `<span>All</span><span class="pill-count">${total}</span>`;
+  elements.categoryFilterBar.appendChild(allBtn);
+
+  // Pinned pill (only if pinnedCount > 0)
+  if (pinnedCount > 0) {
+    const pinBtn = document.createElement("button");
+    const isPinActive = activeCategory === "pinned";
+    pinBtn.className = `category-pill ${isPinActive ? "active" : ""}`;
+    pinBtn.dataset.category = "pinned";
+    pinBtn.setAttribute("role", "tab");
+    pinBtn.setAttribute("aria-selected", isPinActive ? "true" : "false");
+    pinBtn.innerHTML = `<span>★ Pinned</span><span class="pill-count">${pinnedCount}</span>`;
+    elements.categoryFilterBar.appendChild(pinBtn);
+  }
+
+  // Category pills
+  for (const [key, { name, count }] of catMap.entries()) {
+    const btn = document.createElement("button");
+    const isActive = activeCategory.toLowerCase() === key;
+    btn.className = `category-pill ${isActive ? "active" : ""}`;
+    btn.dataset.category = name;
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    btn.innerHTML = `<span>${name}</span><span class="pill-count">${count}</span>`;
+    elements.categoryFilterBar.appendChild(btn);
+  }
+
+  // Uncategorized pill (only if some accounts are uncategorized and at least one is categorized)
+  if (uncategorizedCount > 0 && catMap.size > 0) {
+    const uncatBtn = document.createElement("button");
+    const isActive = activeCategory === "uncategorized";
+    uncatBtn.className = `category-pill ${isActive ? "active" : ""}`;
+    uncatBtn.dataset.category = "uncategorized";
+    uncatBtn.setAttribute("role", "tab");
+    uncatBtn.setAttribute("aria-selected", isActive ? "true" : "false");
+    uncatBtn.innerHTML = `<span>Uncategorized</span><span class="pill-count">${uncategorizedCount}</span>`;
+    elements.categoryFilterBar.appendChild(uncatBtn);
+  }
+}
+
 function updateModalBrandPreview() {
   if (!elements.modalBrandPreview || !elements.modalBrandIcon || !elements.modalBrandName) return;
 
@@ -551,6 +729,15 @@ function updateModalBrandPreview() {
   elements.modalBrandIcon.style.borderColor = brand.borderColor;
   elements.modalBrandIcon.innerHTML = brand.svg;
   elements.modalBrandName.textContent = brand.name;
+
+  if (!editingId && !categoryManuallyTouched && elements.categoryInput && !elements.categoryInput.value.trim()) {
+    const suggested = detectCategoryFromBrand(detectedIssuer, detectedLabel);
+    if (suggested) {
+      elements.categoryInput.value = suggested;
+      updateQuickChips(suggested);
+      elements.categoryAutoDetectedBadge?.classList.remove("hidden");
+    }
+  }
 }
 
 function openModal(editAccount = null) {
@@ -567,9 +754,14 @@ function openModal(editAccount = null) {
   if (elements.digitsInput) elements.digitsInput.value = String(editAccount?.digits || "6");
   if (elements.algorithmInput) elements.algorithmInput.value = editAccount?.algorithm || "SHA-1";
   if (elements.periodInput) elements.periodInput.value = String(editAccount?.period || "30");
+  categoryManuallyTouched = Boolean(editAccount);
+  populateCategoryDatalist();
+  const currentCat = editAccount?.category || (activeCategory !== "all" && activeCategory !== "pinned" && activeCategory !== "uncategorized" ? activeCategory : "");
   if (elements.categoryInput) {
-    elements.categoryInput.value = editAccount?.category || (activeCategory !== "all" && activeCategory !== "pinned" ? activeCategory : "");
+    elements.categoryInput.value = currentCat;
   }
+  updateQuickChips(currentCat);
+  elements.categoryAutoDetectedBadge?.classList.add("hidden");
   elements.modalError.textContent = "";
   updateModalBrandPreview();
   showModal(elements.modal);
@@ -586,6 +778,10 @@ function closeModal() {
   if (elements.digitsInput) elements.digitsInput.value = "6";
   if (elements.algorithmInput) elements.algorithmInput.value = "SHA-1";
   if (elements.periodInput) elements.periodInput.value = "30";
+  if (elements.categoryInput) elements.categoryInput.value = "";
+  updateQuickChips("");
+  elements.categoryAutoDetectedBadge?.classList.add("hidden");
+  categoryManuallyTouched = false;
   elements.modalError.textContent = "";
   updateModalBrandPreview();
   editingId = null;
@@ -653,6 +849,13 @@ function renderEditAccountsList() {
     label.textContent = account.label || "(no label)";
     label.title = account.label || "";
     textWrap.append(issuer, label);
+    if (account.category) {
+      const catBadge = document.createElement("span");
+      catBadge.className = "category-badge";
+      catBadge.textContent = account.category;
+      applyCategoryColor(catBadge, account.category);
+      textWrap.append(catBadge);
+    }
 
     meta.append(brandIcon, textWrap);
 
@@ -1346,6 +1549,7 @@ async function handleImportBackup() {
       algorithm: account.algorithm || "SHA-1",
       period: Number(account.period) || 30,
       pinned: Boolean(account.pinned),
+      category: account.category || (account.group || undefined) || detectCategoryFromBrand(account.issuer, account.label) || undefined,
       createdAt: account.createdAt || Date.now(),
     }));
 
@@ -1703,12 +1907,14 @@ async function moveAccount(accountId, direction) {
 
 function renderAccounts() {
   if (!vault) return;
+  renderCategoryFilterBar();
   const query = elements.searchInput.value.trim().toLowerCase();
   const filtered = vault.accounts.filter((account) => {
     const haystack = `${account.issuer} ${account.label} ${account.category || ""}`.toLowerCase();
     if (!haystack.includes(query)) return false;
     if (activeCategory === "all") return true;
     if (activeCategory === "pinned") return Boolean(account.pinned);
+    if (activeCategory === "uncategorized") return !(account.category && account.category.trim());
     return (account.category || "").toLowerCase() === activeCategory.toLowerCase();
   });
   const ordered = sortAccounts(filtered);
@@ -1782,9 +1988,17 @@ function renderAccounts() {
     }
 
     if (account.category) {
-      const catBadge = document.createElement("span");
+      const catBadge = document.createElement("button");
+      catBadge.type = "button";
       catBadge.className = "category-badge";
       catBadge.textContent = account.category;
+      catBadge.title = `Filter by category "${account.category}"`;
+      applyCategoryColor(catBadge, account.category);
+      catBadge.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setCategoryFilter(account.category);
+      });
       title.append(catBadge);
     }
 
@@ -1910,9 +2124,32 @@ function updateProgress(now = Date.now()) {
     if (remaining <= 5) {
       ring.classList.add("expiring");
       item.classList.add("expiring-soon");
+
+      // Next Code Preview badge
+      let nextBtn = item.querySelector(".next-code-btn");
+      if (!nextBtn) {
+        nextBtn = document.createElement("button");
+        nextBtn.type = "button";
+        nextBtn.className = "next-code-btn";
+        nextBtn.dataset.action = "copy-next";
+        nextBtn.title = "Copy upcoming code";
+        const codeWrap = item.querySelector(".account-code-wrap");
+        if (codeWrap) codeWrap.appendChild(nextBtn);
+      }
+
+      const nextCounter = Math.floor(now / 1000 / period) + 1;
+      const nextTimestamp = nextCounter * period * 1000;
+      generateTOTP(account.secret, nextTimestamp, account).then((nextOtp) => {
+        if (nextBtn && item.classList.contains("expiring-soon")) {
+          nextBtn.dataset.nextCode = nextOtp;
+          nextBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg><span>Next: ${formatOTPDisplay(nextOtp)}</span>`;
+        }
+      }).catch(() => {});
     } else {
       ring.classList.remove("expiring");
       item.classList.remove("expiring-soon");
+      const nextBtn = item.querySelector(".next-code-btn");
+      if (nextBtn) nextBtn.remove();
     }
   });
 }
@@ -1930,6 +2167,19 @@ async function handleAccountAction(event) {
   const button = event.target.closest("button[data-action]");
   if (button) {
     const action = button.dataset.action;
+
+    if (action === "copy-next") {
+      event.stopPropagation();
+      const btn = event.target.closest(".next-code-btn");
+      const rawNextCode = btn?.dataset?.nextCode || "";
+      if (rawNextCode) {
+        const cleanCode = rawNextCode.replace(/\s+/g, "");
+        await navigator.clipboard.writeText(cleanCode);
+        scheduleClipboardClear(cleanCode, Number(meta?.clipboardClearSec ?? 30));
+        showToast("Copied next code!");
+      }
+      return;
+    }
 
     if (action === "copy") {
       const code = (codes.get(id) || (await generateTOTP(account.secret, Date.now(), account))).replace(/\s+/g, "");
@@ -2738,14 +2988,33 @@ async function init() {
   elements.searchInput.addEventListener("input", renderAccounts);
   elements.accountsList.addEventListener("click", handleAccountAction);
 
-  // Category filter pills
+  // Category filter pills delegation
   elements.categoryFilterBar?.addEventListener("click", (e) => {
     const pill = e.target.closest(".category-pill");
     if (!pill) return;
-    elements.categoryFilterBar.querySelectorAll(".category-pill").forEach((p) => p.classList.remove("active"));
-    pill.classList.add("active");
-    activeCategory = pill.dataset.category || "all";
-    renderAccounts();
+    setCategoryFilter(pill.dataset.category || "all");
+  });
+
+  // Category quick suggestion chips in modal
+  elements.categoryQuickChips?.addEventListener("click", (e) => {
+    const chip = e.target.closest(".quick-chip");
+    if (!chip) return;
+    const cat = chip.dataset.cat;
+    categoryManuallyTouched = true;
+    elements.categoryAutoDetectedBadge?.classList.add("hidden");
+    if (elements.categoryInput?.value?.trim().toLowerCase() === cat.toLowerCase()) {
+      elements.categoryInput.value = "";
+      updateQuickChips("");
+    } else {
+      elements.categoryInput.value = cat;
+      updateQuickChips(cat);
+    }
+  });
+
+  elements.categoryInput?.addEventListener("input", () => {
+    categoryManuallyTouched = true;
+    elements.categoryAutoDetectedBadge?.classList.add("hidden");
+    updateQuickChips(elements.categoryInput.value);
   });
 
   // Clock sync buttons
