@@ -1940,20 +1940,7 @@ function renderAccounts() {
       title.append(label);
     }
 
-    if (account.category) {
-      const catBadge = document.createElement("button");
-      catBadge.type = "button";
-      catBadge.className = "category-badge";
-      catBadge.textContent = account.category;
-      catBadge.title = `Filter by category "${account.category}"`;
-      applyCategoryColor(catBadge, account.category);
-      catBadge.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        setCategoryFilter(account.category);
-      });
-      title.append(catBadge);
-    }
+    
 
     const codeWrap = document.createElement("div");
     codeWrap.className = "account-code-wrap";
