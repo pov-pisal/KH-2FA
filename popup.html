@@ -235,29 +235,62 @@
               placeholder="myemail@gmail.com"
             />
           </label>
-          <div class="field">
+          <div class="field category-field-wrap">
             <div class="field-label-row">
-              <label for="categoryInput">Category</label>
+              <label id="categoryFieldLabel" for="categoryDropdownTrigger">Category</label>
               <span id="categoryAutoDetectedBadge" class="auto-detected-badge hidden">Auto-suggested</span>
             </div>
-            <div class="category-input-wrap">
-              <input
-                id="categoryInput"
-                type="text"
-                list="categoryDatalist"
-                placeholder="Choose or type category (e.g. Work, Crypto)..."
-                maxlength="24"
-                autocomplete="off"
-              />
-              <datalist id="categoryDatalist">
-                <option value="Personal">
-                <option value="Work">
-                <option value="Finance">
-                <option value="Crypto">
-                <option value="Social">
-                <option value="Gaming">
-              </datalist>
+
+            <!-- Custom Category Dropdown Component -->
+            <div class="custom-category-dropdown" id="categoryDropdown">
+              <button
+                type="button"
+                id="categoryDropdownTrigger"
+                class="category-dropdown-trigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-labelledby="categoryFieldLabel categoryDropdownTrigger"
+              >
+                <div class="dropdown-trigger-left">
+                  <span id="categoryTriggerDot" class="category-indicator-dot dot-none"></span>
+                  <span id="categoryTriggerText" class="category-trigger-text">None (Uncategorized)</span>
+                </div>
+                <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+
+              <div
+                id="categoryDropdownMenu"
+                class="category-dropdown-menu hidden"
+                role="listbox"
+                aria-label="Select Category"
+              >
+                <div class="category-options-list" id="categoryOptionsList">
+                  <!-- Dynamically populated with options, color dots, and checkmarks -->
+                </div>
+
+                <div class="dropdown-custom-creator">
+                  <input
+                    type="text"
+                    id="newCustomCategoryInput"
+                    placeholder="Create new category..."
+                    maxlength="20"
+                    autocomplete="off"
+                  />
+                  <button type="button" id="addNewCategoryBtn" class="add-custom-cat-btn" title="Add category">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Add</span>
+                  </button>
+                </div>
+              </div>
+
+              <input type="hidden" id="categoryInput" value="" />
             </div>
+
             <div id="categoryQuickChips" class="category-quick-chips" aria-label="Quick category suggestions">
               <button type="button" class="quick-chip" data-cat="Personal">Personal</button>
               <button type="button" class="quick-chip" data-cat="Work">Work</button>

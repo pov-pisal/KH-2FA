@@ -134,10 +134,17 @@ const elements = {
   qrFileInput: document.getElementById("qrFileInput"),
   lockoutNotice: document.getElementById("lockoutNotice"),
   categoryFilterBar: document.getElementById("categoryFilterBar"),
+  categoryDropdown: document.getElementById("categoryDropdown"),
+  categoryDropdownTrigger: document.getElementById("categoryDropdownTrigger"),
+  categoryTriggerDot: document.getElementById("categoryTriggerDot"),
+  categoryTriggerText: document.getElementById("categoryTriggerText"),
+  categoryDropdownMenu: document.getElementById("categoryDropdownMenu"),
+  categoryOptionsList: document.getElementById("categoryOptionsList"),
+  newCustomCategoryInput: document.getElementById("newCustomCategoryInput"),
+  addNewCategoryBtn: document.getElementById("addNewCategoryBtn"),
   categoryInput: document.getElementById("categoryInput"),
   categoryQuickChips: document.getElementById("categoryQuickChips"),
   categoryAutoDetectedBadge: document.getElementById("categoryAutoDetectedBadge"),
-  categoryDatalist: document.getElementById("categoryDatalist"),
   settingsClockSync: document.getElementById("settingsClockSync"),
   clockSyncBadge: document.getElementById("clockSyncBadge"),
   clockDriftDetail: document.getElementById("clockDriftDetail"),
@@ -578,23 +585,36 @@ function detectCategoryFromBrand(issuer, label) {
   return "";
 }
 
-function populateCategoryDatalist() {
-  if (!elements.categoryDatalist) return;
-  const standardPresets = ["Personal", "Work", "Finance", "Crypto", "Social", "Gaming", "Other"];
-  const customSet = new Set(standardPresets);
-  if (vault?.accounts) {
-    for (const acc of vault.accounts) {
-      if (acc.category && acc.category.trim()) {
-        customSet.add(acc.category.trim());
-      }
-    }
+const STANDARD_CATEGORIES = [
+  { id: "", name: "None (Uncategorized)", dotCls: "dot-none" },
+  { id: "Personal", name: "Personal", dotCls: "dot-personal" },
+  { id: "Work", name: "Work", dotCls: "dot-work" },
+  { id: "Finance", name: "Finance", dotCls: "dot-finance" },
+  { id: "Crypto", name: "Crypto", dotCls: "dot-crypto" },
+  { id: "Social", name: "Social", dotCls: "dot-social" },
+  { id: "Gaming", name: "Gaming", dotCls: "dot-gaming" },
+];
+
+function getCategoryDotStyle(cat) {
+  if (!cat) return { cls: "dot-none", style: "" };
+  const lower = cat.toLowerCase().trim();
+  if (lower === "personal") return { cls: "dot-personal", style: "" };
+  if (lower === "work") return { cls: "dot-work", style: "" };
+  if (lower === "finance") return { cls: "dot-finance", style: "" };
+  if (lower === "crypto") return { cls: "dot-crypto", style: "" };
+  if (lower === "social") return { cls: "dot-social", style: "" };
+  if (lower === "gaming") return { cls: "dot-gaming", style: "" };
+
+  let hash = 0;
+  for (let i = 0; i < cat.length; i++) {
+    hash = (hash << 5) - hash + cat.charCodeAt(i);
+    hash |= 0;
   }
-  elements.categoryDatalist.innerHTML = "";
-  for (const cat of customSet) {
-    const opt = document.createElement("option");
-    opt.value = cat;
-    elements.categoryDatalist.appendChild(opt);
-  }
+  const hue = Math.abs(hash) % 360;
+  return {
+    cls: "",
+    style: `background: hsl(${hue}, 85%, 65%); box-shadow: 0 0 6px hsla(${hue}, 85%, 65%, 0.6);`,
+  };
 }
 
 function updateQuickChips(selectedCat) {
@@ -606,12 +626,125 @@ function updateQuickChips(selectedCat) {
   });
 }
 
-function setCategoryFilter(category) {
-  activeCategory = category || "all";
-  renderAccounts();
-  const activePill = elements.categoryFilterBar?.querySelector(`.category-pill[data-category="${activeCategory}"]`);
-  if (activePill) {
-    activePill.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+function renderCategoryDropdownOptions(selectedVal = "") {
+  if (!elements.categoryOptionsList) return;
+  elements.categoryOptionsList.innerHTML = "";
+
+  const optionsMap = new Map();
+  for (const item of STANDARD_CATEGORIES) {
+    optionsMap.set(item.id.toLowerCase(), { id: item.id, name: item.name });
+  }
+
+  if (vault?.accounts) {
+    for (const acc of vault.accounts) {
+      const c = (acc.category || "").trim();
+      if (c && !optionsMap.has(c.toLowerCase())) {
+        optionsMap.set(c.toLowerCase(), { id: c, name: c });
+      }
+    }
+  }
+
+  const selClean = (selectedVal || "").trim();
+  if (selClean && !optionsMap.has(selClean.toLowerCase())) {
+    optionsMap.set(selClean.toLowerCase(), { id: selClean, name: selClean });
+  }
+
+  const selectedKey = selClean.toLowerCase();
+
+  for (const [key, item] of optionsMap.entries()) {
+    const isSelected = key === selectedKey;
+    const dotInfo = getCategoryDotStyle(item.id);
+
+    const row = document.createElement("div");
+    row.className = `category-option-item ${isSelected ? "selected" : ""}`;
+    row.dataset.value = item.id;
+    row.setAttribute("role", "option");
+    row.setAttribute("aria-selected", isSelected ? "true" : "false");
+
+    const left = document.createElement("div");
+    left.className = "option-left";
+
+    const dot = document.createElement("span");
+    dot.className = `category-indicator-dot ${dotInfo.cls}`;
+    if (dotInfo.style) dot.style.cssText = dotInfo.style;
+
+    const label = document.createElement("span");
+    label.className = "option-label";
+    label.textContent = item.name;
+
+    left.append(dot, label);
+    row.append(left);
+
+    if (isSelected) {
+      row.insertAdjacentHTML(
+        "beforeend",
+        '<svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+      );
+    }
+
+    row.addEventListener("click", () => {
+      setCategoryValue(item.id);
+      closeCategoryDropdown();
+      categoryManuallyTouched = true;
+    });
+
+    elements.categoryOptionsList.appendChild(row);
+  }
+}
+
+function setCategoryValue(val = "", isAuto = false) {
+  const clean = (val || "").trim();
+  if (elements.categoryInput) {
+    elements.categoryInput.value = clean;
+  }
+
+  if (elements.categoryTriggerText) {
+    elements.categoryTriggerText.textContent = clean || "None (Uncategorized)";
+  }
+
+  if (elements.categoryTriggerDot) {
+    const dotInfo = getCategoryDotStyle(clean);
+    elements.categoryTriggerDot.className = `category-indicator-dot ${dotInfo.cls}`;
+    elements.categoryTriggerDot.style.cssText = dotInfo.style;
+  }
+
+  updateQuickChips(clean);
+
+  if (isAuto && clean) {
+    elements.categoryAutoDetectedBadge?.classList.remove("hidden");
+  } else {
+    elements.categoryAutoDetectedBadge?.classList.add("hidden");
+  }
+
+  renderCategoryDropdownOptions(clean);
+}
+
+function openCategoryDropdown() {
+  if (!elements.categoryDropdown || !elements.categoryDropdownMenu) return;
+  elements.categoryDropdown.classList.add("open");
+  elements.categoryDropdownMenu.classList.remove("hidden");
+  elements.categoryDropdownTrigger?.setAttribute("aria-expanded", "true");
+  renderCategoryDropdownOptions(elements.categoryInput?.value || "");
+
+  const selectedItem = elements.categoryOptionsList?.querySelector(".category-option-item.selected");
+  if (selectedItem) {
+    selectedItem.scrollIntoView({ block: "nearest" });
+  }
+}
+
+function closeCategoryDropdown() {
+  if (!elements.categoryDropdown || !elements.categoryDropdownMenu) return;
+  elements.categoryDropdown.classList.remove("open");
+  elements.categoryDropdownMenu.classList.add("hidden");
+  elements.categoryDropdownTrigger?.setAttribute("aria-expanded", "false");
+}
+
+function toggleCategoryDropdown() {
+  const isOpen = elements.categoryDropdown?.classList.contains("open");
+  if (isOpen) {
+    closeCategoryDropdown();
+  } else {
+    openCategoryDropdown();
   }
 }
 
@@ -733,9 +866,7 @@ function updateModalBrandPreview() {
   if (!editingId && !categoryManuallyTouched && elements.categoryInput && !elements.categoryInput.value.trim()) {
     const suggested = detectCategoryFromBrand(detectedIssuer, detectedLabel);
     if (suggested) {
-      elements.categoryInput.value = suggested;
-      updateQuickChips(suggested);
-      elements.categoryAutoDetectedBadge?.classList.remove("hidden");
+      setCategoryValue(suggested, true);
     }
   }
 }
@@ -755,13 +886,9 @@ function openModal(editAccount = null) {
   if (elements.algorithmInput) elements.algorithmInput.value = editAccount?.algorithm || "SHA-1";
   if (elements.periodInput) elements.periodInput.value = String(editAccount?.period || "30");
   categoryManuallyTouched = Boolean(editAccount);
-  populateCategoryDatalist();
+  closeCategoryDropdown();
   const currentCat = editAccount?.category || (activeCategory !== "all" && activeCategory !== "pinned" && activeCategory !== "uncategorized" ? activeCategory : "");
-  if (elements.categoryInput) {
-    elements.categoryInput.value = currentCat;
-  }
-  updateQuickChips(currentCat);
-  elements.categoryAutoDetectedBadge?.classList.add("hidden");
+  setCategoryValue(currentCat, false);
   elements.modalError.textContent = "";
   updateModalBrandPreview();
   showModal(elements.modal);
@@ -778,9 +905,8 @@ function closeModal() {
   if (elements.digitsInput) elements.digitsInput.value = "6";
   if (elements.algorithmInput) elements.algorithmInput.value = "SHA-1";
   if (elements.periodInput) elements.periodInput.value = "30";
-  if (elements.categoryInput) elements.categoryInput.value = "";
-  updateQuickChips("");
-  elements.categoryAutoDetectedBadge?.classList.add("hidden");
+  closeCategoryDropdown();
+  setCategoryValue("", false);
   categoryManuallyTouched = false;
   elements.modalError.textContent = "";
   updateModalBrandPreview();
@@ -2995,26 +3121,56 @@ async function init() {
     setCategoryFilter(pill.dataset.category || "all");
   });
 
+  // Custom Category Dropdown events
+  elements.categoryDropdownTrigger?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleCategoryDropdown();
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener("click", (e) => {
+    if (elements.categoryDropdown && !elements.categoryDropdown.contains(e.target)) {
+      closeCategoryDropdown();
+    }
+  });
+
+  // Adding custom category from inside dropdown
+  const handleAddNewCustomCategory = () => {
+    const newCat = elements.newCustomCategoryInput?.value?.trim();
+    if (newCat) {
+      setCategoryValue(newCat);
+      closeCategoryDropdown();
+      categoryManuallyTouched = true;
+      if (elements.newCustomCategoryInput) elements.newCustomCategoryInput.value = "";
+    }
+  };
+
+  elements.addNewCategoryBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    handleAddNewCustomCategory();
+  });
+
+  elements.newCustomCategoryInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      handleAddNewCustomCategory();
+    } else if (e.key === "Escape") {
+      closeCategoryDropdown();
+    }
+  });
+
   // Category quick suggestion chips in modal
   elements.categoryQuickChips?.addEventListener("click", (e) => {
     const chip = e.target.closest(".quick-chip");
     if (!chip) return;
     const cat = chip.dataset.cat;
     categoryManuallyTouched = true;
-    elements.categoryAutoDetectedBadge?.classList.add("hidden");
     if (elements.categoryInput?.value?.trim().toLowerCase() === cat.toLowerCase()) {
-      elements.categoryInput.value = "";
-      updateQuickChips("");
+      setCategoryValue("");
     } else {
-      elements.categoryInput.value = cat;
-      updateQuickChips(cat);
+      setCategoryValue(cat);
     }
-  });
-
-  elements.categoryInput?.addEventListener("input", () => {
-    categoryManuallyTouched = true;
-    elements.categoryAutoDetectedBadge?.classList.add("hidden");
-    updateQuickChips(elements.categoryInput.value);
   });
 
   // Clock sync buttons
