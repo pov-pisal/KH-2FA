@@ -215,7 +215,13 @@ function showAccountQrModal(account) {
 
   elements.qrModalTitle.textContent = `${issuer} QR Code`;
   elements.qrModalIssuer.textContent = issuer;
-  elements.qrModalLabel.textContent = label;
+  if (label) {
+    elements.qrModalLabel.textContent = `· ${label}`;
+    elements.qrModalLabel.classList.remove("hidden");
+  } else {
+    elements.qrModalLabel.textContent = "";
+    elements.qrModalLabel.classList.add("hidden");
+  }
   elements.qrModalBrandIcon.style.background = brand.bgColor;
   elements.qrModalBrandIcon.style.borderColor = brand.borderColor;
   elements.qrModalBrandIcon.innerHTML = brand.svg;

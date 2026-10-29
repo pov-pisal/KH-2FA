@@ -1683,104 +1683,193 @@ button.small {
 
 
 
-/* ── QR Code View Modal (Mobile Transfer) ── */
-.qr-view-modal {
-  max-width: 330px !important;
-  text-align: center;
+/* ── QR Code View Modal (Mobile Transfer Centered Dialog) ── */
+#qrModal {
+  background: rgba(5, 8, 12, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 100;
+  box-sizing: border-box;
 }
+#qrModal.hidden {
+  display: none !important;
+}
+
+#qrModal .modal-content.qr-view-modal {
+  width: 100%;
+  max-width: 326px;
+  height: auto;
+  max-height: 94vh;
+  margin: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px 18px 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  animation: qrCardPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes qrCardPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+#qrModal .modal-content header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#qrModal .modal-content header h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
 .qr-display-body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 12px;
-  padding: 8px 4px 4px;
-}
-.qr-brand-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  padding: 0;
   width: 100%;
 }
+
+.qr-brand-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 5px 12px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-sizing: border-box;
+  max-width: 90%;
+}
+
 .qr-brand-meta {
   display: flex;
-  flex-direction: column;
-  text-align: left;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
 }
+
 .qr-brand-meta strong {
   font-size: 13px;
-  color: var(--text-primary);
+  font-weight: 600;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 180px;
 }
+
 .qr-brand-meta span {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 160px;
 }
+
 .qr-svg-wrapper {
   background: #ffffff !important;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(255, 255, 255, 0.1);
   width: 200px;
   height: 200px;
   box-sizing: border-box;
+  margin: 0 auto;
 }
+
 .qr-svg-wrapper svg {
   width: 100% !important;
   height: 100% !important;
   display: block;
 }
+
 .qr-scan-instruction {
-  font-size: 11px;
-  color: var(--text-secondary);
+  font-size: 11.5px;
+  color: var(--muted);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.45;
   text-align: center;
+  max-width: 275px;
 }
+
 .qr-secret-box {
   width: 100%;
-  background: var(--bg-surface-soft, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 10px;
-  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
   box-sizing: border-box;
+  text-align: left;
 }
+
 .qr-secret-label {
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--muted);
   letter-spacing: 0.5px;
   display: block;
 }
+
 .qr-secret-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 3px;
 }
+
 .qr-secret-code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent-color, #38bdf8);
+  color: var(--primary);
   word-break: break-all;
   user-select: all;
+  letter-spacing: 0.5px;
 }
+
 .copy-secret-btn {
-  padding: 4px 6px;
-  border-radius: 4px;
+  padding: 5px;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
   flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.copy-secret-btn:hover {
+  color: var(--text);
+  background: var(--surface-hover, rgba(255, 255, 255, 0.08));
 }
 
 /* ── 5s Countdown Expiration Warning ── */
