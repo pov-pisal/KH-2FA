@@ -2383,37 +2383,6 @@ button.small {
   vertical-align: middle;
 }
 
-/* ── Next Code Preview Badge ── */
-.next-code-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-weight: 600;
-  color: #fbbf24;
-  background: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.32);
-  border-radius: 6px;
-  padding: 2px 7px;
-  margin-top: 4px;
-  cursor: pointer;
-  transition: all 0.16s ease;
-  user-select: none;
-  animation: fadeInNext 0.2s ease-out;
-}
-.next-code-btn:hover {
-  background: rgba(251, 191, 36, 0.22);
-  border-color: #fbbf24;
-  transform: translateY(-1px);
-}
-.next-code-btn svg {
-  flex-shrink: 0;
-}
-@keyframes fadeInNext {
-  from { opacity: 0; transform: translateY(-2px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 /* Clock Sync status badges */
 .sync-badge.status-warning {

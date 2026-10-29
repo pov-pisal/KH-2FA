@@ -126,7 +126,7 @@ English
 
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
-| 1.5.0 | 2026-10-29 | Upcoming code lookahead with 1-click preview and copy (<5s remaining), clock drift detector with automatic NTP/HTTP offset compensation, interactive category filter pills (Personal/Work/Crypto/Finance/Social/Other), and AES-256-GCM encrypted backup (.enc.json) export/import with passphrase protection. | Ready to publish |
+| 1.5.0 | 2026-10-29 | Clock drift detector with automatic NTP/HTTP offset compensation, interactive category filter pills (Personal/Work/Crypto/Finance/Social/Other), and AES-256-GCM encrypted backup (.enc.json) export/import with passphrase protection. | Ready to publish |
 | 1.4.0 | 2026-10-27 | Chrome Side Panel mode, mobile QR code transfer generator, Google Authenticator migration importer (otpauth-migration://), multi-format backup support (Aegis/2FAS/Bitwarden), split 6-box OTP in-field autofill, persistent brute-force lockout, alphanumeric master passphrases, default blurred privacy mask, and auto-clearing clipboard. | Published |
 | 1.2.0 | 2026-09-29 | Redesigned popup UI: 380x560px rock-solid popup viewport, full-view modal sheets, crisp vector SVG icons, pure JavaScript jsQR scanner engine, top-aligned PIN entry card, and floating glassmorphic notifications. | Published |
 | 1.1.0 | 2026-09-27 | Screen QR scanner, privacy peek mask, brute-force PIN lockout, system idle auto-lock, star favorites, RFC 6238 TOTP engine (SHA-256/512, Steam Guard, custom periods), OLED and Nord themes. | Published |

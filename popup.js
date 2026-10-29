@@ -1910,32 +1910,9 @@ function updateProgress(now = Date.now()) {
     if (remaining <= 5) {
       ring.classList.add("expiring");
       item.classList.add("expiring-soon");
-
-      // Next Code Preview badge
-      let nextBtn = item.querySelector(".next-code-btn");
-      if (!nextBtn) {
-        nextBtn = document.createElement("button");
-        nextBtn.type = "button";
-        nextBtn.className = "next-code-btn";
-        nextBtn.dataset.action = "copy-next";
-        nextBtn.title = "Copy upcoming code";
-        const codeWrap = item.querySelector(".account-code-wrap");
-        if (codeWrap) codeWrap.appendChild(nextBtn);
-      }
-
-      const nextCounter = Math.floor(now / 1000 / period) + 1;
-      const nextTimestamp = nextCounter * period * 1000;
-      generateTOTP(account.secret, nextTimestamp, account).then((nextOtp) => {
-        if (nextBtn && item.classList.contains("expiring-soon")) {
-          nextBtn.dataset.nextCode = nextOtp;
-          nextBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg><span>Next: ${formatOTPDisplay(nextOtp)}</span>`;
-        }
-      }).catch(() => {});
     } else {
       ring.classList.remove("expiring");
       item.classList.remove("expiring-soon");
-      const nextBtn = item.querySelector(".next-code-btn");
-      if (nextBtn) nextBtn.remove();
     }
   });
 }
@@ -1953,19 +1930,6 @@ async function handleAccountAction(event) {
   const button = event.target.closest("button[data-action]");
   if (button) {
     const action = button.dataset.action;
-
-    if (action === "copy-next") {
-      event.stopPropagation();
-      const btn = event.target.closest(".next-code-btn");
-      const rawNextCode = btn?.dataset?.nextCode || "";
-      if (rawNextCode) {
-        const cleanCode = rawNextCode.replace(/\s+/g, "");
-        await navigator.clipboard.writeText(cleanCode);
-        scheduleClipboardClear(cleanCode, Number(meta?.clipboardClearSec ?? 30));
-        showToast("Copied next code!");
-      }
-      return;
-    }
 
     if (action === "copy") {
       const code = (codes.get(id) || (await generateTOTP(account.secret, Date.now(), account))).replace(/\s+/g, "");
