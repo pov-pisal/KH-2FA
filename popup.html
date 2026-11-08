@@ -47,7 +47,7 @@
       </header>
 
       <main>
-        <section id="lockedView" class="card hidden" aria-hidden="true" inert>
+        <section id="lockedView" class="card hidden" inert>
           <div id="syncDetectedBanner" class="sync-detected-banner hidden" role="status">
             <div class="sync-detected-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
@@ -61,7 +61,7 @@
           <h2 id="lockTitle">Unlock vault</h2>
           <p id="lockSubtitle">Enter your PIN or Password to unlock.</p>
 
-          <div id="createPinFields" class="stack hidden" aria-hidden="true">
+          <div id="createPinFields" class="stack hidden">
             <div class="browser-sync-quick-banner">
               <button id="lockTransferFromBrowserBtn" class="primary browser-sync-btn" type="button">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
@@ -136,7 +136,7 @@
           <div id="lockoutNotice" class="lockout-box hidden" role="alert"></div>
         </section>
 
-        <section id="mainView" class="hidden" aria-hidden="true" inert>
+        <section id="mainView" class="hidden" inert>
           <!-- Segmented Vault Navigation Tabs -->
           <div class="vault-nav-wrap">
             <nav class="vault-nav" role="tablist" aria-label="Vault sections">
@@ -193,12 +193,12 @@
 
             <div id="categoryFilterBar" class="category-filter-bar" role="tablist" aria-label="Account categories"></div>
 
-            <div id="emptyState" class="card empty hidden" aria-hidden="true">
+            <div id="emptyState" class="card empty hidden">
               <h3>No 2FA accounts yet</h3>
               <p>Add your first TOTP account or scan a QR code to get started.</p>
             </div>
 
-            <div id="noResultsState" class="card empty hidden" aria-hidden="true">
+            <div id="noResultsState" class="card empty hidden">
               <h3>No results</h3>
               <p>No 2FA accounts match your search.</p>
             </div>
@@ -235,7 +235,7 @@
 
             <div id="passwordCategoryFilterBar" class="category-filter-bar" role="tablist" aria-label="Password categories"></div>
 
-            <div id="emptyPasswordsState" class="card empty hidden" aria-hidden="true">
+            <div id="emptyPasswordsState" class="card empty hidden">
               <div class="empty-icon-wrap">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
               </div>
@@ -244,7 +244,7 @@
               <button id="emptyAddPasswordBtn" class="primary add-first-btn" type="button">+ Add Password</button>
             </div>
 
-            <div id="noPasswordResultsState" class="card empty hidden" aria-hidden="true">
+            <div id="noPasswordResultsState" class="card empty hidden">
               <h3>No results</h3>
               <p>No passwords match your search query.</p>
             </div>
@@ -840,7 +840,6 @@
           <section
             id="settingsChangePin"
             class="settings-section hidden"
-            aria-hidden="true"
           >
             <h3>Change PIN</h3>
             <div class="stack">
@@ -902,7 +901,6 @@
           <section
             id="settingsBackup"
             class="settings-section hidden"
-            aria-hidden="true"
           >
             <h3>Backup &amp; Restore</h3>
 
@@ -995,7 +993,6 @@
           <section
             id="settingsGoogleSync"
             class="settings-section hidden"
-            aria-hidden="true"
           >
             <div class="sync-section-header">
               <div class="sync-header-icon">
@@ -1056,7 +1053,6 @@
           <section
             id="settingsGistSync"
             class="settings-section hidden"
-            aria-hidden="true"
           >
             <div class="sync-section-header">
               <div class="sync-header-icon gist-icon">
@@ -1157,7 +1153,6 @@
           <section
             id="settingsPreferences"
             class="settings-section hidden"
-            aria-hidden="true"
           >
             <h3>Preferences</h3>
             <div class="settings-row">
@@ -1217,7 +1212,6 @@
           <section
             id="settingsClockSync"
             class="settings-section hidden"
-            aria-hidden="true"
           >
             <h3>Time Sync &amp; Clock Drift</h3>
             <p class="muted">TOTP 2FA codes require accurate time. If your device clock drifts by 15+ seconds, codes will be rejected by websites.</p>
@@ -1248,7 +1242,6 @@
           <section
             id="settingsReset"
             class="settings-section hidden"
-            aria-hidden="true"
           >
             <h3>Reset All Data</h3>
             <div class="reset-warning-box">

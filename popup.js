@@ -284,14 +284,15 @@ const elements = {
 function showModal(modal) {
   if (!modal) return;
   modal.classList.remove("hidden");
-  modal.setAttribute("aria-hidden", "false");
   modal.removeAttribute("inert");
 }
 
 function hideModal(modal) {
   if (!modal) return;
+  if (modal.contains(document.activeElement) || modal === document.activeElement) {
+    document.activeElement.blur();
+  }
   modal.classList.add("hidden");
-  modal.setAttribute("aria-hidden", "true");
   modal.setAttribute("inert", "");
 }
 
@@ -402,11 +403,12 @@ function showToast(message, duration = 1800) {
 }
 
 function showLockedView({ createMode, syncDetected = false }) {
+  if (elements.mainView.contains(document.activeElement)) {
+    document.activeElement.blur();
+  }
   elements.lockedView.classList.remove("hidden");
-  elements.lockedView.setAttribute("aria-hidden", "false");
   elements.lockedView.removeAttribute("inert");
   elements.mainView.classList.add("hidden");
-  elements.mainView.setAttribute("aria-hidden", "true");
   elements.mainView.setAttribute("inert", "");
   elements.lockError.textContent = "";
 
@@ -437,12 +439,13 @@ function showLockedView({ createMode, syncDetected = false }) {
 }
 
 function showMainView() {
+  if (elements.lockedView.contains(document.activeElement)) {
+    document.activeElement.blur();
+  }
   elements.syncDetectedBanner?.classList.add("hidden");
   elements.lockedView.classList.add("hidden");
-  elements.lockedView.setAttribute("aria-hidden", "true");
   elements.lockedView.setAttribute("inert", "");
   elements.mainView.classList.remove("hidden");
-  elements.mainView.setAttribute("aria-hidden", "false");
   elements.mainView.removeAttribute("inert");
 
   if (elements.peekToggleBtn) {
@@ -2028,27 +2031,34 @@ function hideAllSettingsSections() {
     elements.settingsReset,
   ].forEach((section) => {
     if (!section) return;
+    if (section.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
     section.classList.add("hidden");
-    section.setAttribute("aria-hidden", "true");
+    section.setAttribute("inert", "");
   });
 }
 
 function showSettingsList() {
+  if (elements.settingsBackBtn && (elements.settingsBackBtn === document.activeElement || elements.settingsBackBtn.contains(document.activeElement))) {
+    document.activeElement.blur();
+  }
   hideAllSettingsSections();
   updateSyncBadge();
   updateGistSyncBadge();
   updateClockSyncUI();
   elements.settingsList?.classList.remove("hidden");
-  elements.settingsList?.setAttribute("aria-hidden", "false");
+  elements.settingsList?.removeAttribute("inert");
   elements.settingsBackBtn?.classList.add("hidden");
-  elements.settingsBackBtn?.setAttribute("aria-hidden", "true");
 }
 
 function hideSettingsList() {
+  if (elements.settingsList?.contains(document.activeElement)) {
+    document.activeElement.blur();
+  }
   elements.settingsList?.classList.add("hidden");
-  elements.settingsList?.setAttribute("aria-hidden", "true");
+  elements.settingsList?.setAttribute("inert", "");
   elements.settingsBackBtn?.classList.remove("hidden");
-  elements.settingsBackBtn?.setAttribute("aria-hidden", "false");
 }
 
 function openSettingsSection(key) {
@@ -2067,7 +2077,7 @@ function openSettingsSection(key) {
   if (!section) return;
   hideSettingsList();
   section.classList.remove("hidden");
-  section.setAttribute("aria-hidden", "false");
+  section.removeAttribute("inert");
   if (key === "clock-sync") {
     updateClockSyncUI();
   }
