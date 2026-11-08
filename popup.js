@@ -3890,12 +3890,16 @@ function renderTransferQR() {
   if (elements.transferCodeText) {
     elements.transferCodeText.value = rawStr;
   }
+  const snippet = document.getElementById("transferCodeSnippet");
+  if (snippet) {
+    snippet.textContent = rawStr ? (rawStr.slice(0, 14) + "..." + rawStr.slice(-6)) : "No vault loaded";
+  }
 
   try {
     const qr = qrcode(0, "M");
     qr.addData(rawStr);
     qr.make();
-    elements.transferQrContainer.innerHTML = qr.createImgTag(3, 4);
+    elements.transferQrContainer.innerHTML = qr.createImgTag(2, 2);
   } catch (e) {
     console.warn("QR too large, using fallback:", e);
     elements.transferQrContainer.innerHTML = `

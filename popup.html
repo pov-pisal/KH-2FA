@@ -1092,21 +1092,25 @@
                   </div>
                 </div>
 
-                <div class="transfer-code-card">
-                  <div class="transfer-code-header">
-                    <span>Or Copy Sync Code</span>
-                    <button type="button" id="copyTransferCodeBtn" class="primary transfer-action-btn">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                      <span>Copy Code</span>
-                    </button>
+                <!-- Sleek Single-Line Copy Bar -->
+                <div class="transfer-copy-bar">
+                  <div class="transfer-copy-info">
+                    <span class="transfer-copy-badge">SYNC CODE</span>
+                    <span id="transferCodeSnippet" class="transfer-code-snippet">khsync:••••••••••••</span>
+                    <textarea id="transferCodeText" class="sr-only" readonly></textarea>
                   </div>
-                  <textarea id="transferCodeText" class="transfer-textarea" readonly placeholder="Unlock vault to view sync code"></textarea>
+                  <button type="button" id="copyTransferCodeBtn" class="primary transfer-copy-action-btn" title="Copy sync code to clipboard">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy Code</span>
+                  </button>
                 </div>
 
-                <button type="button" id="downloadTransferFileBtn" class="ghost upload-transfer-file-btn">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  <span>Export Transfer File (.khsync)</span>
-                </button>
+                <div class="file-transfer-footer">
+                  <span>Need an offline backup file?</span>
+                  <button type="button" id="downloadTransferFileBtn" class="link-subtle-btn">
+                    <span>Export .khsync File</span>
+                  </button>
+                </div>
               </div>
 
               <!-- View 2: Receive / Import -->
