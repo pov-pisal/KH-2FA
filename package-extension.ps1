@@ -20,6 +20,7 @@ $rootFiles = @(
     "totp.js",
     "storage.js",
     "brandIcons.js",
+    "passwordGenerator.js",
     "jsQR.js",
     "qrcode.js",
     "popup.html",

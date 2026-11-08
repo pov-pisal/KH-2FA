@@ -127,51 +127,254 @@
         </section>
 
         <section id="mainView" class="hidden" aria-hidden="true" inert>
-          <div class="toolbar">
-            <div class="search">
-              <input
-                id="searchInput"
-                type="search"
-                placeholder="Search accounts (/)"
-                aria-label="Search accounts"
-              />
+          <!-- Segmented Vault Navigation Tabs -->
+          <div class="vault-nav-wrap">
+            <nav class="vault-nav" role="tablist" aria-label="Vault sections">
+              <button id="nav2faBtn" class="vault-nav-item active" role="tab" aria-selected="true" data-tab="2fa">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>2FA Codes</span>
+                <span id="nav2faCount" class="nav-count-badge">0</span>
+              </button>
+              <button id="navPasswordsBtn" class="vault-nav-item" role="tab" aria-selected="false" data-tab="passwords">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 2l-2 2m-1.5 1.5L16 7m-3 3l-2.5 2.5a5 5 0 1 1-7.07 7.07 5 5 0 0 1 7.07-7.07L13 10m0 0l2.5-2.5m1.5-1.5L19 4m2-2l-2 2"></path></svg>
+                <span>Passwords</span>
+                <span id="navPasswordsCount" class="nav-count-badge">0</span>
+              </button>
+              <button id="navGeneratorBtn" class="vault-nav-item" role="tab" aria-selected="false" data-tab="generator">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>Generator</span>
+              </button>
+            </nav>
+          </div>
+
+          <!-- ── TAB 1: 2FA Codes ── -->
+          <div id="tabContent2fa" class="tab-pane active" role="tabpanel" aria-labelledby="nav2faBtn">
+            <div class="toolbar">
+              <div class="search">
+                <input
+                  id="searchInput"
+                  type="search"
+                  placeholder="Search 2FA accounts (/)"
+                  aria-label="Search 2FA accounts"
+                />
+              </div>
+              <button
+                id="peekToggleBtn"
+                class="ghost icon-btn active"
+                title="Disable Privacy Mask (Show codes)"
+                aria-label="Toggle Privacy Mask"
+              >
+                <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              </button>
+              <button
+                id="scanScreenQrBtn"
+                class="ghost icon-btn"
+                title="Scan QR code from webpage"
+                aria-label="Scan QR code from webpage"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><rect x="7" y="7" width="10" height="10" rx="1.5"></rect></svg>
+              </button>
+              <button id="addAccountBtn" class="primary add-btn" title="Add new 2FA account">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Add</span>
+              </button>
             </div>
-            <button
-              id="peekToggleBtn"
-              class="ghost icon-btn active"
-              title="Disable Privacy Mask (Show codes)"
-              aria-label="Toggle Privacy Mask"
-            >
-              <svg class="icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              <svg class="icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-            </button>
-            <button
-              id="scanScreenQrBtn"
-              class="ghost icon-btn"
-              title="Scan QR code from webpage"
-              aria-label="Scan QR code from webpage"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><rect x="7" y="7" width="10" height="10" rx="1.5"></rect></svg>
-            </button>
-            <button id="addAccountBtn" class="primary add-btn" title="Add new account">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>Add</span>
-            </button>
+
+            <div id="categoryFilterBar" class="category-filter-bar" role="tablist" aria-label="Account categories"></div>
+
+            <div id="emptyState" class="card empty hidden" aria-hidden="true">
+              <h3>No 2FA accounts yet</h3>
+              <p>Add your first TOTP account or scan a QR code to get started.</p>
+            </div>
+
+            <div id="noResultsState" class="card empty hidden" aria-hidden="true">
+              <h3>No results</h3>
+              <p>No 2FA accounts match your search.</p>
+            </div>
+
+            <div id="accountsList" class="list" role="list"></div>
           </div>
 
-          <div id="categoryFilterBar" class="category-filter-bar" role="tablist" aria-label="Account categories"></div>
+          <!-- ── TAB 2: Passwords Management ── -->
+          <div id="tabContentPasswords" class="tab-pane hidden" role="tabpanel" aria-labelledby="navPasswordsBtn">
+            <div id="passwordMatchedSiteBanner" class="matched-site-banner hidden" role="region" aria-label="Suggested passwords for current site"></div>
 
-          <div id="emptyState" class="card empty hidden" aria-hidden="true">
-            <h3>No accounts yet</h3>
-            <p>Add your first TOTP account or scan a QR code to get started.</p>
+            <div class="toolbar">
+              <div class="search">
+                <input
+                  id="passwordSearchInput"
+                  type="search"
+                  placeholder="Search passwords (/)"
+                  aria-label="Search passwords"
+                />
+              </div>
+              <button
+                id="quickGeneratorBtn"
+                class="ghost icon-btn"
+                title="Password Generator"
+                aria-label="Open Password Generator"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              </button>
+              <button id="addPasswordBtn" class="primary add-btn" title="Add new password">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Add</span>
+              </button>
+            </div>
+
+            <div id="passwordCategoryFilterBar" class="category-filter-bar" role="tablist" aria-label="Password categories"></div>
+
+            <div id="emptyPasswordsState" class="card empty hidden" aria-hidden="true">
+              <div class="empty-icon-wrap">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              </div>
+              <h3>No passwords saved yet</h3>
+              <p>Store your website logins securely with AES-256-GCM encryption, or use the Generator to create strong passwords.</p>
+              <button id="emptyAddPasswordBtn" class="primary add-first-btn" type="button">+ Add Password</button>
+            </div>
+
+            <div id="noPasswordResultsState" class="card empty hidden" aria-hidden="true">
+              <h3>No results</h3>
+              <p>No passwords match your search query.</p>
+            </div>
+
+            <div id="passwordsList" class="list" role="list"></div>
           </div>
 
-          <div id="noResultsState" class="card empty hidden" aria-hidden="true">
-            <h3>No results</h3>
-            <p>No accounts match your search.</p>
-          </div>
+          <!-- ── TAB 3: Strong Password Generator ── -->
+          <div id="tabContentGenerator" class="tab-pane hidden" role="tabpanel" aria-labelledby="navGeneratorBtn">
+            <div class="generator-container">
+              <!-- Output Card -->
+              <div class="generator-display-card">
+                <div class="generator-display-header">
+                  <span class="gen-card-label">Generated Password</span>
+                  <span id="generatorStrengthBadge" class="strength-badge-pill">Very Strong</span>
+                </div>
+                <div id="generatedPasswordDisplay" class="generator-display" role="textbox" aria-label="Generated password" tabindex="0" title="Click to copy password"></div>
+                
+                <div class="generator-strength-bar">
+                  <div id="generatorStrengthFill" class="strength-fill"></div>
+                </div>
+                <div class="strength-status-row">
+                  <span id="generatorStrengthLabel" class="strength-label">Very Strong</span>
+                  <span id="generatorCrackTime" class="crack-time">Crack time: Centuries</span>
+                </div>
 
-          <div id="accountsList" class="list" role="list"></div>
+                <div class="generator-action-row">
+                  <button id="copyGeneratedPasswordBtn" class="primary gen-btn-large" type="button">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy Password</span>
+                  </button>
+                  <button id="refreshGeneratedPasswordBtn" class="secondary gen-btn-icon" type="button" title="Generate New">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                  </button>
+                  <button id="saveGeneratedToVaultBtn" class="secondary gen-btn-icon" type="button" title="Save to Passwords Vault">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mode Switcher -->
+              <div class="gen-mode-tabs" role="tablist" aria-label="Generator Mode">
+                <button type="button" class="gen-mode-tab active" data-mode="password" role="tab" aria-selected="true">Password</button>
+                <button type="button" class="gen-mode-tab" data-mode="passphrase" role="tab" aria-selected="false">Passphrase</button>
+                <button type="button" class="gen-mode-tab" data-mode="pin" role="tab" aria-selected="false">PIN</button>
+              </div>
+
+              <!-- Mode 1: Random Password Controls -->
+              <div id="generatorPasswordControls" class="gen-controls-group">
+                <div class="slider-control">
+                  <div class="slider-header">
+                    <span>Password Length</span>
+                    <strong id="generatorLengthVal" class="slider-val-badge">16</strong>
+                  </div>
+                  <input type="range" id="generatorLengthSlider" min="8" max="64" value="16" class="gen-slider" />
+                </div>
+
+                <div class="gen-toggles-grid">
+                  <label class="gen-toggle-item">
+                    <input type="checkbox" id="genOptUpper" checked />
+                    <span class="toggle-box"></span>
+                    <span class="toggle-text">Uppercase (A-Z)</span>
+                  </label>
+                  <label class="gen-toggle-item">
+                    <input type="checkbox" id="genOptLower" checked />
+                    <span class="toggle-box"></span>
+                    <span class="toggle-text">Lowercase (a-z)</span>
+                  </label>
+                  <label class="gen-toggle-item">
+                    <input type="checkbox" id="genOptNumbers" checked />
+                    <span class="toggle-box"></span>
+                    <span class="toggle-text">Numbers (0-9)</span>
+                  </label>
+                  <label class="gen-toggle-item">
+                    <input type="checkbox" id="genOptSymbols" checked />
+                    <span class="toggle-box"></span>
+                    <span class="toggle-text">Symbols (!@#$...)</span>
+                  </label>
+                  <label class="gen-toggle-item full-width">
+                    <input type="checkbox" id="genOptAvoidAmbiguous" />
+                    <span class="toggle-box"></span>
+                    <span class="toggle-text">Avoid Ambiguous (1, l, I, 0, O)</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Mode 2: Memorable Passphrase Controls -->
+              <div id="generatorPassphraseControls" class="gen-controls-group hidden">
+                <div class="slider-control">
+                  <div class="slider-header">
+                    <span>Word Count</span>
+                    <strong id="generatorWordsVal" class="slider-val-badge">4</strong>
+                  </div>
+                  <input type="range" id="generatorWordsSlider" min="3" max="8" value="4" class="gen-slider" />
+                </div>
+
+                <div class="field-compact">
+                  <label for="generatorSeparatorSelect">Word Separator</label>
+                  <select id="generatorSeparatorSelect">
+                    <option value="hyphen">Hyphen (-)</option>
+                    <option value="dot">Period (.)</option>
+                    <option value="underscore">Underscore (_)</option>
+                    <option value="space">Space ( )</option>
+                  </select>
+                </div>
+
+                <div class="gen-toggles-grid">
+                  <label class="gen-toggle-item">
+                    <input type="checkbox" id="genOptCapitalize" checked />
+                    <span class="toggle-box"></span>
+                    <span class="toggle-text">Capitalize Words</span>
+                  </label>
+                  <label class="gen-toggle-item">
+                    <input type="checkbox" id="genOptIncludeNumber" checked />
+                    <span class="toggle-box"></span>
+                    <span class="toggle-text">Include Number</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Mode 3: PIN Controls -->
+              <div id="generatorPinControls" class="gen-controls-group hidden">
+                <div class="slider-control">
+                  <div class="slider-header">
+                    <span>PIN Digits</span>
+                    <strong id="generatorPinDigitsVal" class="slider-val-badge">6</strong>
+                  </div>
+                  <input type="range" id="generatorPinSlider" min="4" max="16" value="6" class="gen-slider" />
+                </div>
+              </div>
+
+              <!-- Quick Presets -->
+              <div class="gen-presets-row">
+                <span class="presets-label">Presets:</span>
+                <button type="button" class="preset-pill" data-preset="memorable">Memorable</button>
+                <button type="button" class="preset-pill" data-preset="standard">Strong (16)</button>
+                <button type="button" class="preset-pill" data-preset="ultra">Ultra (32)</button>
+              </div>
+            </div>
+          </div>
         </section>
       </main>
 
@@ -342,6 +545,101 @@
           <button id="cancelAccountBtn" class="ghost">Cancel</button>
         </div>
         <p id="modalError" class="error" role="alert"></p>
+      </div>
+    </div>
+
+    <!-- ── Password Modal (Add / Edit Password) ── -->
+    <div
+      id="passwordModal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      inert
+    >
+      <div class="modal-content">
+        <header>
+          <h2 id="passwordModalTitle">Add password</h2>
+          <button id="closePasswordModalBtn" class="ghost icon-btn-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </header>
+
+        <div id="passwordBrandPreview" class="modal-brand-preview hidden" aria-live="polite">
+          <div id="passwordBrandIcon" class="account-brand-icon"></div>
+          <div class="modal-brand-info">
+            <span class="modal-brand-label">Service</span>
+            <strong id="passwordBrandName" class="modal-brand-name">Google</strong>
+          </div>
+        </div>
+
+        <div class="stack">
+          <label class="field">
+            <span>Title / Service name</span>
+            <input id="passwordTitleInput" type="text" placeholder="e.g. Google, GitHub, Netflix" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span>Username / Email</span>
+            <input id="passwordUsernameInput" type="text" placeholder="e.g. user@example.com" autocomplete="off" />
+          </label>
+
+          <div class="field">
+            <div class="field-label-row">
+              <label for="passwordValueInput">Password</label>
+              <span id="passwordStrengthBadgeModal" class="strength-badge-pill">Strong</span>
+            </div>
+            <div class="password-input-action-wrap">
+              <input id="passwordValueInput" type="password" placeholder="Enter or generate password" autocomplete="new-password" />
+              <button type="button" id="passwordModalEyeBtn" class="pin-toggle-btn" aria-label="Show password" title="Show password">
+                <svg class="icon-eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="icon-eye-off" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              </button>
+              <button type="button" id="passwordModalQuickGenBtn" class="quick-gen-btn" title="Generate strong random password">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>Generate</span>
+              </button>
+            </div>
+            <div class="field-strength-meter">
+              <div id="passwordFieldStrengthFill" class="strength-fill"></div>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>Website URL</span>
+            <input id="passwordUrlInput" type="url" placeholder="https://github.com/login" autocomplete="off" />
+          </label>
+
+          <div class="field category-field-wrap">
+            <div class="field-label-row">
+              <label for="passwordCategoryTrigger">Category</label>
+            </div>
+            <div class="custom-category-dropdown" id="passwordCategoryDropdown">
+              <button type="button" id="passwordCategoryTrigger" class="category-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <div class="dropdown-trigger-left">
+                  <span id="passwordCategoryTriggerDot" class="category-indicator-dot dot-none"></span>
+                  <span id="passwordCategoryTriggerText" class="category-trigger-text">None (Uncategorized)</span>
+                </div>
+                <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <div id="passwordCategoryDropdownMenu" class="category-dropdown-menu hidden" role="listbox">
+                <div class="category-options-list" id="passwordCategoryOptionsList"></div>
+              </div>
+              <input type="hidden" id="passwordCategoryHiddenInput" value="" />
+            </div>
+          </div>
+
+          <label class="field">
+            <span>Notes (optional)</span>
+            <textarea id="passwordNotesInput" rows="2" placeholder="Security questions, recovery keys, or notes..."></textarea>
+          </label>
+        </div>
+
+        <div class="row">
+          <button id="savePasswordBtn" class="primary">Save</button>
+          <button id="cancelPasswordBtn" class="ghost">Cancel</button>
+        </div>
+        <p id="passwordModalError" class="error" role="alert"></p>
       </div>
     </div>
 

@@ -2429,3 +2429,655 @@ button.small {
   border-color: rgba(239, 68, 68, 0.4);
   color: #ef4444;
 }
+
+/* ─── Vault Segmented Navigation Tabs ────────────────────────────────────────── */
+.vault-nav-wrap {
+  padding: 0 0 10px 0;
+  width: 100%;
+}
+
+.vault-nav {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.vault-nav-item {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.vault-nav-item:hover {
+  color: var(--text);
+  background: var(--surface-hover, rgba(255, 255, 255, 0.05));
+}
+
+.vault-nav-item.active {
+  background: var(--panel-2);
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(76, 201, 240, 0.25);
+}
+
+.vault-nav-item svg {
+  flex-shrink: 0;
+}
+
+.nav-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  min-width: 14px;
+  height: 14px;
+  font-size: 9.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  transition: all 0.15s ease;
+}
+
+.vault-nav-item.active .nav-count-badge {
+  background: rgba(76, 201, 240, 0.22);
+  color: var(--primary);
+}
+
+/* Tab Panes */
+.tab-pane {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.tab-pane.hidden {
+  display: none !important;
+}
+
+/* ─── Suggested Site Banner ─────────────────────────────────────────────────── */
+.matched-site-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: rgba(76, 201, 240, 0.12);
+  border: 1px solid rgba(76, 201, 240, 0.35);
+  border-radius: 10px;
+  font-size: 11.5px;
+  color: var(--text);
+  animation: fadeInBadge 0.2s ease;
+}
+
+.matched-site-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matched-site-left strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.matched-site-autofill-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #0b1120;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.matched-site-autofill-btn:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 8px rgba(76, 201, 240, 0.4);
+}
+
+/* ─── Password Card in List ─────────────────────────────────────────────────── */
+.password-item {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all 0.18s ease;
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.password-item:hover {
+  border-color: rgba(76, 201, 240, 0.4);
+  background: var(--surface-hover, rgba(255, 255, 255, 0.04));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.password-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.password-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.password-title-row strong {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.password-user-label {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.password-dots-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.password-dots {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--primary);
+}
+
+.password-dots.revealed {
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.password-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.password-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.password-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.password-btn.active {
+  color: var(--primary);
+}
+
+.password-btn.btn-copy:hover {
+  color: var(--primary);
+  border-color: rgba(76, 201, 240, 0.3);
+  background: rgba(76, 201, 240, 0.12);
+}
+
+.password-item.copied {
+  border-color: #34d399 !important;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.25) !important;
+}
+
+/* ─── Password Strength Meter Pill & Bar ────────────────────────────────────── */
+.strength-badge-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.field-strength-meter {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+
+/* ─── Password Input Field with Nested Quick Buttons ────────────────────────── */
+.password-input-action-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-action-wrap input {
+  width: 100%;
+  padding-right: 110px !important;
+  box-sizing: border-box;
+}
+
+.password-input-action-wrap .pin-toggle-btn {
+  right: 76px;
+}
+
+.quick-gen-btn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(76, 201, 240, 0.18);
+  border: 1px solid rgba(76, 201, 240, 0.4);
+  color: var(--primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.quick-gen-btn:hover {
+  background: var(--primary);
+  color: #0b1120;
+  box-shadow: 0 0 10px rgba(76, 201, 240, 0.4);
+}
+
+/* ─── Dedicated Password Generator View ─────────────────────────────────────── */
+.generator-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 2px 14px;
+}
+
+.generator-display-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.generator-display-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gen-card-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.generator-display {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f0f6fc;
+  letter-spacing: 0.5px;
+  word-break: break-all;
+  user-select: all;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.generator-display:hover {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.generator-strength-bar {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.strength-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.strength-label {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.crack-time {
+  color: var(--muted);
+}
+
+.generator-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.gen-btn-large {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.gen-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.gen-btn-icon.spinning svg {
+  animation: spinRefresh 0.4s ease;
+}
+
+@keyframes spinRefresh {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(180deg); }
+}
+
+/* Generator Mode Tabs */
+.gen-mode-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.gen-mode-tab {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.gen-mode-tab:hover {
+  color: var(--text);
+}
+
+.gen-mode-tab.active {
+  background: var(--panel-2);
+  color: var(--primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Generator Controls */
+.gen-controls-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.slider-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.slider-val-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: rgba(76, 201, 240, 0.15);
+  border: 1px solid rgba(76, 201, 240, 0.35);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.gen-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  cursor: pointer;
+}
+
+.gen-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 8px rgba(76, 201, 240, 0.6);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.gen-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Toggles Grid */
+.gen-toggles-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.gen-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.gen-toggle-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.gen-toggle-item input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.gen-toggle-item input[type="checkbox"]:checked + .toggle-box {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.gen-toggle-item input[type="checkbox"]:checked + .toggle-box::after {
+  content: "";
+  width: 4px;
+  height: 8px;
+  border: solid #0b1120;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-0.5px, -0.5px);
+}
+
+.gen-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+}
+
+.presets-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.preset-pill {
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.preset-pill:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--surface-hover, rgba(255, 255, 255, 0.05));
+}
+
+.field-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-compact label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.empty-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(76, 201, 240, 0.12);
+  border: 1px solid rgba(76, 201, 240, 0.25);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 10px;
+}
+
+.add-first-btn {
+  margin-top: 12px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+}

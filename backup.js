@@ -96,12 +96,17 @@ function getSelectedExportFormat() {
 
 // ─── Export ───────────────────────────────────────────────────────────────────
 async function buildPayload() {
-  if (!vault?.accounts) return "";
+  if (!vault) return "";
   const format = getSelectedExportFormat();
 
   if (format === "plaintext") {
     return JSON.stringify(
-      { exportedAt: new Date().toISOString(), accounts: vault.accounts, createdAt: vault.createdAt },
+      {
+        exportedAt: new Date().toISOString(),
+        accounts: vault.accounts || [],
+        passwords: vault.passwords || [],
+        createdAt: vault.createdAt,
+      },
       null,
       2
     );
@@ -117,7 +122,8 @@ async function buildPayload() {
   try {
     const rawData = {
       exportedAt: new Date().toISOString(),
-      accounts: vault.accounts,
+      accounts: vault.accounts || [],
+      passwords: vault.passwords || [],
       createdAt: vault.createdAt,
     };
     const encryptedRecord = await encryptVault(password, rawData);
@@ -176,15 +182,17 @@ async function handleDownload() {
 }
 
 // ─── Import ───────────────────────────────────────────────────────────────────
-async function applyImportedAccounts(accountsList, sourceInfo = "backup") {
-  if (!accountsList || accountsList.length === 0) {
-    setStatus(el.importStatus, "No valid accounts found in payload.", "error");
+async function applyImportedAccounts(accountsList, passwordsList = [], sourceInfo = "backup") {
+  if ((!accountsList || accountsList.length === 0) && (!passwordsList || passwordsList.length === 0)) {
+    setStatus(el.importStatus, "No valid accounts or passwords found in payload.", "error");
     return;
   }
 
   setStatus(el.importStatus, `Found ${accountsList.length} accounts — saving to vault…`, "info");
 
-  if (!vault) vault = { accounts: [], createdAt: Date.now() };
+  if (!vault) vault = { accounts: [], passwords: [], createdAt: Date.now() };
+  if (!vault.accounts) vault.accounts = [];
+  if (!vault.passwords) vault.passwords = [];
 
   // Merge accounts without duplicates by secret
   const existingSecrets = new Set(vault.accounts.map((a) => a.secret.toUpperCase()));
@@ -226,7 +234,32 @@ async function applyImportedAccounts(accountsList, sourceInfo = "backup") {
     if (el.importEncryptedBox) el.importEncryptedBox.style.display = "none";
     pendingEncryptedPayload = null;
     await populateExport();
-    setStatus(el.importStatus, `✓ Successfully imported ${addedCount} new account(s) (Total: ${vault.accounts.length})!`, "success");
+    let addedPwCount = 0;
+    if (passwordsList && Array.isArray(passwordsList)) {
+      const existingPwIds = new Set(vault.passwords.map((p) => p.id));
+      for (const p of passwordsList) {
+        if (!p || (!p.title && !p.password)) continue;
+        const id = p.id || crypto.randomUUID();
+        if (!existingPwIds.has(id)) {
+          vault.passwords.push({
+            id,
+            title: p.title || "",
+            username: p.username || "",
+            password: p.password || "",
+            url: p.url || "",
+            category: p.category || "Personal",
+            notes: p.notes || "",
+            pinned: Boolean(p.pinned),
+            createdAt: p.createdAt || Date.now(),
+            updatedAt: p.updatedAt || Date.now(),
+          });
+          existingPwIds.add(id);
+          addedPwCount += 1;
+        }
+      }
+    }
+    const summaryMsg = `✓ Imported ${addedCount} 2FA account(s) and ${addedPwCount} password(s)!`;
+    setStatus(el.importStatus, summaryMsg, "success");
   } catch (e) {
     setStatus(el.importStatus, `Failed to save vault: ${e.message}`, "error");
   }
@@ -243,11 +276,12 @@ async function handleDecryptImport() {
   setStatus(el.importStatus, "Decrypting backup…", "info");
   try {
     const decrypted = await decryptVault(password, pendingEncryptedPayload);
-    const rawAccounts = Array.isArray(decrypted) ? decrypted : decrypted?.accounts;
-    if (!rawAccounts || !Array.isArray(rawAccounts)) {
-      throw new Error("Decrypted data does not contain an accounts list.");
+    const rawAccounts = Array.isArray(decrypted) ? decrypted : (decrypted?.accounts || []);
+    const rawPasswords = Array.isArray(decrypted?.passwords) ? decrypted.passwords : [];
+    if (rawAccounts.length === 0 && rawPasswords.length === 0) {
+      throw new Error("Decrypted data contains no accounts or passwords.");
     }
-    await applyImportedAccounts(rawAccounts, "encrypted backup");
+    await applyImportedAccounts(rawAccounts, rawPasswords, "encrypted backup");
   } catch (err) {
     setStatus(el.importStatus, `Decryption failed: Incorrect password or corrupted file (${err.message}).`, "error");
   }
@@ -316,6 +350,7 @@ async function handleImport(jsonText) {
       return;
     }
 
+    const passwords = Array.isArray(payload?.passwords) ? payload.passwords : [];
     if (Array.isArray(payload)) {
       accounts = payload;
     } else if (Array.isArray(payload?.accounts)) {

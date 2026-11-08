@@ -1,6 +1,12 @@
 import { qrcode } from "./qrcode.js";
 import { encryptVault, decryptVault } from "./crypto.js";
 import {
+  generateRandomPassword,
+  generatePassphrase,
+  generatePin,
+  evaluatePasswordStrength,
+} from "./passwordGenerator.js";
+import {
   generateTOTP,
   parseOtpauth,
   parseGoogleMigrationUri,
@@ -152,6 +158,81 @@ const elements = {
   confirmResetBtn: document.getElementById("confirmResetBtn"),
   cancelResetBtn: document.getElementById("cancelResetBtn"),
   settingsReset: document.getElementById("settingsReset"),
+
+  // Vault Segmented Navigation
+  nav2faBtn: document.getElementById("nav2faBtn"),
+  navPasswordsBtn: document.getElementById("navPasswordsBtn"),
+  navGeneratorBtn: document.getElementById("navGeneratorBtn"),
+  nav2faCount: document.getElementById("nav2faCount"),
+  navPasswordsCount: document.getElementById("navPasswordsCount"),
+  tabContent2fa: document.getElementById("tabContent2fa"),
+  tabContentPasswords: document.getElementById("tabContentPasswords"),
+  tabContentGenerator: document.getElementById("tabContentGenerator"),
+
+  // Passwords Tab
+  passwordSearchInput: document.getElementById("passwordSearchInput"),
+  quickGeneratorBtn: document.getElementById("quickGeneratorBtn"),
+  addPasswordBtn: document.getElementById("addPasswordBtn"),
+  passwordCategoryFilterBar: document.getElementById("passwordCategoryFilterBar"),
+  passwordMatchedSiteBanner: document.getElementById("passwordMatchedSiteBanner"),
+  emptyPasswordsState: document.getElementById("emptyPasswordsState"),
+  emptyAddPasswordBtn: document.getElementById("emptyAddPasswordBtn"),
+  noPasswordResultsState: document.getElementById("noPasswordResultsState"),
+  passwordsList: document.getElementById("passwordsList"),
+
+  // Generator Tab
+  generatedPasswordDisplay: document.getElementById("generatedPasswordDisplay"),
+  copyGeneratedPasswordBtn: document.getElementById("copyGeneratedPasswordBtn"),
+  refreshGeneratedPasswordBtn: document.getElementById("refreshGeneratedPasswordBtn"),
+  saveGeneratedToVaultBtn: document.getElementById("saveGeneratedToVaultBtn"),
+  generatorStrengthBadge: document.getElementById("generatorStrengthBadge"),
+  generatorStrengthFill: document.getElementById("generatorStrengthFill"),
+  generatorStrengthLabel: document.getElementById("generatorStrengthLabel"),
+  generatorCrackTime: document.getElementById("generatorCrackTime"),
+  generatorPasswordControls: document.getElementById("generatorPasswordControls"),
+  generatorLengthSlider: document.getElementById("generatorLengthSlider"),
+  generatorLengthVal: document.getElementById("generatorLengthVal"),
+  genOptUpper: document.getElementById("genOptUpper"),
+  genOptLower: document.getElementById("genOptLower"),
+  genOptNumbers: document.getElementById("genOptNumbers"),
+  genOptSymbols: document.getElementById("genOptSymbols"),
+  genOptAvoidAmbiguous: document.getElementById("genOptAvoidAmbiguous"),
+  generatorPassphraseControls: document.getElementById("generatorPassphraseControls"),
+  generatorWordsSlider: document.getElementById("generatorWordsSlider"),
+  generatorWordsVal: document.getElementById("generatorWordsVal"),
+  generatorSeparatorSelect: document.getElementById("generatorSeparatorSelect"),
+  genOptCapitalize: document.getElementById("genOptCapitalize"),
+  genOptIncludeNumber: document.getElementById("genOptIncludeNumber"),
+  generatorPinControls: document.getElementById("generatorPinControls"),
+  generatorPinSlider: document.getElementById("generatorPinSlider"),
+  generatorPinDigitsVal: document.getElementById("generatorPinDigitsVal"),
+
+  // Password Add/Edit Modal
+  passwordModal: document.getElementById("passwordModal"),
+  passwordModalTitle: document.getElementById("passwordModalTitle"),
+  closePasswordModalBtn: document.getElementById("closePasswordModalBtn"),
+  passwordBrandPreview: document.getElementById("passwordBrandPreview"),
+  passwordBrandIcon: document.getElementById("passwordBrandIcon"),
+  passwordBrandName: document.getElementById("passwordBrandName"),
+  passwordTitleInput: document.getElementById("passwordTitleInput"),
+  passwordUsernameInput: document.getElementById("passwordUsernameInput"),
+  passwordValueInput: document.getElementById("passwordValueInput"),
+  passwordModalEyeBtn: document.getElementById("passwordModalEyeBtn"),
+  passwordModalQuickGenBtn: document.getElementById("passwordModalQuickGenBtn"),
+  passwordStrengthBadgeModal: document.getElementById("passwordStrengthBadgeModal"),
+  passwordFieldStrengthFill: document.getElementById("passwordFieldStrengthFill"),
+  passwordUrlInput: document.getElementById("passwordUrlInput"),
+  passwordCategoryDropdown: document.getElementById("passwordCategoryDropdown"),
+  passwordCategoryTrigger: document.getElementById("passwordCategoryTrigger"),
+  passwordCategoryTriggerDot: document.getElementById("passwordCategoryTriggerDot"),
+  passwordCategoryTriggerText: document.getElementById("passwordCategoryTriggerText"),
+  passwordCategoryDropdownMenu: document.getElementById("passwordCategoryDropdownMenu"),
+  passwordCategoryOptionsList: document.getElementById("passwordCategoryOptionsList"),
+  passwordCategoryHiddenInput: document.getElementById("passwordCategoryHiddenInput"),
+  passwordNotesInput: document.getElementById("passwordNotesInput"),
+  savePasswordBtn: document.getElementById("savePasswordBtn"),
+  cancelPasswordBtn: document.getElementById("cancelPasswordBtn"),
+  passwordModalError: document.getElementById("passwordModalError"),
 };
 
 // ── Modal helpers ────────────────────────────────────────────────────────────
@@ -177,6 +258,13 @@ let sessionData = null;
 let currentCounter = null;
 let activeCategory = "all";
 let categoryManuallyTouched = false;
+let activeVaultTab = "2fa";
+let activePasswordCategory = "all";
+let editingPasswordId = null;
+let currentGeneratedPassword = "";
+let generatorMode = "password";
+let currentTabDomain = "";
+const revealedPasswords = new Set();
 
 function getEffectiveNow() {
   return Date.now() + (meta?.timeOffsetMs || 0);
@@ -319,8 +407,15 @@ function showMainView() {
       : "Enable Privacy Mask (Blur codes until hover)";
   }
 
-  renderAccounts();
-  elements.searchInput?.focus();
+  if (vault) {
+    if (!vault.accounts) vault.accounts = [];
+    if (!vault.passwords) vault.passwords = [];
+  }
+
+  detectCurrentTabDomain().then(() => {
+    updateAccountCount();
+    switchVaultTab(activeVaultTab);
+  });
 }
 
 function getLockTimeoutMs() {
@@ -484,7 +579,7 @@ async function handleUnlock() {
       return;
     }
 
-    vault = { accounts: [], createdAt: Date.now() };
+    vault = { accounts: [], passwords: [], createdAt: Date.now() };
     sessionPin = pin;
     vaultRecord = await encryptVault(pin, vault);
     await persistVaultRecord(vaultRecord);
@@ -1328,11 +1423,12 @@ async function handleBackup() {
 }
 
 function buildBackupPayload() {
-  if (!vault || !vault.accounts) return "";
+  if (!vault) return "";
   return JSON.stringify(
     {
       exportedAt: new Date().toISOString(),
-      accounts: vault.accounts,
+      accounts: vault.accounts || [],
+      passwords: vault.passwords || [],
       createdAt: vault.createdAt,
     },
     null,
@@ -1494,10 +1590,35 @@ async function handleImportBackup() {
       return;
     }
 
-    showImportError("Importing and encrypting accounts...");
-    // Import accounts into current vault, ensuring all fields are populated correctly
+    showImportError("Importing and encrypting data...");
     if (!vault) {
-      vault = { accounts: [], createdAt: Date.now() };
+      vault = { accounts: [], passwords: [], createdAt: Date.now() };
+    }
+    if (!vault.accounts) vault.accounts = [];
+    if (!vault.passwords) vault.passwords = [];
+
+    // Also import passwords if payload contained them
+    if (payload && Array.isArray(payload.passwords)) {
+      const existingPwIds = new Set(vault.passwords.map((p) => p.id));
+      for (const p of payload.passwords) {
+        if (!p || (!p.title && !p.password)) continue;
+        const id = p.id || crypto.randomUUID();
+        if (!existingPwIds.has(id)) {
+          vault.passwords.push({
+            id,
+            title: p.title || "",
+            username: p.username || "",
+            password: p.password || "",
+            url: p.url || "",
+            category: p.category || "Personal",
+            notes: p.notes || "",
+            pinned: Boolean(p.pinned),
+            createdAt: p.createdAt || Date.now(),
+            updatedAt: p.updatedAt || Date.now(),
+          });
+          existingPwIds.add(id);
+        }
+      }
     }
 
     const importMode = document.querySelector('input[name="importMode"]:checked')?.value || "replace";
@@ -1841,9 +1962,17 @@ function formatOTPDisplay(raw) {
 }
 
 function updateAccountCount() {
-  if (!elements.accountCount) return;
-  const count = vault?.accounts?.length || 0;
-  elements.accountCount.textContent = count > 0 ? String(count) : "";
+  const accCount = vault?.accounts?.length || 0;
+  const pwCount = vault?.passwords?.length || 0;
+  if (elements.accountCount) {
+    elements.accountCount.textContent = accCount > 0 ? String(accCount) : "";
+  }
+  if (elements.nav2faCount) {
+    elements.nav2faCount.textContent = String(accCount);
+  }
+  if (elements.navPasswordsCount) {
+    elements.navPasswordsCount.textContent = String(pwCount);
+  }
 }
 
 async function moveAccount(accountId, direction) {
@@ -2893,6 +3022,134 @@ async function init() {
       openSettingsSection(key);
     });
   });
+
+  // ── Vault Navigation Segmented Controls ──
+  elements.nav2faBtn?.addEventListener("click", () => switchVaultTab("2fa"));
+  elements.navPasswordsBtn?.addEventListener("click", () => switchVaultTab("passwords"));
+  elements.navGeneratorBtn?.addEventListener("click", () => switchVaultTab("generator"));
+
+  // ── Generator Listeners ──
+  document.querySelectorAll(".gen-mode-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const mode = tab.dataset.mode;
+      if (mode) setGeneratorMode(mode);
+    });
+  });
+
+  elements.generatorLengthSlider?.addEventListener("input", updateGeneratedPassword);
+  elements.generatorWordsSlider?.addEventListener("input", updateGeneratedPassword);
+  elements.generatorPinSlider?.addEventListener("input", updateGeneratedPassword);
+
+  elements.genOptUpper?.addEventListener("change", updateGeneratedPassword);
+  elements.genOptLower?.addEventListener("change", updateGeneratedPassword);
+  elements.genOptNumbers?.addEventListener("change", updateGeneratedPassword);
+  elements.genOptSymbols?.addEventListener("change", updateGeneratedPassword);
+  elements.genOptAvoidAmbiguous?.addEventListener("change", updateGeneratedPassword);
+  elements.generatorSeparatorSelect?.addEventListener("change", updateGeneratedPassword);
+  elements.genOptCapitalize?.addEventListener("change", updateGeneratedPassword);
+  elements.genOptIncludeNumber?.addEventListener("change", updateGeneratedPassword);
+
+  document.querySelectorAll(".preset-pill").forEach((pill) => {
+    pill.addEventListener("click", () => {
+      const preset = pill.dataset.preset;
+      if (preset === "memorable") {
+        setGeneratorMode("passphrase");
+        if (elements.generatorWordsSlider) elements.generatorWordsSlider.value = "4";
+        if (elements.generatorSeparatorSelect) elements.generatorSeparatorSelect.value = "-";
+        if (elements.genOptCapitalize) elements.genOptCapitalize.checked = true;
+        if (elements.genOptIncludeNumber) elements.genOptIncludeNumber.checked = true;
+      } else if (preset === "strong") {
+        setGeneratorMode("password");
+        if (elements.generatorLengthSlider) elements.generatorLengthSlider.value = "16";
+        if (elements.genOptUpper) elements.genOptUpper.checked = true;
+        if (elements.genOptLower) elements.genOptLower.checked = true;
+        if (elements.genOptNumbers) elements.genOptNumbers.checked = true;
+        if (elements.genOptSymbols) elements.genOptSymbols.checked = true;
+      } else if (preset === "ultra") {
+        setGeneratorMode("password");
+        if (elements.generatorLengthSlider) elements.generatorLengthSlider.value = "32";
+        if (elements.genOptUpper) elements.genOptUpper.checked = true;
+        if (elements.genOptLower) elements.genOptLower.checked = true;
+        if (elements.genOptNumbers) elements.genOptNumbers.checked = true;
+        if (elements.genOptSymbols) elements.genOptSymbols.checked = true;
+      }
+      updateGeneratedPassword();
+    });
+  });
+
+  elements.refreshGeneratedPasswordBtn?.addEventListener("click", updateGeneratedPassword);
+
+  elements.copyGeneratedPasswordBtn?.addEventListener("click", async () => {
+    if (!currentGeneratedPassword) return;
+    await navigator.clipboard.writeText(currentGeneratedPassword);
+    scheduleClipboardClear(currentGeneratedPassword, Number(meta?.clipboardClearSec ?? 30));
+    elements.copyGeneratedPasswordBtn.classList.add("copied");
+    setTimeout(() => elements.copyGeneratedPasswordBtn.classList.remove("copied"), 850);
+    showToast("✓ Copied password to clipboard");
+  });
+
+  elements.saveGeneratedToVaultBtn?.addEventListener("click", () => {
+    openPasswordModal(null, currentGeneratedPassword);
+  });
+
+  // ── Passwords Tab Listeners ──
+  elements.passwordSearchInput?.addEventListener("input", renderPasswords);
+  elements.addPasswordBtn?.addEventListener("click", () => openPasswordModal());
+  elements.emptyAddPasswordBtn?.addEventListener("click", () => openPasswordModal());
+  elements.quickGeneratorBtn?.addEventListener("click", () => switchVaultTab("generator"));
+
+  // Password category filter bar horizontal mouse wheel scroll & drag
+  elements.passwordCategoryFilterBar?.addEventListener("wheel", (e) => {
+    if (elements.passwordCategoryFilterBar.scrollWidth > elements.passwordCategoryFilterBar.clientWidth) {
+      e.preventDefault();
+      elements.passwordCategoryFilterBar.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX) * 1.2;
+    }
+  }, { passive: false });
+
+  // ── Password Modal Listeners ──
+  elements.closePasswordModalBtn?.addEventListener("click", closePasswordModal);
+  elements.cancelPasswordBtn?.addEventListener("click", closePasswordModal);
+  elements.savePasswordBtn?.addEventListener("click", handleSavePassword);
+
+  elements.passwordTitleInput?.addEventListener("input", updateModalBrandPreview);
+  elements.passwordUrlInput?.addEventListener("input", updateModalBrandPreview);
+  elements.passwordValueInput?.addEventListener("input", updateModalStrengthMeter);
+
+  elements.passwordModalEyeBtn?.addEventListener("click", () => {
+    if (!elements.passwordValueInput) return;
+    const isPass = elements.passwordValueInput.type === "password";
+    elements.passwordValueInput.type = isPass ? "text" : "password";
+    elements.passwordModalEyeBtn.classList.toggle("active", isPass);
+  });
+
+  elements.passwordModalQuickGenBtn?.addEventListener("click", () => {
+    const generated = generateRandomPassword({ length: 18 });
+    if (elements.passwordValueInput) {
+      elements.passwordValueInput.value = generated;
+      elements.passwordValueInput.type = "text";
+      if (elements.passwordModalEyeBtn) elements.passwordModalEyeBtn.classList.add("active");
+    }
+    updateModalStrengthMeter();
+    showToast("⚡ Generated strong password");
+  });
+
+  elements.passwordCategoryTrigger?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isHidden = elements.passwordCategoryDropdownMenu?.classList.contains("hidden");
+    if (isHidden) {
+      elements.passwordCategoryDropdownMenu?.classList.remove("hidden");
+      elements.passwordCategoryTrigger?.setAttribute("aria-expanded", "true");
+    } else {
+      closePasswordCategoryDropdown();
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#passwordCategoryDropdown")) {
+      closePasswordCategoryDropdown();
+    }
+  });
+
   elements.searchInput.addEventListener("input", renderAccounts);
   elements.accountsList.addEventListener("click", handleAccountAction);
 

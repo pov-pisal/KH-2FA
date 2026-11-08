@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "KH 2FA",
   "version": "2.0.0",
-  "description": "Secure 2FA authenticator with encrypted vault, Google Account sync, screen QR scanner, and OTP autofill.",
+  "description": "Secure 2FA authenticator and Password Manager with encrypted vault, password generator, Google Account sync, and autofill.",
   "action": {
     "default_title": "KH 2FA",
     "default_popup": "popup.html",

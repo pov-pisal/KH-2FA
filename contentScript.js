@@ -315,6 +315,51 @@ function handleAutofillAction(input) {
 
 // --- Message Listeners ---
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type === "AUTOFILL_PASSWORD") {
+    const { username, password } = message;
+    let filledAny = false;
+
+    // 1. Find password field
+    const passInput = document.querySelector('input[type="password"]:not([disabled]):not([readonly])');
+    if (passInput && password) {
+      fillInput(passInput, password);
+      filledAny = true;
+    }
+
+    // 2. Find username/email field
+    if (username) {
+      const userSelectors = [
+        'input[type="email"]:not([disabled]):not([readonly])',
+        'input[autocomplete="username"]:not([disabled]):not([readonly])',
+        'input[autocomplete="email"]:not([disabled]):not([readonly])',
+        'input[name*="user" i]:not([type="hidden"]):not([disabled]):not([readonly])',
+        'input[name*="login" i]:not([type="hidden"]):not([disabled]):not([readonly])',
+        'input[name*="email" i]:not([type="hidden"]):not([disabled]):not([readonly])',
+        'input[id*="user" i]:not([type="hidden"]):not([disabled]):not([readonly])',
+        'input[id*="login" i]:not([type="hidden"]):not([disabled]):not([readonly])',
+        'input[id*="email" i]:not([type="hidden"]):not([disabled]):not([readonly])',
+        'input[type="text"]:not([disabled]):not([readonly])'
+      ];
+      for (const sel of userSelectors) {
+        const userInput = document.querySelector(sel);
+        if (userInput && userInput !== passInput) {
+          fillInput(userInput, username);
+          filledAny = true;
+          break;
+        }
+      }
+    }
+
+    if (filledAny) {
+      const anchorEl = passInput || document.body;
+      showToastMessage(anchorEl, "✓ Auto-filled credentials");
+      sendResponse({ ok: true });
+    } else {
+      sendResponse({ ok: false, error: "No login fields found on page" });
+    }
+    return true;
+  }
+
   if (message?.type === "AUTOFILL_OTP") {
     const input = findOtpInput();
     if (!input) {
