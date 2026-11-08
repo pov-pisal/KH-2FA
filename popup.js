@@ -130,6 +130,24 @@ const elements = {
   pasteFromClipboardBtn: document.getElementById("pasteFromClipboardBtn"),
   applyTransferCodeBtn: document.getElementById("applyTransferCodeBtn"),
   receiveFileInput: document.getElementById("receiveFileInput"),
+  vaultHealthSummaryCard: document.getElementById("vaultHealthSummaryCard"),
+  vaultHealthGauge: document.getElementById("vaultHealthGauge"),
+  vaultHealthScore: document.getElementById("vaultHealthScore"),
+  vaultHealthBadge: document.getElementById("vaultHealthBadge"),
+  vaultHealthSubtext: document.getElementById("vaultHealthSubtext"),
+  openSecurityAuditBtn: document.getElementById("openSecurityAuditBtn"),
+  securityAuditModal: document.getElementById("securityAuditModal"),
+  closeSecurityAuditBtn: document.getElementById("closeSecurityAuditBtn"),
+  settingsAuditItemBtn: document.getElementById("settingsAuditItemBtn"),
+  settingsAuditScoreBadge: document.getElementById("settingsAuditScoreBadge"),
+  auditHeroScore: document.getElementById("auditHeroScore"),
+  auditHeroStatus: document.getElementById("auditHeroStatus"),
+  auditHeroSubtext: document.getElementById("auditHeroSubtext"),
+  metricNumWeak: document.getElementById("metricNumWeak"),
+  metricNumReused: document.getElementById("metricNumReused"),
+  metricNumBreached: document.getElementById("metricNumBreached"),
+  startBreachScanBtn: document.getElementById("startBreachScanBtn"),
+  auditIssuesList: document.getElementById("auditIssuesList"),
   settingsGistSync: document.getElementById("settingsGistSync"),
   gistSyncStatusBadge: document.getElementById("gistSyncStatusBadge"),
   checkGistSyncBtn: document.getElementById("checkGistSyncBtn"),
@@ -1378,6 +1396,255 @@ function renderPasswordCategoryFilterBar() {
   }
 }
 
+
+// ── Vault Health & Security Audit Logic ──────────────────────────────────────
+const breachedPasswordsCache = new Map(); // hash -> breachCount
+
+async function sha1Hex(str) {
+  const buf = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase();
+}
+
+async function checkPwnedPassword(password) {
+  if (!password) return 0;
+  try {
+    const hash = await sha1Hex(password);
+    if (breachedPasswordsCache.has(hash)) {
+      return breachedPasswordsCache.get(hash);
+    }
+    const prefix = hash.slice(0, 5);
+    const suffix = hash.slice(5);
+    const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+      headers: { "Add-Padding": "true" },
+    });
+    if (!res.ok) return 0;
+    const text = await res.text();
+    for (const line of text.split("\n")) {
+      const [h, count] = line.trim().split(":");
+      if (h === suffix) {
+        const found = parseInt(count, 10) || 1;
+        breachedPasswordsCache.set(hash, found);
+        return found;
+      }
+    }
+    breachedPasswordsCache.set(hash, 0);
+    return 0;
+  } catch (_) {
+    return 0;
+  }
+}
+
+function evaluatePasswordWeakness(password) {
+  if (!password || password.length < 8) return "Too short (< 8 chars)";
+  if (password.length < 10) return "Short (< 10 chars)";
+  let varieties = 0;
+  if (/[a-z]/.test(password)) varieties++;
+  if (/[A-Z]/.test(password)) varieties++;
+  if (/\d/.test(password)) varieties++;
+  if (/[^a-zA-Z0-9]/.test(password)) varieties++;
+  if (varieties < 3) return "Lacks variety (needs uppercase, numbers or symbols)";
+  return null;
+}
+
+function getVaultHealthStats() {
+  const passwords = vault?.passwords || [];
+  if (passwords.length === 0) {
+    return { score: 100, weakCount: 0, reusedCount: 0, breachedCount: 0, issues: [] };
+  }
+
+  const passMap = new Map();
+  for (const pw of passwords) {
+    if (!pw.password) continue;
+    passMap.set(pw.password, (passMap.get(pw.password) || 0) + 1);
+  }
+
+  let weakCount = 0;
+  let reusedCount = 0;
+  let breachedCount = 0;
+  const issues = [];
+
+  for (const pw of passwords) {
+    const reasonList = [];
+    const weakness = evaluatePasswordWeakness(pw.password);
+    if (weakness) {
+      weakCount++;
+      reasonList.push(weakness);
+    }
+
+    if (pw.password && (passMap.get(pw.password) || 0) > 1) {
+      reusedCount++;
+      reasonList.push(`Reused across ${passMap.get(pw.password)} accounts`);
+    }
+
+    const cachedHash = pw.password ? breachedPasswordsCache.get(pw._sha1 || "") : 0;
+    if (cachedHash > 0) {
+      breachedCount++;
+      reasonList.push(`Found in ${cachedHash.toLocaleString()} data breaches!`);
+    }
+
+    if (reasonList.length > 0) {
+      issues.push({ pw, reasons: reasonList, isBreached: cachedHash > 0 });
+    }
+  }
+
+  // Deduplicate reused count for score calculation (e.g. 2 instances = 1 reuse fault)
+  let uniqueReused = 0;
+  passMap.forEach((count) => {
+    if (count > 1) uniqueReused += count - 1;
+  });
+
+  let penalty = (weakCount * 12) + (uniqueReused * 12) + (breachedCount * 25);
+  let score = Math.max(10, Math.min(100, 100 - penalty));
+
+  return { score, weakCount, reusedCount: uniqueReused, breachedCount, issues };
+}
+
+function updateVaultHealthSummary() {
+  const passwords = vault?.passwords || [];
+  const card = elements.vaultHealthSummaryCard;
+  if (!card) return;
+
+  if (passwords.length === 0) {
+    card.classList.add("hidden");
+    if (elements.settingsAuditScoreBadge) elements.settingsAuditScoreBadge.textContent = "N/A";
+    return;
+  }
+
+  card.classList.remove("hidden");
+  const stats = getVaultHealthStats();
+
+  if (elements.vaultHealthScore) {
+    elements.vaultHealthScore.textContent = `${stats.score}%`;
+  }
+  if (elements.settingsAuditScoreBadge) {
+    elements.settingsAuditScoreBadge.textContent = `${stats.score}%`;
+  }
+
+  const deg = (stats.score / 100) * 360;
+  elements.vaultHealthGauge?.style.setProperty("--health-deg", `${deg}deg`);
+
+  const badge = elements.vaultHealthBadge;
+  if (badge) {
+    badge.className = "health-badge";
+    if (stats.score >= 85) {
+      badge.classList.add("good");
+      badge.textContent = "Strong";
+    } else if (stats.score >= 60) {
+      badge.classList.add("warning");
+      badge.textContent = "Fair";
+    } else {
+      badge.classList.add("danger");
+      badge.textContent = "At Risk";
+    }
+  }
+
+  if (elements.vaultHealthSubtext) {
+    if (stats.issues.length === 0) {
+      elements.vaultHealthSubtext.textContent = "All passwords look strong & unique";
+    } else {
+      const parts = [];
+      if (stats.weakCount > 0) parts.push(`${stats.weakCount} weak`);
+      if (stats.reusedCount > 0) parts.push(`${stats.reusedCount} reused`);
+      if (stats.breachedCount > 0) parts.push(`${stats.breachedCount} breached`);
+      elements.vaultHealthSubtext.textContent = `${parts.join(", ")} — click Audit`;
+    }
+  }
+}
+
+function updateAuditModalUI() {
+  const stats = getVaultHealthStats();
+
+  if (elements.auditHeroScore) {
+    elements.auditHeroScore.textContent = `${stats.score}%`;
+    elements.auditHeroScore.className = "audit-hero-score";
+    if (stats.score >= 85) {
+      elements.auditHeroScore.classList.add("good");
+    } else if (stats.score >= 60) {
+      elements.auditHeroScore.classList.add("warning");
+    } else {
+      elements.auditHeroScore.classList.add("danger");
+    }
+  }
+
+  if (elements.auditHeroStatus) {
+    elements.auditHeroStatus.textContent = stats.score >= 85 ? "Excellent Protection" : stats.score >= 60 ? "Moderate Protection" : "Action Required";
+  }
+  if (elements.auditHeroSubtext) {
+    elements.auditHeroSubtext.textContent = stats.issues.length === 0
+      ? "Zero known vulnerabilities or reused credentials in your vault."
+      : `Found ${stats.issues.length} potential security concerns that should be reviewed.`;
+  }
+
+  if (elements.metricNumWeak) {
+    elements.metricNumWeak.textContent = String(stats.weakCount);
+    elements.metricNumWeak.classList.toggle("flagged", stats.weakCount > 0);
+  }
+  if (elements.metricNumReused) {
+    elements.metricNumReused.textContent = String(stats.reusedCount);
+    elements.metricNumReused.classList.toggle("flagged", stats.reusedCount > 0);
+  }
+  if (elements.metricNumBreached) {
+    elements.metricNumBreached.textContent = String(stats.breachedCount);
+    elements.metricNumBreached.classList.toggle("flagged", stats.breachedCount > 0);
+  }
+
+  if (elements.auditIssuesList) {
+    elements.auditIssuesList.innerHTML = "";
+    if (stats.issues.length === 0) {
+      elements.auditIssuesList.innerHTML = `<div class="audit-all-good">✓ All passwords passed security checks!</div>`;
+    } else {
+      for (const item of stats.issues) {
+        const row = document.createElement("div");
+        row.className = `audit-issue-item ${item.isBreached ? "breached" : ""}`;
+        row.innerHTML = `
+          <div class="audit-issue-info">
+            <span class="audit-issue-title">${item.pw.title || item.pw.username || "Untitled"}</span>
+            <span class="audit-issue-desc ${item.isBreached ? "" : "warning"}">${item.reasons.join(" • ")}</span>
+          </div>
+          <button type="button" class="audit-fix-btn" data-id="${item.pw.id}">Fix</button>
+        `;
+        row.querySelector(".audit-fix-btn")?.addEventListener("click", () => {
+          hideModal(elements.securityAuditModal);
+          openPasswordModal(item.pw.id);
+        });
+        elements.auditIssuesList.appendChild(row);
+      }
+    }
+  }
+}
+
+async function handleStartBreachScan() {
+  const btn = elements.startBreachScanBtn;
+  if (!btn || !vault?.passwords || vault.passwords.length === 0) return;
+
+  btn.disabled = true;
+  const label = btn.querySelector("span");
+  if (label) label.textContent = "Scanning breach databases...";
+
+  try {
+    for (let i = 0; i < vault.passwords.length; i++) {
+      const pw = vault.passwords[i];
+      if (!pw.password) continue;
+      const hash = await sha1Hex(pw.password);
+      pw._sha1 = hash;
+      const count = await checkPwnedPassword(pw.password);
+      breachedPasswordsCache.set(hash, count);
+      if (label) label.textContent = `Scanning (${i + 1}/${vault.passwords.length})...`;
+    }
+    showToast("✓ Breach scan complete!");
+    updateVaultHealthSummary();
+    updateAuditModalUI();
+  } catch (err) {
+    showToast("Scan failed. Check internet connection.");
+  } finally {
+    btn.disabled = false;
+    if (label) label.textContent = "Scan 800M+ Data Breaches";
+  }
+}
+
 function renderPasswords() {
   if (!vault) return;
   if (!vault.passwords) vault.passwords = [];
@@ -1454,6 +1721,7 @@ function renderPasswords() {
     const card = renderPasswordCard(pw);
     elements.passwordsList.appendChild(card);
   }
+  updateVaultHealthSummary();
 }
 
 function renderPasswordCard(pw) {
@@ -4719,6 +4987,20 @@ async function init() {
     e.target.value = "";
   });
 
+  elements.openSecurityAuditBtn?.addEventListener("click", () => {
+    updateAuditModalUI();
+    showModal(elements.securityAuditModal);
+  });
+  elements.closeSecurityAuditBtn?.addEventListener("click", () => {
+    hideModal(elements.securityAuditModal);
+  });
+  elements.settingsAuditItemBtn?.addEventListener("click", () => {
+    closeSettingsModal();
+    updateAuditModalUI();
+    showModal(elements.securityAuditModal);
+  });
+  elements.startBreachScanBtn?.addEventListener("click", handleStartBreachScan);
+
   elements.lockTransferFromBrowserBtn?.addEventListener("click", () => {
     openSettingsModal();
     openSettingsSection("browser-transfer");
@@ -4796,18 +5078,77 @@ async function init() {
   }
 
   // Quick search shortcut: press '/' to focus search input, Esc to clear search
-  document.addEventListener("keydown", (e) => {
+  document.addEventListener("keydown", async (e) => {
+    const isInput = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+
+    // 1. Lock vault shortcut: Ctrl+L / Cmd+L
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l" && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      if (!meta?.locked && vault) {
+        setLocked(true);
+        showLockedView({ createMode: false });
+        showToast("🔒 Vault locked");
+      }
+      return;
+    }
+
+    // 2. Search shortcut: '/' or 'Ctrl+F'
     if (
-      e.key === "/" &&
-      document.activeElement !== elements.searchInput &&
-      !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)
+      ((e.key === "/" && !isInput) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f")) &&
+      !meta?.locked && vault
     ) {
       e.preventDefault();
-      elements.searchInput?.focus();
-    } else if (e.key === "Escape" && document.activeElement === elements.searchInput) {
-      elements.searchInput.value = "";
-      renderAccounts();
-      elements.searchInput.blur();
+      const isPasswordsTab = elements.navPasswordsBtn?.classList.contains("active");
+      if (isPasswordsTab) {
+        elements.passwordSearchInput?.focus();
+        elements.passwordSearchInput?.select();
+      } else {
+        elements.searchInput?.focus();
+        elements.searchInput?.select();
+      }
+      return;
+    }
+
+    // 3. Escape key: Close any active modal or clear search
+    if (e.key === "Escape") {
+      const activeModal = document.querySelector(".modal:not(.hidden)");
+      if (activeModal) {
+        e.preventDefault();
+        hideModal(activeModal);
+        return;
+      }
+      if (document.activeElement === elements.searchInput) {
+        elements.searchInput.value = "";
+        renderAccounts();
+        elements.searchInput.blur();
+      } else if (document.activeElement === elements.passwordSearchInput) {
+        elements.passwordSearchInput.value = "";
+        renderPasswords();
+        elements.passwordSearchInput.blur();
+      }
+      return;
+    }
+
+    // 4. Digits 1-9 Quick Copy: If not typing, pressing 1-9 immediately copies the TOTP code!
+    if (!isInput && !e.ctrlKey && !e.altKey && !e.metaKey && e.key >= "1" && e.key <= "9" && !meta?.locked && vault) {
+      const is2faTab = elements.nav2faBtn?.classList.contains("active");
+      if (is2faTab && vault.accounts && vault.accounts.length > 0) {
+        const idx = parseInt(e.key, 10) - 1;
+        const ordered = sortAccounts(vault.accounts);
+        if (ordered[idx]) {
+          e.preventDefault();
+          const target = ordered[idx];
+          try {
+            const rawOtp = codes.get(target.id) || (await generateTOTP(target.secret, Date.now(), target));
+            const cleanOtp = String(rawOtp).replace(/\s+/g, "");
+            if (cleanOtp && !cleanOtp.includes("-")) {
+              await navigator.clipboard.writeText(cleanOtp);
+              scheduleClipboardClear(cleanOtp, Number(meta?.clipboardClearSec ?? 30));
+              showToast(`✓ Copied #${idx + 1} ${target.issuer || "2FA"}: ${formatOTPDisplay(cleanOtp)} (Auto-clears in ${Number(meta?.clipboardClearSec ?? 30)}s)`);
+            }
+          } catch (_) {}
+        }
+      }
     }
   });
 

@@ -235,6 +235,24 @@
 
             <div id="passwordCategoryFilterBar" class="category-filter-bar" role="tablist" aria-label="Password categories"></div>
 
+            <!-- Vault Health Summary Card -->
+            <div id="vaultHealthSummaryCard" class="vault-health-summary-card hidden">
+              <div class="health-gauge" id="vaultHealthGauge">
+                <span id="vaultHealthScore" class="health-score-val">100%</span>
+              </div>
+              <div class="health-meta">
+                <div class="health-title-row">
+                  <strong>Vault Health</strong>
+                  <span id="vaultHealthBadge" class="health-badge good">Strong</span>
+                </div>
+                <span id="vaultHealthSubtext" class="health-subtext">All passwords secure</span>
+              </div>
+              <button type="button" id="openSecurityAuditBtn" class="health-audit-btn" title="View Security Audit">
+                <span>Audit</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+
             <div id="emptyPasswordsState" class="card empty hidden">
               <div class="empty-icon-wrap">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -769,6 +787,21 @@
             <span class="settings-label-wrap">
               <span class="settings-label">1-Click Browser Sync</span>
               <span class="sync-badge badge-fast">Brave / Chrome</span>
+            </span>
+            <span class="settings-chevron">›</span>
+          </button>
+          <button
+            class="settings-item"
+            id="settingsAuditItemBtn"
+            type="button"
+            role="listitem"
+          >
+            <span class="settings-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </span>
+            <span class="settings-label-wrap">
+              <span class="settings-label">Security Audit &amp; Health</span>
+              <span id="settingsAuditScoreBadge" class="sync-badge">100%</span>
             </span>
             <span class="settings-chevron">›</span>
           </button>
