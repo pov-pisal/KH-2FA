@@ -1270,18 +1270,16 @@ button.small {
   overflow-y: auto;
   overflow-x: hidden;
   display: grid;
-  gap: 9px;
-  padding: 6px 4px 6px 0;
-  scrollbar-width: thin;
+  gap: 8px;
+  padding: 4px 2px 4px 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .modal-content .stack::-webkit-scrollbar {
-  width: 4px;
-}
-
-.modal-content .stack::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 4px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 #deleteModal {
@@ -2815,14 +2813,14 @@ button.small {
 .notes-field-wrap {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
 
 .notes-label-left {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 4px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--muted);
 }
@@ -2836,9 +2834,9 @@ button.small {
 .notes-chip-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  padding: 2px 7px;
-  font-size: 10.5px;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--muted);
   cursor: pointer;
@@ -2860,30 +2858,28 @@ button.small {
 
 #passwordNotesInput {
   width: 100%;
-  min-height: 56px;
-  max-height: 110px;
-  resize: vertical;
+  min-height: 38px;
+  height: 38px;
+  max-height: 60px;
+  resize: none;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.35;
   background: var(--panel-2);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 9px 12px;
+  border-radius: 8px;
+  padding: 6px 10px;
   color: var(--text);
   box-sizing: border-box;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 #passwordNotesInput::-webkit-scrollbar {
-  width: 4px;
-}
-
-#passwordNotesInput::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 4px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 #passwordNotesInput:focus {
@@ -2894,7 +2890,99 @@ button.small {
 
 #passwordNotesInput::placeholder {
   color: rgba(148, 163, 184, 0.55);
+  font-size: 11.5px;
+}
+
+/* ─── Password Modal (Compact, Minimalist & Zero Scrollbar) ───────────────── */
+#passwordModal .modal-content {
+  padding: 12px 16px 12px;
+}
+
+#passwordModal header {
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+}
+
+#passwordModal header h2 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+#passwordModal .modal-content .stack {
+  gap: 6px;
+  padding: 2px 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#passwordModal .modal-content .stack::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+#passwordModal .field {
+  gap: 3px;
+}
+
+#passwordModal .field > span,
+#passwordModal .field-label-row label,
+#passwordModal .field-label-row span {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+#passwordModal .field input,
+#passwordModal .category-dropdown-trigger {
+  padding: 6px 10px;
   font-size: 12.5px;
+  border-radius: 8px;
+  min-height: 33px;
+  height: 33px;
+  box-sizing: border-box;
+}
+
+#passwordModal .password-field-container input {
+  padding-right: 104px;
+}
+
+#passwordModal .password-field-actions-inline {
+  right: 4px;
+  gap: 3px;
+}
+
+#passwordModal .password-field-actions-inline .pin-toggle-btn {
+  width: 25px;
+  height: 25px;
+}
+
+#passwordModal .password-field-actions-inline .quick-gen-btn {
+  height: 25px;
+  padding: 2px 7px;
+  font-size: 11px;
+  gap: 3px;
+  border-radius: 5px;
+}
+
+#passwordModal .field-strength-meter {
+  height: 2.5px;
+  margin-top: 3px;
+  border-radius: 1.5px;
+}
+
+#passwordModal .modal-content .row {
+  margin-top: 6px;
+  padding-top: 8px;
+  gap: 8px;
+}
+
+#passwordModal .modal-content .row button {
+  padding: 7px 12px;
+  font-size: 12.5px;
+  border-radius: 7px;
 }
 
 /* ─── Password Card Notes Display ─────────────────────────────────────────── */
