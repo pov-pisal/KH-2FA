@@ -763,6 +763,20 @@
             <span class="settings-label">Change PIN / Password</span>
             <span class="settings-chevron">›</span>
           </button>
+          <button
+            class="settings-item highlight-sync-item"
+            data-settings="browser-transfer"
+            role="listitem"
+          >
+            <span class="settings-icon transfer-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            </span>
+            <span class="settings-label-wrap">
+              <span class="settings-label">1-Click Browser Sync</span>
+              <span class="sync-badge badge-fast">Brave / Chrome</span>
+            </span>
+            <span class="settings-chevron">›</span>
+          </button>
           <button class="settings-item" data-settings="backup" role="listitem">
             <span class="settings-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -781,20 +795,6 @@
             <span class="settings-label-wrap">
               <span class="settings-label">Google Account Sync</span>
               <span id="syncStatusBadge" class="sync-badge">Off</span>
-            </span>
-            <span class="settings-chevron">›</span>
-          </button>
-          <button
-            class="settings-item"
-            data-settings="gist-sync"
-            role="listitem"
-          >
-            <span class="settings-icon gist-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
-            </span>
-            <span class="settings-label-wrap">
-              <span class="settings-label">Cross-Browser Sync</span>
-              <span id="gistSyncStatusBadge" class="sync-badge">Off</span>
             </span>
             <span class="settings-chevron">›</span>
           </button>
@@ -1050,103 +1050,95 @@
             </div>
           </section>
 
-          <section
-            id="settingsGistSync"
+          
+
+                    <section
+            id="settingsBrowserTransfer"
             class="settings-section hidden"
           >
             <div class="sync-section-header">
-              <div class="sync-header-icon gist-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
-                </svg>
+              <div class="sync-header-icon transfer-icon-lg">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
               </div>
               <div class="sync-header-text">
-                <h3>Cross-Browser Cloud Sync</h3>
-                <p>Sync 2FA accounts &amp; passwords seamlessly between <strong>Google Chrome, Brave, Edge &amp; other computers</strong> using a private GitHub Gist.</p>
+                <h3>1-Click Browser Sync</h3>
+                <p>Instantly sync 2FA accounts &amp; passwords between <strong>Google Chrome &amp; Brave</strong> in 5 seconds. Zero setup required.</p>
               </div>
             </div>
 
-            <!-- Setup Form (when not connected) -->
-            <div id="gistSyncSetupCard" class="sync-setup-card">
-              <label class="field">
-                <div class="field-label-row">
-                  <span>GitHub Personal Access Token</span>
-                  <a href="https://github.com/settings/tokens/new?description=KH+2FA+Cross-Browser+Sync&scopes=gist" target="_blank" rel="noopener noreferrer" class="link-small">Create Token (30s) ↗</a>
-                </div>
-                <input id="gistTokenInput" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
-              </label>
+            <!-- Choice Tabs: Send vs Receive -->
+            <div class="gist-actions-choice">
+              <div class="choice-tab-row">
+                <button type="button" id="transferTabSendBtn" class="choice-tab active">Send from this Browser</button>
+                <button type="button" id="transferTabReceiveBtn" class="choice-tab">Receive in this Browser</button>
+              </div>
 
-              <div class="gist-actions-choice">
-                <div class="choice-tab-row">
-                  <button type="button" id="gistTabNewBtn" class="choice-tab active">New Sync (Primary)</button>
-                  <button type="button" id="gistTabJoinBtn" class="choice-tab">Connect (Brave / 2nd)</button>
+              <!-- View 1: Send / Export -->
+              <div id="transferSendView" class="transfer-panel-view">
+                <div class="transfer-qr-card">
+                  <div id="transferQrContainer" class="transfer-qr-display"></div>
+                  <span class="transfer-qr-subtext">Scan this QR code from Brave or 2nd browser</span>
                 </div>
 
-                <!-- Mode 1: Create New Sync -->
-                <div id="gistModeNew" class="gist-mode-view">
-                  <p class="gist-mode-desc">Creates a private encrypted Gist in your GitHub account and uploads your current vault.</p>
-                  <button id="gistCreateSyncBtn" class="primary w-full" type="button">
-                    <span>Initialize Cross-Browser Sync</span>
+                <div class="transfer-code-box">
+                  <div class="transfer-code-header">
+                    <span>Or Copy Instant Sync Code:</span>
+                    <button type="button" id="copyTransferCodeBtn" class="primary transfer-action-btn">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                      <span>Copy Code</span>
+                    </button>
+                  </div>
+                  <textarea id="transferCodeText" class="transfer-textarea" readonly placeholder="Unlock vault to view sync code"></textarea>
+                </div>
+
+                <button type="button" id="downloadTransferFileBtn" class="ghost upload-transfer-file-btn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>Download Transfer File (.khsync)</span>
+                </button>
+              </div>
+
+              <!-- View 2: Receive / Import -->
+              <div id="transferReceiveView" class="transfer-panel-view hidden">
+                <div class="transfer-receive-actions">
+                  <button type="button" id="receiveScanScreenBtn" class="primary transfer-btn-large">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    <span>1-Click Scan Screen QR</span>
                   </button>
-                </div>
 
-                <!-- Mode 2: Connect Existing Sync -->
-                <div id="gistModeJoin" class="gist-mode-view hidden">
-                  <p class="gist-mode-desc">Paste the Sync ID generated from your primary browser (e.g. Chrome) to link this browser.</p>
-                  <label class="field" style="margin-bottom:8px;">
-                    <span>Sync ID (Gist ID)</span>
-                    <input id="gistIdInput" type="text" placeholder="e.g. 7f8a9b1c2d3e4f..." autocomplete="off" />
+                  <div class="transfer-divider">
+                    <span>OR PASTE CODE</span>
+                  </div>
+
+                  <div class="paste-code-wrap">
+                    <input type="text" id="receiveCodeInput" placeholder="khsync:... or paste sync code" autocomplete="off" />
+                    <button type="button" id="pasteFromClipboardBtn" class="ghost paste-btn" title="Paste from clipboard">
+                      <span>Paste</span>
+                    </button>
+                  </div>
+
+                  <button type="button" id="applyTransferCodeBtn" class="primary w-full">
+                    <span>Apply &amp; Sync Vault</span>
+                  </button>
+
+                  <div class="transfer-divider">
+                    <span>OR FILE</span>
+                  </div>
+
+                  <label class="upload-transfer-file-btn" style="margin:0;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span>Select .khsync File</span>
+                    <input type="file" id="receiveFileInput" accept=".khsync,.json" style="display:none;" />
                   </label>
-                  <button id="gistConnectSyncBtn" class="primary w-full" type="button">
-                    <span>Connect &amp; Download Vault</span>
-                  </button>
                 </div>
-              </div>
-              <p id="gistSetupError" class="error hidden" role="alert"></p>
-            </div>
-
-            <!-- Active Status Card (when connected) -->
-            <div id="gistSyncStatusCard" class="sync-status-card hidden">
-              <div class="sync-status-row">
-                <span class="sync-status-indicator online"></span>
-                <span id="gistStatusDetail">Active — Synced across browsers</span>
-              </div>
-              <div class="sync-meta-row">
-                <span>GitHub User:</span>
-                <strong id="gistUserLogin">@user</strong>
-              </div>
-              <div class="sync-meta-row">
-                <span>Sync ID:</span>
-                <div class="gist-id-pill">
-                  <code id="gistIdDisplay">7f8a...</code>
-                  <button type="button" id="copyGistIdBtn" class="gist-copy-btn" title="Copy Sync ID to use in Brave or 2nd browser">
-                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    <span>Copy</span>
-                  </button>
-                </div>
-              </div>
-              <div class="sync-meta-row">
-                <span>Last Synced:</span>
-                <strong id="gistLastSyncedTime">Just now</strong>
-              </div>
-
-              <div class="sync-actions-row">
-                <button id="gistSyncNowBtn" class="primary sync-btn-action" type="button">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                  <span>Sync Now</span>
-                </button>
-                <button id="gistDisconnectBtn" class="ghost danger-btn-text" type="button">
-                  <span>Disconnect Sync</span>
-                </button>
               </div>
             </div>
 
             <div class="sync-info-box">
               <div class="sync-info-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                <span>Zero-Knowledge AES-256-GCM Protection</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>Zero-Knowledge AES-256-GCM Encrypted</span>
               </div>
-              <p>Your vault is encrypted locally with your Master PIN before leaving your browser. The secret Gist only contains scrambled ciphertext—GitHub, Microsoft, or anyone on the internet cannot read your accounts.</p>
+              <p>Your vault data remains 100% encrypted with your Master PIN. No servers, accounts, or cloud tokens required.</p>
             </div>
           </section>
 
@@ -1269,7 +1261,6 @@
       class="modal hidden"
       role="dialog"
       aria-modal="true"
-      aria-hidden="true"
       inert
     >
       <div class="modal-content qr-view-modal">

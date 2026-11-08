@@ -289,8 +289,8 @@ function showModal(modal) {
 
 function hideModal(modal) {
   if (!modal) return;
-  if (modal.contains(document.activeElement) || modal === document.activeElement) {
-    document.activeElement.blur();
+  if (document.activeElement && document.activeElement !== document.body) {
+    try { document.activeElement.blur(); } catch (_) {}
   }
   modal.classList.add("hidden");
   modal.setAttribute("inert", "");
@@ -2025,8 +2025,7 @@ function hideAllSettingsSections() {
     elements.settingsBackup,
     elements.settingsBrowserTransfer,
     elements.settingsGoogleSync,
-    elements.settingsGistSync,
-    elements.settingsPreferences,
+        elements.settingsPreferences,
     elements.settingsClockSync,
     elements.settingsReset,
   ].forEach((section) => {
@@ -2040,12 +2039,11 @@ function hideAllSettingsSections() {
 }
 
 function showSettingsList() {
-  if (elements.settingsBackBtn && (elements.settingsBackBtn === document.activeElement || elements.settingsBackBtn.contains(document.activeElement))) {
-    document.activeElement.blur();
+  if (document.activeElement && document.activeElement !== document.body) {
+    try { document.activeElement.blur(); } catch (_) {}
   }
   hideAllSettingsSections();
   updateSyncBadge();
-  updateGistSyncBadge();
   updateClockSyncUI();
   elements.settingsList?.classList.remove("hidden");
   elements.settingsList?.removeAttribute("inert");
@@ -2053,8 +2051,8 @@ function showSettingsList() {
 }
 
 function hideSettingsList() {
-  if (elements.settingsList?.contains(document.activeElement)) {
-    document.activeElement.blur();
+  if (document.activeElement && document.activeElement !== document.body) {
+    try { document.activeElement.blur(); } catch (_) {}
   }
   elements.settingsList?.classList.add("hidden");
   elements.settingsList?.setAttribute("inert", "");
@@ -2068,8 +2066,7 @@ function openSettingsSection(key) {
     backup: elements.settingsBackup,
     "browser-transfer": elements.settingsBrowserTransfer,
     "google-sync": elements.settingsGoogleSync,
-    "gist-sync": elements.settingsGistSync,
-    preferences: elements.settingsPreferences,
+        preferences: elements.settingsPreferences,
     "clock-sync": elements.settingsClockSync,
     reset: elements.settingsReset,
   };
@@ -2084,10 +2081,7 @@ function openSettingsSection(key) {
   if (key === "google-sync") {
     refreshSyncUI();
   }
-  if (key === "gist-sync") {
-    refreshGistSyncUI();
-  }
-  if (key === "browser-transfer") {
+    if (key === "browser-transfer") {
     renderTransferQR();
   }
   if (key === "change-pin") {
