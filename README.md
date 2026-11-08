@@ -1,15 +1,17 @@
 # 🛡️ KH 2FA
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 
-A modern, secure, and private browser extension for managing Two-Factor Authentication (2FA / TOTP) codes with client-side AES-256 encryption, 1-click screen QR scanner, and automatic login autofill.
+A modern, secure, and private browser extension for managing Two-Factor Authentication (2FA / TOTP) codes and Passwords with client-side AES-256 encryption, cryptographic password generator, 1-click screen QR scanner, and automatic login autofill.
 
 ---
 
 ## ✨ Features
 
+- **🔑 Passwords Vault & Management** - Store, search, and manage credentials with website matching and 1-click autofill.
+- **⚡ Cryptographic Password Generator** - Generate high-entropy passwords, memorable passphrases, and PINs with a live crack-time meter.
 - **🔐 Client-Side Encrypted Vault** - All TOTP secrets are encrypted locally using AES-256-GCM with PBKDF2 (150,000 rounds) derived from your personal PIN or passphrase.
 - **🌐 Clock Drift & Time Sync Detector** - Built-in time synchronization diagnostic with automatic offset compensation to guarantee valid TOTP codes even if system time skews.
 - **🏷️ Category & Tag Filters** - Organize accounts into categories (`Personal`, `Work`, `Crypto`, `Finance`, `Social`, `Other`) with interactive filter pills.
