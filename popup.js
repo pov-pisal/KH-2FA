@@ -1112,6 +1112,744 @@ function renderEditAccountsList() {
   });
 }
 
+
+// ── Password Manager & Password Generator Core Logic ─────────────────────────
+
+async function detectCurrentTabDomain() {
+  try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tab = tabs?.[0];
+    if (tab?.url && !isRestrictedUrl(tab.url)) {
+      const u = new URL(tab.url);
+      currentTabDomain = u.hostname.replace(/^www\./, "").toLowerCase();
+    }
+  } catch (err) {
+    console.debug("Could not get active tab domain:", err);
+  }
+}
+
+function switchVaultTab(tabName) {
+  activeVaultTab = tabName;
+
+  // Update nav buttons
+  elements.nav2faBtn?.classList.toggle("active", tabName === "2fa");
+  elements.navPasswordsBtn?.classList.toggle("active", tabName === "passwords");
+  elements.navGeneratorBtn?.classList.toggle("active", tabName === "generator");
+
+  // Update tab content visibility
+  elements.tabContent2fa?.classList.toggle("hidden", tabName !== "2fa");
+  elements.tabContentPasswords?.classList.toggle("hidden", tabName !== "passwords");
+  elements.tabContentGenerator?.classList.toggle("hidden", tabName !== "generator");
+
+  updateAccountCount();
+
+  if (tabName === "2fa") {
+    renderAccounts();
+    elements.searchInput?.focus();
+  } else if (tabName === "passwords") {
+    renderPasswords();
+    elements.passwordSearchInput?.focus();
+  } else if (tabName === "generator") {
+    updateGeneratedPassword();
+  }
+}
+
+// ── Generator Tab Logic ──────────────────────────────────────────────────────
+
+function updateGeneratedPassword() {
+  let pwd = "";
+  if (generatorMode === "password") {
+    const len = Number(elements.generatorLengthSlider?.value || 16);
+    pwd = generateRandomPassword({
+      length: len,
+      uppercase: elements.genOptUpper?.checked ?? true,
+      lowercase: elements.genOptLower?.checked ?? true,
+      numbers: elements.genOptNumbers?.checked ?? true,
+      symbols: elements.genOptSymbols?.checked ?? true,
+      avoidAmbiguous: elements.genOptAvoidAmbiguous?.checked ?? false,
+    });
+    if (elements.generatorLengthVal) elements.generatorLengthVal.textContent = String(len);
+  } else if (generatorMode === "passphrase") {
+    const words = Number(elements.generatorWordsSlider?.value || 4);
+    const sep = elements.generatorSeparatorSelect?.value || "-";
+    pwd = generatePassphrase({
+      words,
+      separator: sep,
+      capitalize: elements.genOptCapitalize?.checked ?? true,
+      includeNumber: elements.genOptIncludeNumber?.checked ?? true,
+    });
+    if (elements.generatorWordsVal) elements.generatorWordsVal.textContent = String(words);
+  } else if (generatorMode === "pin") {
+    const digits = Number(elements.generatorPinSlider?.value || 6);
+    pwd = generatePin(digits);
+    if (elements.generatorPinDigitsVal) elements.generatorPinDigitsVal.textContent = String(digits);
+  }
+
+  currentGeneratedPassword = pwd;
+  if (elements.generatedPasswordDisplay) {
+    elements.generatedPasswordDisplay.textContent = pwd;
+    if ("value" in elements.generatedPasswordDisplay) {
+      elements.generatedPasswordDisplay.value = pwd;
+    }
+  }
+
+  // Live strength analysis
+  const strength = evaluatePasswordStrength(pwd);
+  if (elements.generatorStrengthBadge) {
+    elements.generatorStrengthBadge.textContent = strength.label;
+    elements.generatorStrengthBadge.style.color = strength.color;
+  }
+  if (elements.generatorStrengthFill) {
+    elements.generatorStrengthFill.style.width = `${strength.percent}%`;
+    elements.generatorStrengthFill.style.backgroundColor = strength.color;
+  }
+  if (elements.generatorStrengthLabel) {
+    elements.generatorStrengthLabel.textContent = strength.label;
+    elements.generatorStrengthLabel.style.color = strength.color;
+  }
+  if (elements.generatorCrackTime) {
+    elements.generatorCrackTime.textContent = strength.crackTime;
+  }
+}
+
+function setGeneratorMode(mode) {
+  generatorMode = mode;
+  document.querySelectorAll(".gen-mode-tab").forEach((tab) => {
+    const isActive = tab.dataset.mode === mode;
+    tab.classList.toggle("active", isActive);
+    tab.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  elements.generatorPasswordControls?.classList.toggle("hidden", mode !== "password");
+  elements.generatorPassphraseControls?.classList.toggle("hidden", mode !== "passphrase");
+  elements.generatorPinControls?.classList.toggle("hidden", mode !== "pin");
+
+  updateGeneratedPassword();
+}
+
+// ── Passwords Tab Logic ──────────────────────────────────────────────────────
+
+function setPasswordCategoryFilter(cat) {
+  activePasswordCategory = cat || "all";
+  renderPasswords();
+  const activePill = elements.passwordCategoryFilterBar?.querySelector(
+    `.category-pill[data-category="${activePasswordCategory}"]`
+  );
+  if (activePill) {
+    activePill.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+  }
+}
+
+function renderPasswordCategoryFilterBar() {
+  if (!elements.passwordCategoryFilterBar || !vault) return;
+  elements.passwordCategoryFilterBar.innerHTML = "";
+
+  const allPasswords = vault.passwords || [];
+  const counts = { all: allPasswords.length, pinned: 0 };
+  const customCats = new Set();
+
+  for (const pw of allPasswords) {
+    if (pw.pinned) counts.pinned += 1;
+    const c = (pw.category || "").trim();
+    if (c) {
+      customCats.add(c);
+      counts[c.toLowerCase()] = (counts[c.toLowerCase()] || 0) + 1;
+    }
+  }
+
+  const pills = [
+    { id: "all", name: "All", count: counts.all, dotCls: "dot-all" },
+    { id: "pinned", name: "Starred", count: counts.pinned, dotCls: "dot-pinned" },
+  ];
+
+  for (const std of STANDARD_CATEGORIES) {
+    if (!std.id) continue;
+    const cnt = counts[std.id.toLowerCase()] || 0;
+    if (cnt > 0) {
+      pills.push({ id: std.id, name: std.name, count: cnt, dotCls: std.dotCls });
+      customCats.delete(std.id);
+    }
+  }
+
+  for (const cust of customCats) {
+    const cnt = counts[cust.toLowerCase()] || 0;
+    pills.push({ id: cust, name: cust, count: cnt, dotInfo: getCategoryDotStyle(cust) });
+  }
+
+  for (const p of pills) {
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = `category-pill ${p.id.toLowerCase() === activePasswordCategory.toLowerCase() ? "active" : ""}`;
+    pill.dataset.category = p.id;
+
+    const dot = document.createElement("span");
+    dot.className = `pill-dot ${p.dotCls || ""}`;
+    if (p.dotInfo?.style) dot.style.cssText = p.dotInfo.style;
+
+    const label = document.createElement("span");
+    label.className = "pill-label";
+    label.textContent = p.name;
+
+    const countBadge = document.createElement("span");
+    countBadge.className = "pill-count";
+    countBadge.textContent = String(p.count);
+
+    pill.append(dot, label, countBadge);
+    pill.addEventListener("click", () => setPasswordCategoryFilter(p.id));
+    elements.passwordCategoryFilterBar.appendChild(pill);
+  }
+}
+
+function renderPasswords() {
+  if (!vault) return;
+  if (!vault.passwords) vault.passwords = [];
+
+  renderPasswordCategoryFilterBar();
+  const query = (elements.passwordSearchInput?.value || "").trim().toLowerCase();
+
+  // Filter passwords
+  const filtered = vault.passwords.filter((pw) => {
+    const text = `${pw.title || ""} ${pw.username || ""} ${pw.url || ""} ${pw.category || ""} ${pw.notes || ""}`.toLowerCase();
+    if (query && !text.includes(query)) return false;
+
+    if (activePasswordCategory === "all") return true;
+    if (activePasswordCategory === "pinned") return Boolean(pw.pinned);
+    return (pw.category || "").toLowerCase() === activePasswordCategory.toLowerCase();
+  });
+
+  // Sort passwords: pinned first, then domain-matched, then title alphabetical
+  const sorted = [...filtered].sort((a, b) => {
+    if (Boolean(a.pinned) !== Boolean(b.pinned)) {
+      return a.pinned ? -1 : 1;
+    }
+    const aMatch = currentTabDomain && (a.url?.toLowerCase().includes(currentTabDomain) || a.title?.toLowerCase().includes(currentTabDomain));
+    const bMatch = currentTabDomain && (b.url?.toLowerCase().includes(currentTabDomain) || b.title?.toLowerCase().includes(currentTabDomain));
+    if (aMatch !== bMatch) {
+      return aMatch ? -1 : 1;
+    }
+    return (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" });
+  });
+
+  // Check matched site banner
+  if (elements.passwordMatchedSiteBanner) {
+    if (currentTabDomain) {
+      const matchCount = (vault.passwords || []).filter(
+        (p) => p.url?.toLowerCase().includes(currentTabDomain) || p.title?.toLowerCase().includes(currentTabDomain)
+      ).length;
+
+      if (matchCount > 0 && !query) {
+        elements.passwordMatchedSiteBanner.innerHTML = `
+          <div class="matched-site-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="matched-icon">
+              <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <span>Suggested for <strong>${currentTabDomain}</strong> (${matchCount})</span>
+          </div>
+          <button type="button" class="matched-site-btn" id="filterMatchedSiteBtn">Filter</button>
+        `;
+        elements.passwordMatchedSiteBanner.classList.remove("hidden");
+        document.getElementById("filterMatchedSiteBtn")?.addEventListener("click", () => {
+          if (elements.passwordSearchInput) {
+            elements.passwordSearchInput.value = currentTabDomain;
+            renderPasswords();
+          }
+        });
+      } else {
+        elements.passwordMatchedSiteBanner.classList.add("hidden");
+      }
+    } else {
+      elements.passwordMatchedSiteBanner.classList.add("hidden");
+    }
+  }
+
+  // Update empty / no results states
+  const totalPasswords = vault.passwords.length;
+  elements.emptyPasswordsState?.classList.toggle("hidden", totalPasswords !== 0);
+  elements.noPasswordResultsState?.classList.toggle("hidden", !(totalPasswords > 0 && sorted.length === 0));
+
+  if (!elements.passwordsList) return;
+  elements.passwordsList.innerHTML = "";
+
+  if (sorted.length === 0) return;
+
+  for (const pw of sorted) {
+    const card = renderPasswordCard(pw);
+    elements.passwordsList.appendChild(card);
+  }
+}
+
+function renderPasswordCard(pw) {
+  const brand = getBrandInfo(pw.title, pw.url);
+  const isRevealed = revealedPasswords.has(pw.id);
+
+  const card = document.createElement("div");
+  card.className = "password-item";
+  card.dataset.id = pw.id;
+
+  // Header row
+  const header = document.createElement("div");
+  header.className = "pw-card-header";
+
+  const brandIcon = document.createElement("div");
+  brandIcon.className = "pw-brand-icon";
+  brandIcon.style.background = brand.bgColor;
+  brandIcon.style.borderColor = brand.borderColor;
+  brandIcon.innerHTML = brand.svg;
+
+  const headerInfo = document.createElement("div");
+  headerInfo.className = "pw-header-info";
+
+  const titleWrap = document.createElement("div");
+  titleWrap.className = "pw-title-wrap";
+
+  const title = document.createElement("strong");
+  title.className = "pw-title";
+  title.textContent = pw.title || brand.name || "Untitled";
+
+  titleWrap.appendChild(title);
+
+  if (pw.category) {
+    const catBadge = document.createElement("span");
+    catBadge.className = "pw-category-tag";
+    catBadge.textContent = pw.category;
+    applyCategoryColor(catBadge, pw.category);
+    titleWrap.appendChild(catBadge);
+  }
+
+  headerInfo.appendChild(titleWrap);
+
+  const starBtn = document.createElement("button");
+  starBtn.type = "button";
+  starBtn.className = `star-btn ${pw.pinned ? "active" : ""}`;
+  starBtn.title = pw.pinned ? "Unstar password" : "Star password (pin to top)";
+  starBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="${pw.pinned ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+  starBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    pw.pinned = !pw.pinned;
+    await saveVault();
+    renderPasswords();
+  });
+
+  header.append(brandIcon, headerInfo, starBtn);
+
+  // Body: Username & Password fields
+  const body = document.createElement("div");
+  body.className = "pw-card-body";
+
+  // Username row (if exists)
+  if (pw.username) {
+    const userRow = document.createElement("div");
+    userRow.className = "pw-field-row";
+
+    const userText = document.createElement("span");
+    userText.className = "pw-field-text pw-username";
+    userText.textContent = pw.username;
+    userText.title = pw.username;
+
+    const copyUserBtn = document.createElement("button");
+    copyUserBtn.type = "button";
+    copyUserBtn.className = "pw-field-copy-btn";
+    copyUserBtn.title = "Copy username";
+    copyUserBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+    copyUserBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      await navigator.clipboard.writeText(pw.username);
+      scheduleClipboardClear(pw.username, Number(meta?.clipboardClearSec ?? 30));
+      showToast("✓ Copied username");
+    });
+
+    userRow.append(userText, copyUserBtn);
+    body.appendChild(userRow);
+  }
+
+  // Password row
+  const passRow = document.createElement("div");
+  passRow.className = "pw-field-row";
+
+  const passVal = document.createElement("span");
+  passVal.className = `pw-field-text pw-password ${isRevealed ? "revealed" : "masked"}`;
+  passVal.textContent = isRevealed ? pw.password : "••••••••••••";
+
+  const passActions = document.createElement("div");
+  passActions.className = "pw-field-actions";
+
+  const revealBtn = document.createElement("button");
+  revealBtn.type = "button";
+  revealBtn.className = "pw-field-reveal-btn";
+  revealBtn.title = isRevealed ? "Hide password" : "Show password";
+  revealBtn.innerHTML = isRevealed
+    ? `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+    : `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+  revealBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (revealedPasswords.has(pw.id)) {
+      revealedPasswords.delete(pw.id);
+    } else {
+      revealedPasswords.add(pw.id);
+    }
+    renderPasswords();
+  });
+
+  const copyPassBtn = document.createElement("button");
+  copyPassBtn.type = "button";
+  copyPassBtn.className = "pw-field-copy-btn";
+  copyPassBtn.title = "Copy password";
+  copyPassBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+  copyPassBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(pw.password);
+    scheduleClipboardClear(pw.password, Number(meta?.clipboardClearSec ?? 30));
+    card.classList.add("copied");
+    setTimeout(() => card.classList.remove("copied"), 850);
+    showToast("✓ Copied password");
+  });
+
+  passActions.append(revealBtn, copyPassBtn);
+  passRow.append(passVal, passActions);
+  body.appendChild(passRow);
+
+  // Footer: launch URL, Autofill button, Edit button
+  const footer = document.createElement("div");
+  footer.className = "pw-card-footer";
+
+  const leftActions = document.createElement("div");
+  leftActions.className = "pw-footer-left";
+
+  if (pw.url) {
+    const launchBtn = document.createElement("a");
+    launchBtn.href = pw.url.startsWith("http") ? pw.url : `https://${pw.url}`;
+    launchBtn.target = "_blank";
+    launchBtn.rel = "noopener noreferrer";
+    launchBtn.className = "pw-action-chip";
+    launchBtn.title = `Open ${pw.url}`;
+    launchBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
+      </svg>
+      <span>Open</span>
+    `;
+    leftActions.appendChild(launchBtn);
+  }
+
+  const autofillBtn = document.createElement("button");
+  autofillBtn.type = "button";
+  autofillBtn.className = "pw-action-chip pw-autofill-btn";
+  autofillBtn.title = "Autofill credentials on active page";
+  autofillBtn.innerHTML = `
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+    </svg>
+    <span>Autofill</span>
+  `;
+  autofillBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) {
+        showToast("No active browser tab found");
+        return;
+      }
+      chrome.tabs.sendMessage(
+        tab.id,
+        { type: "AUTOFILL_PASSWORD", username: pw.username, password: pw.password },
+        (res) => {
+          if (chrome.runtime.lastError) {
+            showToast("Autofill unavailable on this page");
+            return;
+          }
+          if (res?.ok) {
+            showToast("✓ Autofilled credentials");
+          } else {
+            showToast(res?.error || "Autofill failed");
+          }
+        }
+      );
+    } catch (err) {
+      showToast("Autofill failed");
+    }
+  });
+  leftActions.appendChild(autofillBtn);
+
+  const rightActions = document.createElement("div");
+  rightActions.className = "pw-footer-right";
+
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.className = "pw-action-chip";
+  editBtn.title = "Edit password";
+  editBtn.innerHTML = `
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+    <span>Edit</span>
+  `;
+  editBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openPasswordModal(pw);
+  });
+  rightActions.appendChild(editBtn);
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "pw-action-chip danger";
+  deleteBtn.title = "Delete password";
+  deleteBtn.innerHTML = `
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+  `;
+  deleteBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    deletePassword(pw.id);
+  });
+  rightActions.appendChild(deleteBtn);
+
+  footer.append(leftActions, rightActions);
+
+  card.append(header, body, footer);
+  return card;
+}
+
+// ── Password Add/Edit Modal Logic ────────────────────────────────────────────
+
+function updateModalBrandPreview() {
+  const title = elements.passwordTitleInput?.value?.trim() || "";
+  const url = elements.passwordUrlInput?.value?.trim() || "";
+  const brand = getBrandInfo(title, url);
+
+  if (elements.passwordBrandIcon) {
+    elements.passwordBrandIcon.style.background = brand.bgColor;
+    elements.passwordBrandIcon.style.borderColor = brand.borderColor;
+    elements.passwordBrandIcon.innerHTML = brand.svg;
+  }
+  if (elements.passwordBrandName) {
+    elements.passwordBrandName.textContent = brand.name || title || "Custom Service";
+  }
+}
+
+function updateModalStrengthMeter() {
+  const val = elements.passwordValueInput?.value || "";
+  const strength = evaluatePasswordStrength(val);
+  if (elements.passwordStrengthBadgeModal) {
+    elements.passwordStrengthBadgeModal.textContent = strength.label;
+    elements.passwordStrengthBadgeModal.style.color = strength.color;
+  }
+  if (elements.passwordFieldStrengthFill) {
+    elements.passwordFieldStrengthFill.style.width = `${strength.percent}%`;
+    elements.passwordFieldStrengthFill.style.backgroundColor = strength.color;
+  }
+}
+
+function renderPasswordModalCategoryOptions(selectedVal = "Personal") {
+  if (!elements.passwordCategoryOptionsList) return;
+  elements.passwordCategoryOptionsList.innerHTML = "";
+
+  const optionsMap = new Map();
+  for (const item of STANDARD_CATEGORIES) {
+    if (item.id) optionsMap.set(item.id.toLowerCase(), { id: item.id, name: item.name });
+  }
+
+  if (vault?.passwords) {
+    for (const p of vault.passwords) {
+      const c = (p.category || "").trim();
+      if (c && !optionsMap.has(c.toLowerCase())) {
+        optionsMap.set(c.toLowerCase(), { id: c, name: c });
+      }
+    }
+  }
+
+  const selClean = (selectedVal || "Personal").trim();
+  const selectedKey = selClean.toLowerCase();
+
+  for (const [key, item] of optionsMap.entries()) {
+    const isSelected = key === selectedKey;
+    const dotInfo = getCategoryDotStyle(item.id);
+
+    const row = document.createElement("div");
+    row.className = `category-option-item ${isSelected ? "selected" : ""}`;
+    row.dataset.value = item.id;
+
+    const left = document.createElement("div");
+    left.className = "option-left";
+
+    const dot = document.createElement("span");
+    dot.className = `category-indicator-dot ${dotInfo.cls}`;
+    if (dotInfo.style) dot.style.cssText = dotInfo.style;
+
+    const label = document.createElement("span");
+    label.className = "option-label";
+    label.textContent = item.name;
+
+    left.append(dot, label);
+    row.appendChild(left);
+
+    if (isSelected) {
+      const check = document.createElement("span");
+      check.className = "option-check";
+      check.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+      row.appendChild(check);
+    }
+
+    row.addEventListener("click", () => {
+      selectPasswordCategoryOption(item.id, item.name, dotInfo);
+    });
+
+    elements.passwordCategoryOptionsList.appendChild(row);
+  }
+}
+
+function selectPasswordCategoryOption(id, name, dotInfo) {
+  if (elements.passwordCategoryHiddenInput) {
+    elements.passwordCategoryHiddenInput.value = id;
+  }
+  if (elements.passwordCategoryTriggerText) {
+    elements.passwordCategoryTriggerText.textContent = name;
+  }
+  if (elements.passwordCategoryTriggerDot) {
+    elements.passwordCategoryTriggerDot.className = `category-indicator-dot ${dotInfo.cls}`;
+    elements.passwordCategoryTriggerDot.style.cssText = dotInfo.style || "";
+  }
+  closePasswordCategoryDropdown();
+}
+
+function closePasswordCategoryDropdown() {
+  elements.passwordCategoryDropdownMenu?.classList.add("hidden");
+  elements.passwordCategoryTrigger?.setAttribute("aria-expanded", "false");
+}
+
+function openPasswordModal(pw = null, prefilledPassword = "") {
+  if (elements.passwordModalError) {
+    elements.passwordModalError.textContent = "";
+    elements.passwordModalError.classList.add("hidden");
+  }
+
+  if (pw) {
+    editingPasswordId = pw.id;
+    if (elements.passwordModalTitle) elements.passwordModalTitle.textContent = "Edit Password";
+    if (elements.passwordTitleInput) elements.passwordTitleInput.value = pw.title || "";
+    if (elements.passwordUsernameInput) elements.passwordUsernameInput.value = pw.username || "";
+    if (elements.passwordValueInput) elements.passwordValueInput.value = pw.password || "";
+    if (elements.passwordUrlInput) elements.passwordUrlInput.value = pw.url || "";
+    if (elements.passwordNotesInput) elements.passwordNotesInput.value = pw.notes || "";
+    const cat = pw.category || "Personal";
+    renderPasswordModalCategoryOptions(cat);
+    const dotInfo = getCategoryDotStyle(cat);
+    selectPasswordCategoryOption(cat, cat, dotInfo);
+  } else {
+    editingPasswordId = null;
+    if (elements.passwordModalTitle) elements.passwordModalTitle.textContent = "New Password";
+    if (elements.passwordTitleInput) {
+      elements.passwordTitleInput.value = currentTabDomain ? currentTabDomain.split(".")[0].toUpperCase() : "";
+    }
+    if (elements.passwordUsernameInput) elements.passwordUsernameInput.value = "";
+    if (elements.passwordValueInput) {
+      elements.passwordValueInput.value = prefilledPassword || generateRandomPassword({ length: 16 });
+    }
+    if (elements.passwordUrlInput) {
+      elements.passwordUrlInput.value = currentTabDomain ? `https://${currentTabDomain}` : "";
+    }
+    if (elements.passwordNotesInput) elements.passwordNotesInput.value = "";
+    renderPasswordModalCategoryOptions("Personal");
+    const dotInfo = getCategoryDotStyle("Personal");
+    selectPasswordCategoryOption("Personal", "Personal", dotInfo);
+  }
+
+  if (elements.passwordValueInput) {
+    elements.passwordValueInput.type = "password";
+  }
+
+  updateModalBrandPreview();
+  updateModalStrengthMeter();
+  showModal(elements.passwordModal);
+  elements.passwordTitleInput?.focus();
+}
+
+function closePasswordModal() {
+  hideModal(elements.passwordModal);
+  editingPasswordId = null;
+  closePasswordCategoryDropdown();
+}
+
+async function handleSavePassword() {
+  const title = (elements.passwordTitleInput?.value || "").trim();
+  const username = (elements.passwordUsernameInput?.value || "").trim();
+  const password = (elements.passwordValueInput?.value || "").trim();
+  const url = (elements.passwordUrlInput?.value || "").trim();
+  const category = (elements.passwordCategoryHiddenInput?.value || "Personal").trim();
+  const notes = (elements.passwordNotesInput?.value || "").trim();
+
+  if (!title) {
+    if (elements.passwordModalError) {
+      elements.passwordModalError.textContent = "Please enter a service or website title.";
+      elements.passwordModalError.classList.remove("hidden");
+    }
+    elements.passwordTitleInput?.focus();
+    return;
+  }
+
+  if (!password) {
+    if (elements.passwordModalError) {
+      elements.passwordModalError.textContent = "Please enter or generate a password.";
+      elements.passwordModalError.classList.remove("hidden");
+    }
+    elements.passwordValueInput?.focus();
+    return;
+  }
+
+  if (!vault.passwords) vault.passwords = [];
+
+  if (editingPasswordId) {
+    const idx = vault.passwords.findIndex((p) => p.id === editingPasswordId);
+    if (idx !== -1) {
+      vault.passwords[idx] = {
+        ...vault.passwords[idx],
+        title,
+        username,
+        password,
+        url,
+        category,
+        notes,
+        updatedAt: Date.now(),
+      };
+    }
+  } else {
+    vault.passwords.push({
+      id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+      title,
+      username,
+      password,
+      url,
+      category,
+      notes,
+      pinned: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  }
+
+  await saveVault();
+  closePasswordModal();
+  renderPasswords();
+  updateAccountCount();
+  showToast(editingPasswordId ? "✓ Password updated" : "✓ Password saved to vault");
+}
+
+async function deletePassword(id) {
+  const pw = vault?.passwords?.find((p) => p.id === id);
+  const name = pw?.title || "this password";
+  if (!window.confirm(`Delete ${name} from vault?`)) return;
+
+  vault.passwords = vault.passwords.filter((p) => p.id !== id);
+  await saveVault();
+  renderPasswords();
+  updateAccountCount();
+  showToast("Password deleted");
+}
+
 function openSettingsModal() {
   if (meta?.locked) {
     showToast("Unlock vault first");
@@ -3078,6 +3816,18 @@ async function init() {
   });
 
   elements.refreshGeneratedPasswordBtn?.addEventListener("click", updateGeneratedPassword);
+
+  // Initialize default generated password
+  updateGeneratedPassword();
+
+    elements.generatedPasswordDisplay?.addEventListener("click", async () => {
+    if (!currentGeneratedPassword) return;
+    await navigator.clipboard.writeText(currentGeneratedPassword);
+    scheduleClipboardClear(currentGeneratedPassword, Number(meta?.clipboardClearSec ?? 30));
+    elements.copyGeneratedPasswordBtn?.classList.add("copied");
+    setTimeout(() => elements.copyGeneratedPasswordBtn?.classList.remove("copied"), 850);
+    showToast("✓ Copied password to clipboard");
+  });
 
   elements.copyGeneratedPasswordBtn?.addEventListener("click", async () => {
     if (!currentGeneratedPassword) return;

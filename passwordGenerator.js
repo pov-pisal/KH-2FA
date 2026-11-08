@@ -118,12 +118,13 @@ export function generateRandomPassword(options = {}) {
 export function generatePassphrase(options = {}) {
   const {
     wordCount = 4,
+    words: aliasWords,
     separator = "-",
     capitalize = true,
     includeNumber = true,
   } = options;
 
-  const count = Math.max(3, Math.min(8, Number(wordCount) || 4));
+  const count = Math.max(3, Math.min(8, Number(options.wordCount || options.words || 4)));
   const words = [];
 
   for (let i = 0; i < count; i++) {
