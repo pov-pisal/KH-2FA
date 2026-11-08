@@ -115,6 +115,21 @@ const elements = {
   settingsChangePin: document.getElementById("settingsChangePin"),
   settingsBackup: document.getElementById("settingsBackup"),
   settingsGoogleSync: document.getElementById("settingsGoogleSync"),
+  settingsBrowserTransfer: document.getElementById("settingsBrowserTransfer"),
+  lockTransferFromBrowserBtn: document.getElementById("lockTransferFromBrowserBtn"),
+  transferTabSendBtn: document.getElementById("transferTabSendBtn"),
+  transferTabReceiveBtn: document.getElementById("transferTabReceiveBtn"),
+  transferSendView: document.getElementById("transferSendView"),
+  transferReceiveView: document.getElementById("transferReceiveView"),
+  transferQrContainer: document.getElementById("transferQrContainer"),
+  transferCodeText: document.getElementById("transferCodeText"),
+  copyTransferCodeBtn: document.getElementById("copyTransferCodeBtn"),
+  downloadTransferFileBtn: document.getElementById("downloadTransferFileBtn"),
+  receiveScanScreenBtn: document.getElementById("receiveScanScreenBtn"),
+  receiveCodeInput: document.getElementById("receiveCodeInput"),
+  pasteFromClipboardBtn: document.getElementById("pasteFromClipboardBtn"),
+  applyTransferCodeBtn: document.getElementById("applyTransferCodeBtn"),
+  receiveFileInput: document.getElementById("receiveFileInput"),
   settingsGistSync: document.getElementById("settingsGistSync"),
   gistSyncStatusBadge: document.getElementById("gistSyncStatusBadge"),
   checkGistSyncBtn: document.getElementById("checkGistSyncBtn"),
@@ -2005,6 +2020,7 @@ function hideAllSettingsSections() {
   [
     elements.settingsChangePin,
     elements.settingsBackup,
+    elements.settingsBrowserTransfer,
     elements.settingsGoogleSync,
     elements.settingsGistSync,
     elements.settingsPreferences,
@@ -2040,6 +2056,7 @@ function openSettingsSection(key) {
   const map = {
     "change-pin": elements.settingsChangePin,
     backup: elements.settingsBackup,
+    "browser-transfer": elements.settingsBrowserTransfer,
     "google-sync": elements.settingsGoogleSync,
     "gist-sync": elements.settingsGistSync,
     preferences: elements.settingsPreferences,
@@ -2059,6 +2076,9 @@ function openSettingsSection(key) {
   }
   if (key === "gist-sync") {
     refreshGistSyncUI();
+  }
+  if (key === "browser-transfer") {
+    renderTransferQR();
   }
   if (key === "change-pin") {
     elements.currentPinInput?.focus();
@@ -3244,6 +3264,12 @@ async function decodeImageForQR(imgSource) {
 async function populateAndOpenAddModal(urlOrSecret) {
   if (!urlOrSecret) return;
 
+  // Intercept 1-Click Cross-Browser Sync QR code
+  if (typeof urlOrSecret === "string" && (urlOrSecret.startsWith("khsync:") || urlOrSecret.includes('"encryptedVault"'))) {
+    await handleImportSyncData(urlOrSecret);
+    return;
+  }
+
   // Handle Google Authenticator export QR code
   if (typeof urlOrSecret === "string" && urlOrSecret.trim().startsWith("otpauth-migration://")) {
     const imported = parseGoogleMigrationUri(urlOrSecret.trim());
@@ -3836,6 +3862,112 @@ async function handleGistDisconnect() {
   });
   showToast("✓ Cross-Browser Sync disconnected");
   refreshGistSyncUI();
+}
+
+
+// ── 1-Click Cross-Browser Transfer & Sync Logic ──────────────────────────────
+function getTransferSyncString() {
+  if (!vaultRecord) return "";
+  try {
+    return "khsync:" + btoa(unescape(encodeURIComponent(JSON.stringify(vaultRecord))));
+  } catch (e) {
+    return "";
+  }
+}
+
+function renderTransferQR() {
+  if (!elements.transferQrContainer) return;
+  if (!vaultRecord) {
+    elements.transferQrContainer.innerHTML = `<p style="color:var(--muted);font-size:11.5px;padding:12px;text-align:center;">Unlock your vault first to generate transfer QR</p>`;
+    return;
+  }
+
+  const rawStr = getTransferSyncString();
+  if (elements.transferCodeText) {
+    elements.transferCodeText.value = rawStr;
+  }
+
+  try {
+    const qr = qrcode(0, "M");
+    qr.addData(rawStr);
+    qr.make();
+    elements.transferQrContainer.innerHTML = qr.createImgTag(3, 4);
+  } catch (e) {
+    console.warn("QR too large, using fallback:", e);
+    elements.transferQrContainer.innerHTML = `
+      <div class="qr-too-large-fallback">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <span>Large Vault: Click 'Copy Sync Code' or 'Download Transfer File' below</span>
+      </div>`;
+  }
+}
+
+async function handleImportSyncData(raw) {
+  try {
+    let clean = (raw || "").trim();
+    if (!clean) {
+      showToast("Please enter or paste sync data");
+      return false;
+    }
+
+    if (clean.startsWith("khsync:")) {
+      clean = clean.replace("khsync:", "").trim();
+      clean = decodeURIComponent(escape(atob(clean)));
+    }
+
+    const incomingRecord = JSON.parse(clean);
+    if (!incomingRecord.encryptedVault || !incomingRecord.encryptedVault.data) {
+      showToast("Invalid sync data format");
+      return false;
+    }
+
+    if (sessionPin) {
+      try {
+        const decrypted = await decryptVault(sessionPin, incomingRecord);
+        vault = decrypted;
+        vaultRecord = incomingRecord;
+        await persistVaultRecord(vaultRecord);
+        renderAccounts();
+        renderPasswords();
+        closeSettingsModal();
+        showToast("✓ Browser Sync complete! All accounts and passwords restored.");
+        return true;
+      } catch (e) {
+        vaultRecord = incomingRecord;
+        await setVaultRecord(vaultRecord);
+        closeSettingsModal();
+        showToast("✓ Sync data loaded! Enter PIN to unlock.");
+        showLockedView({ createMode: false });
+        return true;
+      }
+    } else {
+      vaultRecord = incomingRecord;
+      await setVaultRecord(vaultRecord);
+      closeSettingsModal();
+      showToast("✓ Sync data loaded! Enter PIN to unlock.");
+      showLockedView({ createMode: false });
+      return true;
+    }
+  } catch (err) {
+    console.error("Failed to import sync data:", err);
+    showToast("Failed to process sync data. Check code format.");
+    return false;
+  }
+}
+
+function handleDownloadTransferFile() {
+  if (!vaultRecord) {
+    showToast("No vault data available to export");
+    return;
+  }
+  const blob = new Blob([JSON.stringify(vaultRecord, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `kh_browser_sync_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast("✓ Downloaded transfer file!");
 }
 
 async function init() {
@@ -4504,6 +4636,74 @@ async function init() {
 
   // Google Account Sync listeners
   elements.syncToggle?.addEventListener("change", handleSyncToggle);
+
+  // ── 1-Click Browser Transfer Listeners ──
+  elements.transferTabSendBtn?.addEventListener("click", () => {
+    elements.transferTabSendBtn.classList.add("active");
+    elements.transferTabReceiveBtn?.classList.remove("active");
+    elements.transferSendView?.classList.remove("hidden");
+    elements.transferReceiveView?.classList.add("hidden");
+    renderTransferQR();
+  });
+
+  elements.transferTabReceiveBtn?.addEventListener("click", () => {
+    elements.transferTabReceiveBtn.classList.add("active");
+    elements.transferTabSendBtn?.classList.remove("active");
+    elements.transferReceiveView?.classList.remove("hidden");
+    elements.transferSendView?.classList.add("hidden");
+  });
+
+  elements.copyTransferCodeBtn?.addEventListener("click", async () => {
+    const str = getTransferSyncString();
+    if (!str) {
+      showToast("Unlock vault to copy sync code");
+      return;
+    }
+    await navigator.clipboard.writeText(str);
+    elements.copyTransferCodeBtn.classList.add("copied");
+    setTimeout(() => elements.copyTransferCodeBtn?.classList.remove("copied"), 850);
+    showToast("✓ Copied Transfer Code! Ready to paste into Brave");
+  });
+
+  elements.downloadTransferFileBtn?.addEventListener("click", handleDownloadTransferFile);
+  elements.receiveScanScreenBtn?.addEventListener("click", handleScanScreenQR);
+
+  elements.pasteFromClipboardBtn?.addEventListener("click", async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (elements.receiveCodeInput) {
+        elements.receiveCodeInput.value = text;
+        showToast("✓ Pasted from clipboard");
+      }
+    } catch (e) {
+      showToast("Clipboard access denied. Press Ctrl+V inside the box.");
+    }
+  });
+
+  elements.applyTransferCodeBtn?.addEventListener("click", async () => {
+    const val = elements.receiveCodeInput?.value || "";
+    await handleImportSyncData(val);
+  });
+
+  elements.receiveFileInput?.addEventListener("change", (e) => {
+    const file = e.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const content = evt.target?.result;
+      if (content) {
+        await handleImportSyncData(content);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  elements.lockTransferFromBrowserBtn?.addEventListener("click", () => {
+    openSettingsModal();
+    openSettingsSection("browser-transfer");
+    elements.transferTabReceiveBtn?.click();
+  });
 
   // Cross-Browser Gist Sync listeners
   elements.gistTabNewBtn?.addEventListener("click", () => {
