@@ -1238,27 +1238,11 @@ function setPassphraseSeparator(val) {
     elements.generatorSeparatorSelect.value = cleanVal;
   }
 
-  // Update trigger display
-  const opt = document.querySelector(`.custom-select-option[data-value="${cleanVal}"]`);
-  if (opt) {
-    const badge = opt.dataset.badge || "-";
-    const label = opt.dataset.label || "Hyphen (-)";
-    if (elements.generatorSeparatorBadge) elements.generatorSeparatorBadge.textContent = badge;
-    if (elements.generatorSeparatorText) elements.generatorSeparatorText.textContent = label;
-
-    document.querySelectorAll(".custom-select-option").forEach((el) => {
-      const isSel = el.dataset.value === cleanVal;
-      el.classList.toggle("selected", isSel);
-      el.setAttribute("aria-selected", isSel ? "true" : "false");
-    });
-  }
-
   // Update quick chips
   document.querySelectorAll(".sep-chip").forEach((chip) => {
     chip.classList.toggle("active", chip.dataset.sep === cleanVal);
   });
 
-  closeSeparatorDropdown();
   updateGeneratedPassword();
 }
 
