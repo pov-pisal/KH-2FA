@@ -1,6 +1,6 @@
 # 🛡️ KH 2FA
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/pov-pisal/KH-2FA)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 
@@ -10,26 +10,31 @@ A modern, secure, and private browser extension for managing Two-Factor Authenti
 
 ## ✨ Features
 
+- **🔄 1-Click Browser Sync (Chrome ↔ Brave)** - Instantly transfer and synchronize your encrypted vault between Google Chrome, Brave, and Edge in 5 seconds without cloud accounts, tokens, or servers.
+- **🛡️ Vault Health & Security Audit** - Comprehensive security audit detecting weak, reused, and compromised passwords using HaveIBeenPwned k-Anonymity zero-knowledge API.
+- **📄 Printable Emergency Recovery Kit** - Generate an offline, print-ready emergency recovery sheet with master hint and encrypted backup QR code for physical safe storage.
+- **🗑️ 30-Day Trash Bin (Recently Deleted)** - Protects against accidental deletion with 1-click restore for deleted 2FA tokens and passwords.
+- **🕒 Next-Code Preview (Under 5s Warning)** - Displays the upcoming code when timer hits ≤ 5s so you never copy an expiring code.
+- **🎨 5 Accent Color Themes** - Personalize your vault with Electric Cyan, Emerald Green, Neon Purple, Sunset Rose, or Amber Gold.
+- **⌨️ Power-User Keyboard Shortcuts** - Fast workflow with `/` or `Ctrl+F` to search, `Ctrl+L` to lock, `Esc` to dismiss, and `1`–`9` to immediately copy TOTP codes.
 - **🔑 Passwords Vault & Management** - Store, search, and manage credentials with website matching and 1-click autofill.
 - **⚡ Cryptographic Password Generator** - Generate high-entropy passwords, memorable passphrases, and PINs with a live crack-time meter.
-- **🔐 Client-Side Encrypted Vault** - All TOTP secrets are encrypted locally using AES-256-GCM with PBKDF2 (150,000 rounds) derived from your personal PIN or passphrase.
+- **🔐 Client-Side Encrypted Vault** - All TOTP secrets and passwords are encrypted locally using AES-256-GCM with PBKDF2 (150,000 rounds) derived from your personal PIN or passphrase.
 - **🌐 Clock Drift & Time Sync Detector** - Built-in time synchronization diagnostic with automatic offset compensation to guarantee valid TOTP codes even if system time skews.
 - **🏷️ Category & Tag Filters** - Organize accounts into categories (`Personal`, `Work`, `Crypto`, `Finance`, `Social`, `Other`) with interactive filter pills.
-- **🔐 Password-Protected Encrypted Backups (`.enc.json`)** - Export and import backups encrypted with AES-256-GCM, safe for cloud storage, USB drives, or email.
+- **🔐 Password-Protected Encrypted Backups (`.enc.json` / `.khsync`)** - Export and import backups encrypted with AES-256-GCM, safe for cloud storage, USB drives, or email.
 - **🖥️ Chrome Side Panel** - Dock KH 2FA directly into Chrome's native side panel to keep codes visible while navigating across tabs.
 - **📱 Mobile Account Transfer (View QR)** - View and scan a live on-screen SVG QR code for any stored account to transfer tokens to your phone or hardware key.
-- **🔄 Google Authenticator Migration & Multi-Format Importer** - Directly scan or import `otpauth-migration://` QR codes from Google Authenticator, as well as Aegis, 2FAS, Bitwarden, and raw `otpauth://` lists without opening new tabs.
+- **🔄 Google Authenticator Migration & Multi-Format Importer** - Directly scan or import `otpauth-migration://` QR codes from Google Authenticator, as well as Aegis, 2FAS, Bitwarden, and raw `otpauth://` lists.
 - **⚡ In-Field Autofill & Split 6-Box Detection** - Automatically detects 2FA verification fields on login pages (including modern 6-box single-digit inputs on GitHub, Stripe, Discord) and fills codes in 1 click.
 - **📷 1-Click Screen QR Scanner** - Capture QR codes directly from your browser tab or upload an image to add accounts effortlessly without mobile scanning apps.
 - **⏱️ Full RFC 6238 & Steam Guard** - Supports standard 6, 7, and 8 digits, custom algorithms (SHA-1, SHA-256, SHA-512), custom periods (15s, 30s, 60s), and Steam Guard alphanumeric codes.
 - **👁️ Privacy Mask (Peek Mode)** - Conceals codes with a Gaussian blur by default to protect against shoulder surfing; hovering over any account card reveals the code.
-- **⏱️ Auto-Clearing Clipboard** - Purges copied one-time codes from the operating system clipboard after 30 seconds for maximum security.
-- **⭐ Star / Pin Favorites** - Pin your most important accounts to the top of your vault.
+- **⏱️ Auto-Clearing Clipboard** - Purges copied one-time codes and passwords from the OS clipboard after countdown for maximum security.
+- **⭐ Star / Pin Favorites** - Pin your most important accounts and passwords to the top of your vault.
 - **🛡️ Persistent Anti-Brute-Force Lockout** - Rate-limiting lockout halts unlock attempts across sessions after repeated incorrect PIN entries.
 - **💤 System Lock & Idle Protection** - Purges decrypted session keys and locks the vault whenever your machine locks or sleeps.
 - **🎨 4 Sleek Themes** - Switch between Midnight Cyan, Pure OLED Black, Nord Arctic, and Clean Light.
-- **💾 Encrypted Backup & Restore** - Export or import your accounts anytime.
-- **🔍 Quick Search & Hotkeys** - Press `/` to focus search instantly; press `Alt+Shift+A` to launch the extension anywhere.
 
 ---
 
