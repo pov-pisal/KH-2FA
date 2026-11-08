@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KH 2FA — Emergency Recovery Kit</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #cbd5e1;
+      --bg: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: #ffffff;
+      padding: 32px 20px;
+      line-height: 1.45;
+    }
+    .kit-container {
+      max-width: 680px;
+      margin: 0 auto;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      background: #ffffff;
+    }
+    .kit-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 18px;
+      margin-bottom: 20px;
+    }
+    .kit-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .kit-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: #0284c7;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .kit-title h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .kit-title p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .print-btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .print-btn:hover { background: #0369a1; }
+    .warning-box {
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      font-size: 11.5px;
+      color: #92400e;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .grid-row {
+      display: grid;
+      grid-template-columns: 1fr 180px;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+    .info-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .field-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: #f8fafc;
+    }
+    .field-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .field-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .qr-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      background: #f8fafc;
+      text-align: center;
+    }
+    .qr-frame {
+      background: #ffffff;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      width: 154px;
+      height: 154px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-frame img {
+      width: 142px;
+      height: 142px;
+      display: block;
+      image-rendering: pixelated;
+    }
+    .qr-caption {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-weight: 600;
+    }
+    .inventory-section {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 16px;
+      margin-top: 10px;
+    }
+    .inventory-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .inventory-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .inventory-tag {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      color: #334155;
+    }
+    .kit-footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 14px;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    @media print {
+      body { padding: 0; }
+      .kit-container { border: 1px solid #000000; border-radius: 0; padding: 20px; max-width: 100%; }
+      .print-btn { display: none; }
+      .warning-box { background: #f8fafc; border-color: #cbd5e1; color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <div class="kit-container">
+    <div class="kit-header">
+      <div class="kit-brand">
+        <div class="kit-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <div class="kit-title">
+          <h1>KH 2FA Emergency Recovery Kit</h1>
+          <p>Confidential • Store in a fireproof safe, bank deposit, or physical vault</p>
+        </div>
+      </div>
+      <button type="button" class="print-btn" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        <span>Print Document</span>
+      </button>
+    </div>
+
+    <div class="warning-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      <div>
+        <strong>Do not share this document.</strong> Anyone with this sheet and your Master PIN can restore all your 2FA accounts and passwords.
+      </div>
+    </div>
+
+    <div class="grid-row">
+      <div class="info-section">
+        <div class="field-card">
+          <div class="field-label">Document Created</div>
+          <div class="field-value" id="kitCreatedDate">—</div>
+        </div>
+        <div class="field-card">
+          <div class="field-label">Master PIN / Password Hint</div>
+          <div class="field-value" id="kitPinHint" style="font-family: monospace; font-size: 14px;">(Write hint or keep in memory: _______________)</div>
+        </div>
+        <div class="field-card">
+          <div class="field-label">Restoration Instructions</div>
+          <div class="field-value" style="font-size: 11.5px; font-weight: normal; color: #334155; line-height: 1.4;">
+            1. Install <strong>KH 2FA</strong> on Google Chrome or Brave on any computer.<br />
+            2. On setup, click <strong>"Sync from another Browser"</strong>.<br />
+            3. Point your camera to scan the QR code on the right.<br />
+            4. Enter your Master PIN to unlock all your accounts.
+          </div>
+        </div>
+      </div>
+
+      <div class="qr-card">
+        <div id="kitQrContainer" class="qr-frame">
+          <span style="font-size: 11px; color: #64748b;">Loading QR...</span>
+        </div>
+        <span class="qr-caption">Encrypted Vault Backup</span>
+      </div>
+    </div>
+
+    <div class="inventory-section">
+      <div class="inventory-title" id="inventoryTitle">Protected Vault Accounts</div>
+      <div class="inventory-list" id="inventoryList">
+        <span class="inventory-tag">Loading inventory...</span>
+      </div>
+    </div>
+
+    <div class="kit-footer">
+      <span>Zero-Knowledge AES-256-GCM Encryption • KH 2FA v2.2</span>
+      <span>kh-2fa.local</span>
+    </div>
+  </div>
+
+  <script src="qrcode.js"></script>
+  <script src="emergency-kit.js"></script>
+</body>
+</html>

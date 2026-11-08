@@ -24,6 +24,8 @@ $rootFiles = @(
     "backup.js",
     "import.html",
     "import.js",
+    "emergency-kit.html",
+    "emergency-kit.js",
     "icons"
 )
 

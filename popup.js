@@ -147,6 +147,12 @@ const elements = {
   metricNumReused: document.getElementById("metricNumReused"),
   metricNumBreached: document.getElementById("metricNumBreached"),
   startBreachScanBtn: document.getElementById("startBreachScanBtn"),
+  openEmergencyKitBtn: document.getElementById("openEmergencyKitBtn"),
+  settingsTrash: document.getElementById("settingsTrash"),
+  trashList: document.getElementById("trashList"),
+  trashCountBadge: document.getElementById("trashCountBadge"),
+  emptyTrashBtn: document.getElementById("emptyTrashBtn"),
+  accentPalettePicker: document.getElementById("accentPalettePicker"),
   auditIssuesList: document.getElementById("auditIssuesList"),
   settingsGistSync: document.getElementById("settingsGistSync"),
   gistSyncStatusBadge: document.getElementById("gistSyncStatusBadge"),
@@ -498,6 +504,19 @@ function getTheme() {
 
 function getSortMode() {
   return meta?.sortMode || "newest";
+}
+
+function applyAccentColor(accent = "cyan") {
+  const accents = {
+    cyan: "#38bdf8",
+    emerald: "#10b981",
+    purple: "#a855f7",
+    rose: "#f43f5e",
+    amber: "#f59e0b",
+  };
+  const color = accents[accent] || accents.cyan;
+  document.documentElement.style.setProperty("--primary", color);
+  document.documentElement.dataset.accent = accent;
 }
 
 function applyTheme(theme) {
@@ -2235,13 +2254,20 @@ async function handleSavePassword() {
 async function deletePassword(id) {
   const pw = vault?.passwords?.find((p) => p.id === id);
   const name = pw?.title || "this password";
-  if (!window.confirm(`Delete ${name} from vault?`)) return;
+  if (!window.confirm(`Move ${name} to Trash?`)) return;
 
+  if (pw) {
+    if (!vault.trash) vault.trash = [];
+    pw.deletedAt = Date.now();
+    pw.itemType = "password";
+    vault.trash.push(pw);
+  }
   vault.passwords = vault.passwords.filter((p) => p.id !== id);
   await saveVault();
   renderPasswords();
   updateAccountCount();
-  showToast("Password deleted");
+  updateTrashCount();
+  showToast("Moved to Trash (30-day recovery)");
 }
 
 function openSettingsModal() {
@@ -2337,6 +2363,7 @@ function openSettingsSection(key) {
     "browser-transfer": elements.settingsBrowserTransfer,
     "google-sync": elements.settingsGoogleSync,
         preferences: elements.settingsPreferences,
+    "trash": elements.settingsTrash,
     "clock-sync": elements.settingsClockSync,
     reset: elements.settingsReset,
   };
@@ -2345,6 +2372,7 @@ function openSettingsSection(key) {
   hideSettingsList();
   section.classList.remove("hidden");
   section.removeAttribute("inert");
+  if (key === "trash") { renderTrash(); }
   if (key === "clock-sync") {
     updateClockSyncUI();
   }
@@ -2422,6 +2450,7 @@ async function savePreferences() {
 
 function cancelPreferences() {
   applyTheme(getTheme());
+  applyAccentColor(meta?.accentColor || "cyan");
   preferencesDraft = {
     lockTimeoutMs: getLockTimeoutMs(),
     sortMode: getSortMode(),
@@ -2449,10 +2478,19 @@ async function confirmDelete() {
     closeDeleteModal();
     return;
   }
+  const deletedItem = vault.accounts.find((acc) => acc.id === pendingDeleteId);
+  if (deletedItem) {
+    if (!vault.trash) vault.trash = [];
+    deletedItem.deletedAt = Date.now();
+    deletedItem.itemType = "account";
+    vault.trash.push(deletedItem);
+  }
   vault.accounts = vault.accounts.filter((acc) => acc.id !== pendingDeleteId);
   await saveVault();
   closeDeleteModal();
   renderAccounts();
+  updateTrashCount();
+  showToast("Moved to Trash (30-day recovery)");
   if (!elements.editAccountsModal.classList.contains("hidden")) {
     renderEditAccountsList();
   }
@@ -3141,6 +3179,90 @@ async function moveAccount(accountId, direction) {
   showToast("Account reordered");
 }
 
+
+// ── Recently Deleted (Trash Bin) Logic ───────────────────────────────────────
+function pruneOldTrash() {
+  if (!vault?.trash) return;
+  const thirtyDaysAgo = Date.now() - (30 * 24 * 3600 * 1000);
+  vault.trash = vault.trash.filter((it) => (it.deletedAt || 0) > thirtyDaysAgo);
+}
+
+function updateTrashCount() {
+  pruneOldTrash();
+  const count = vault?.trash?.length || 0;
+  if (elements.trashCountBadge) {
+    elements.trashCountBadge.textContent = String(count);
+  }
+}
+
+function renderTrash() {
+  pruneOldTrash();
+  updateTrashCount();
+  const list = elements.trashList;
+  if (!list) return;
+
+  const items = vault?.trash || [];
+  if (items.length === 0) {
+    list.innerHTML = '<p class="muted" style="font-size:11.5px;text-align:center;padding:16px;">Trash is empty</p>';
+    return;
+  }
+
+  list.innerHTML = "";
+  // Sort newest deleted first
+  const sorted = [...items].sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+
+  for (const it of sorted) {
+    const row = document.createElement("div");
+    row.className = "trash-item";
+    const isAcc = it.itemType === "account" || it.secret;
+    const typeLabel = isAcc ? "2FA Token" : "Password";
+    const name = it.issuer || it.title || it.username || "Item";
+    const dateStr = it.deletedAt ? new Date(it.deletedAt).toLocaleDateString([], { month: "short", day: "numeric" }) : "Recently";
+
+    row.innerHTML = `
+      <div class="trash-item-info">
+        <span class="trash-item-title">${isAcc ? "🔑" : "🔒"} ${name}</span>
+        <span class="trash-item-meta">${typeLabel} • Deleted ${dateStr}</span>
+      </div>
+      <button type="button" class="trash-restore-btn" data-id="${it.id}">Restore</button>
+    `;
+
+    row.querySelector(".trash-restore-btn")?.addEventListener("click", async () => {
+      // Remove from trash
+      vault.trash = (vault.trash || []).filter((x) => x.id !== it.id);
+      delete it.deletedAt;
+      const t = it.itemType;
+      delete it.itemType;
+
+      if (t === "password" || (!it.secret && it.password)) {
+        if (!vault.passwords) vault.passwords = [];
+        vault.passwords.push(it);
+        renderPasswords();
+      } else {
+        if (!vault.accounts) vault.accounts = [];
+        vault.accounts.push(it);
+        renderAccounts();
+      }
+
+      await saveVault();
+      renderTrash();
+      updateAccountCount();
+      showToast(`✓ Restored ${name}`);
+    });
+
+    list.appendChild(row);
+  }
+}
+
+async function handleEmptyTrash() {
+  if (!vault?.trash || vault.trash.length === 0) return;
+  if (!confirm("Permanently delete all items in Trash? This cannot be undone.")) return;
+  vault.trash = [];
+  await saveVault();
+  renderTrash();
+  showToast("Trash emptied");
+}
+
 function renderAccounts() {
   if (!vault) return;
   renderCategoryFilterBar();
@@ -3347,6 +3469,12 @@ function updateProgress(now = Date.now()) {
     if (remaining <= 5) {
       ring.classList.add("expiring");
       item.classList.add("expiring-soon");
+      const nextBadge = item.querySelector("[data-next-code]");
+      if (nextBadge && account && account.secret) {
+        generateTOTP(account.secret, now + (remaining + 1) * 1000, account).then((nxt) => {
+          nextBadge.textContent = `Next: ${formatOTPDisplay(nxt)}`;
+        }).catch(() => {});
+      }
     } else {
       ring.classList.remove("expiring");
       item.classList.remove("expiring-soon");
@@ -5000,6 +5128,23 @@ async function init() {
     showModal(elements.securityAuditModal);
   });
   elements.startBreachScanBtn?.addEventListener("click", handleStartBreachScan);
+
+  elements.openEmergencyKitBtn?.addEventListener("click", () => {
+    chrome.tabs.create({ url: "emergency-kit.html" });
+  });
+
+  elements.emptyTrashBtn?.addEventListener("click", handleEmptyTrash);
+
+  // Accent color dots click listener
+  elements.accentPalettePicker?.querySelectorAll(".accent-color-dot").forEach((dot) => {
+    dot.addEventListener("click", async () => {
+      const accent = dot.dataset.accent || "cyan";
+      elements.accentPalettePicker?.querySelectorAll(".accent-color-dot").forEach((d) => d.classList.remove("active"));
+      dot.classList.add("active");
+      applyAccentColor(accent);
+      meta = await updateMeta({ accentColor: accent });
+    });
+  });
 
   elements.lockTransferFromBrowserBtn?.addEventListener("click", () => {
     openSettingsModal();
