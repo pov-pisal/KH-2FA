@@ -285,6 +285,7 @@ function showModal(modal) {
   if (!modal) return;
   modal.classList.remove("hidden");
   modal.removeAttribute("inert");
+  modal.removeAttribute("aria-hidden");
 }
 
 function hideModal(modal) {
@@ -294,6 +295,7 @@ function hideModal(modal) {
   }
   modal.classList.add("hidden");
   modal.setAttribute("inert", "");
+  modal.removeAttribute("aria-hidden");
 }
 
 let vaultRecord = null;
