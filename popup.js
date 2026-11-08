@@ -1616,7 +1616,7 @@ function renderPasswordCard(pw) {
 
 // ── Password Add/Edit Modal Logic ────────────────────────────────────────────
 
-function updateModalBrandPreview() {
+function updatePasswordModalBrandPreview() {
   const title = elements.passwordTitleInput?.value?.trim() || "";
   const url = elements.passwordUrlInput?.value?.trim() || "";
   const brand = getBrandInfo(title, url);
@@ -1762,7 +1762,7 @@ function openPasswordModal(pw = null, prefilledPassword = "") {
     elements.passwordValueInput.type = "password";
   }
 
-  updateModalBrandPreview();
+  updatePasswordModalBrandPreview();
   updateModalStrengthMeter();
   showModal(elements.passwordModal);
   elements.passwordTitleInput?.focus();
@@ -3861,8 +3861,8 @@ async function init() {
   elements.cancelPasswordBtn?.addEventListener("click", closePasswordModal);
   elements.savePasswordBtn?.addEventListener("click", handleSavePassword);
 
-  elements.passwordTitleInput?.addEventListener("input", updateModalBrandPreview);
-  elements.passwordUrlInput?.addEventListener("input", updateModalBrandPreview);
+  elements.passwordTitleInput?.addEventListener("input", updatePasswordModalBrandPreview);
+  elements.passwordUrlInput?.addEventListener("input", updatePasswordModalBrandPreview);
   elements.passwordValueInput?.addEventListener("input", updateModalStrengthMeter);
 
   elements.passwordModalEyeBtn?.addEventListener("click", () => {
