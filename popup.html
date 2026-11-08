@@ -331,14 +331,81 @@
                   <input type="range" id="generatorWordsSlider" min="3" max="8" value="4" class="gen-slider" />
                 </div>
 
-                <div class="field-compact">
-                  <label for="generatorSeparatorSelect">Word Separator</label>
-                  <select id="generatorSeparatorSelect">
-                    <option value="hyphen">Hyphen (-)</option>
-                    <option value="dot">Period (.)</option>
-                    <option value="underscore">Underscore (_)</option>
-                    <option value="space">Space ( )</option>
-                  </select>
+                <div class="field-compact separator-field-wrap">
+                  <label id="separatorDropdownLabel" class="field-label-sm">Word Separator</label>
+                  <div class="custom-select-dropdown" id="generatorSeparatorDropdown">
+                    <button type="button" id="generatorSeparatorTrigger" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="separatorDropdownLabel">
+                      <div class="custom-select-trigger-content">
+                        <span id="generatorSeparatorBadge" class="separator-symbol-badge">-</span>
+                        <span id="generatorSeparatorText" class="custom-select-trigger-text">Hyphen (-)</span>
+                      </div>
+                      <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+
+                    <div id="generatorSeparatorMenu" class="custom-select-menu hidden" role="listbox">
+                      <div class="custom-select-option selected" data-value="hyphen" data-badge="-" data-label="Hyphen (-)" role="option" aria-selected="true">
+                        <div class="option-left">
+                          <span class="separator-symbol-badge">-</span>
+                          <span class="option-label">Hyphen (-)</span>
+                        </div>
+                        <span class="option-check">
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </span>
+                      </div>
+
+                      <div class="custom-select-option" data-value="dot" data-badge="." data-label="Period (.)" role="option" aria-selected="false">
+                        <div class="option-left">
+                          <span class="separator-symbol-badge">.</span>
+                          <span class="option-label">Period (.)</span>
+                        </div>
+                        <span class="option-check">
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </span>
+                      </div>
+
+                      <div class="custom-select-option" data-value="underscore" data-badge="_" data-label="Underscore (_)" role="option" aria-selected="false">
+                        <div class="option-left">
+                          <span class="separator-symbol-badge">_</span>
+                          <span class="option-label">Underscore (_)</span>
+                        </div>
+                        <span class="option-check">
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </span>
+                      </div>
+
+                      <div class="custom-select-option" data-value="space" data-badge="␣" data-label="Space ( )" role="option" aria-selected="false">
+                        <div class="option-left">
+                          <span class="separator-symbol-badge">␣</span>
+                          <span class="option-label">Space ( )</span>
+                        </div>
+                        <span class="option-check">
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </span>
+                      </div>
+                    </div>
+
+                    <input type="hidden" id="generatorSeparatorSelect" value="hyphen" />
+                  </div>
+
+                  <!-- Quick 1-Tap Separator Chips -->
+                  <div class="separator-quick-chips">
+                    <button type="button" class="sep-chip active" data-sep="hyphen" title="Hyphen (-)">
+                      <span class="sep-chip-sym">-</span>
+                      <span>Hyphen</span>
+                    </button>
+                    <button type="button" class="sep-chip" data-sep="dot" title="Period (.)">
+                      <span class="sep-chip-sym">.</span>
+                      <span>Dot</span>
+                    </button>
+                    <button type="button" class="sep-chip" data-sep="underscore" title="Underscore (_)">
+                      <span class="sep-chip-sym">_</span>
+                      <span>Underscore</span>
+                    </button>
+                    <button type="button" class="sep-chip" data-sep="space" title="Space ( )">
+                      <span class="sep-chip-sym">␣</span>
+                      <span>Space</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div class="gen-toggles-grid">

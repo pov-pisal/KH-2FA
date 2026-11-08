@@ -3062,6 +3062,227 @@ button.small {
   font-weight: 500;
 }
 
+/* ── Modern Custom Select Dropdown ── */
+.custom-select-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 11px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.custom-select-trigger:hover {
+  background: var(--surface-hover, rgba(255, 255, 255, 0.05));
+  border-color: var(--primary);
+}
+
+.custom-select-trigger[aria-expanded="true"] {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.22);
+}
+
+.custom-select-trigger[aria-expanded="true"] .dropdown-chevron {
+  transform: rotate(180deg);
+  stroke: var(--primary);
+}
+
+.custom-select-trigger-content {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.separator-symbol-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.32);
+  color: var(--primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.custom-select-trigger-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  background: #0b1120;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  padding: 5px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  backdrop-filter: blur(14px);
+  animation: selectFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes selectFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  user-select: none;
+}
+
+.custom-select-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.custom-select-option.selected {
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--primary);
+}
+
+.custom-select-option .option-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.custom-select-option .option-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.custom-select-option.selected .option-label {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.custom-select-option .option-check {
+  display: none;
+  color: var(--primary);
+}
+
+.custom-select-option.selected .option-check {
+  display: flex;
+  align-items: center;
+}
+
+/* Quick separator chips */
+.separator-quick-chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.sep-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.sep-chip-sym {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.sep-chip:hover {
+  border-color: var(--primary);
+  color: var(--text);
+  background: var(--surface-hover, rgba(255, 255, 255, 0.05));
+}
+
+.sep-chip.active {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+}
+
+/* Sleek global native select fallback */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--panel-2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2.2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 7px 30px 7px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+select:hover {
+  border-color: var(--primary);
+}
+
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+select option {
+  background-color: #0b1120;
+  color: #f1f5f9;
+  padding: 8px;
+}
+
 .empty-icon-wrap {
   width: 52px;
   height: 52px;

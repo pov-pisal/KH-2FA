@@ -200,6 +200,11 @@ const elements = {
   generatorPassphraseControls: document.getElementById("generatorPassphraseControls"),
   generatorWordsSlider: document.getElementById("generatorWordsSlider"),
   generatorWordsVal: document.getElementById("generatorWordsVal"),
+  generatorSeparatorDropdown: document.getElementById("generatorSeparatorDropdown"),
+  generatorSeparatorTrigger: document.getElementById("generatorSeparatorTrigger"),
+  generatorSeparatorBadge: document.getElementById("generatorSeparatorBadge"),
+  generatorSeparatorText: document.getElementById("generatorSeparatorText"),
+  generatorSeparatorMenu: document.getElementById("generatorSeparatorMenu"),
   generatorSeparatorSelect: document.getElementById("generatorSeparatorSelect"),
   genOptCapitalize: document.getElementById("genOptCapitalize"),
   genOptIncludeNumber: document.getElementById("genOptIncludeNumber"),
@@ -1225,6 +1230,41 @@ function setGeneratorMode(mode) {
   elements.generatorPinControls?.classList.toggle("hidden", mode !== "pin");
 
   updateGeneratedPassword();
+}
+
+function setPassphraseSeparator(val) {
+  const cleanVal = val === "-" ? "hyphen" : val === "." ? "dot" : val === "_" ? "underscore" : val === " " ? "space" : val;
+  if (elements.generatorSeparatorSelect) {
+    elements.generatorSeparatorSelect.value = cleanVal;
+  }
+
+  // Update trigger display
+  const opt = document.querySelector(`.custom-select-option[data-value="${cleanVal}"]`);
+  if (opt) {
+    const badge = opt.dataset.badge || "-";
+    const label = opt.dataset.label || "Hyphen (-)";
+    if (elements.generatorSeparatorBadge) elements.generatorSeparatorBadge.textContent = badge;
+    if (elements.generatorSeparatorText) elements.generatorSeparatorText.textContent = label;
+
+    document.querySelectorAll(".custom-select-option").forEach((el) => {
+      const isSel = el.dataset.value === cleanVal;
+      el.classList.toggle("selected", isSel);
+      el.setAttribute("aria-selected", isSel ? "true" : "false");
+    });
+  }
+
+  // Update quick chips
+  document.querySelectorAll(".sep-chip").forEach((chip) => {
+    chip.classList.toggle("active", chip.dataset.sep === cleanVal);
+  });
+
+  closeSeparatorDropdown();
+  updateGeneratedPassword();
+}
+
+function closeSeparatorDropdown() {
+  elements.generatorSeparatorMenu?.classList.add("hidden");
+  elements.generatorSeparatorTrigger?.setAttribute("aria-expanded", "false");
 }
 
 // ── Passwords Tab Logic ──────────────────────────────────────────────────────
@@ -3783,9 +3823,42 @@ async function init() {
   elements.genOptNumbers?.addEventListener("change", updateGeneratedPassword);
   elements.genOptSymbols?.addEventListener("change", updateGeneratedPassword);
   elements.genOptAvoidAmbiguous?.addEventListener("change", updateGeneratedPassword);
-  elements.generatorSeparatorSelect?.addEventListener("change", updateGeneratedPassword);
   elements.genOptCapitalize?.addEventListener("change", updateGeneratedPassword);
   elements.genOptIncludeNumber?.addEventListener("change", updateGeneratedPassword);
+
+  // Custom Separator Dropdown & Quick Chips
+  elements.generatorSeparatorTrigger?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isHidden = elements.generatorSeparatorMenu?.classList.contains("hidden");
+    if (isHidden) {
+      elements.generatorSeparatorMenu?.classList.remove("hidden");
+      elements.generatorSeparatorTrigger?.setAttribute("aria-expanded", "true");
+    } else {
+      closeSeparatorDropdown();
+    }
+  });
+
+  document.querySelectorAll(".custom-select-option").forEach((opt) => {
+    opt.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const val = opt.dataset.value;
+      if (val) setPassphraseSeparator(val);
+    });
+  });
+
+  document.querySelectorAll(".sep-chip").forEach((chip) => {
+    chip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const sep = chip.dataset.sep;
+      if (sep) setPassphraseSeparator(sep);
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#generatorSeparatorDropdown")) {
+      closeSeparatorDropdown();
+    }
+  });
 
   document.querySelectorAll(".preset-pill").forEach((pill) => {
     pill.addEventListener("click", () => {
@@ -3793,7 +3866,7 @@ async function init() {
       if (preset === "memorable") {
         setGeneratorMode("passphrase");
         if (elements.generatorWordsSlider) elements.generatorWordsSlider.value = "4";
-        if (elements.generatorSeparatorSelect) elements.generatorSeparatorSelect.value = "-";
+        setPassphraseSeparator("hyphen");
         if (elements.genOptCapitalize) elements.genOptCapitalize.checked = true;
         if (elements.genOptIncludeNumber) elements.genOptIncludeNumber.checked = true;
       } else if (preset === "strong") {
