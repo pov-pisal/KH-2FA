@@ -3817,16 +3817,16 @@ select option {
 
 /* Minimalist Tabs */
 .minimal-tabs {
-  margin-bottom: 8px;
-  padding: 2px;
+  margin-bottom: 10px;
+  padding: 3px;
   background: var(--surface);
   border-radius: 8px;
   border: 1px solid var(--border);
 }
 
 .minimal-tabs .choice-tab {
-  padding: 5px 8px;
-  font-size: 11px;
+  padding: 6px 12px;
+  font-size: 11.5px;
   font-weight: 600;
   border-radius: 6px;
 }
@@ -3835,10 +3835,10 @@ select option {
 .transfer-panel-view {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-/* QR Card */
+/* QR Card - Sized Up for Easy Scanning */
 .minimal-qr-card {
   display: flex;
   flex-direction: column;
@@ -3846,46 +3846,46 @@ select option {
   justify-content: center;
   background: var(--panel-2);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 8px 8px 8px;
+  border-radius: 12px;
+  padding: 14px 12px 10px 12px;
   text-align: center;
 }
 
 .transfer-qr-display {
   background: #ffffff;
-  padding: 5px;
-  border-radius: 8px;
+  padding: 6px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 134px;
-  height: 134px;
+  width: 182px;
+  height: 182px;
   box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 .transfer-qr-display img {
   display: block;
-  width: 124px;
-  height: 124px;
+  width: 170px;
+  height: 170px;
   image-rendering: pixelated;
 }
 
 .minimal-qr-caption {
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--muted);
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 /* Copy Row */
 .minimal-copy-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 4px 6px;
+  padding: 5px 8px;
   box-sizing: border-box;
 }
 
@@ -3896,8 +3896,8 @@ select option {
   border: none;
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 10.5px;
-  padding: 3px 4px;
+  font-size: 11px;
+  padding: 3px 5px;
   outline: none;
   cursor: text;
 }
@@ -3905,9 +3905,9 @@ select option {
 .minimal-copy-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  font-size: 11px;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 11.5px;
   font-weight: 600;
   border-radius: 6px;
   border: none;
@@ -3922,9 +3922,9 @@ select option {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 10px 12px;
-  font-size: 12px;
+  gap: 8px;
+  padding: 11px 14px;
+  font-size: 12.5px;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
@@ -3938,7 +3938,7 @@ select option {
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.5px;
-  margin: 1px 0;
+  margin: 2px 0;
 }
 
 .minimal-divider::before,
@@ -3954,17 +3954,17 @@ select option {
 
 .minimal-paste-row {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   align-items: center;
 }
 
 .minimal-paste-row input {
   flex: 1;
   min-width: 0;
-  min-height: 31px;
-  height: 31px;
-  font-size: 11px;
-  padding: 5px 8px;
+  min-height: 34px;
+  height: 34px;
+  font-size: 11.5px;
+  padding: 6px 10px;
   border-radius: 6px;
   background: var(--panel-2);
   border: 1px solid var(--border);
@@ -3978,10 +3978,10 @@ select option {
 }
 
 .minimal-btn-sm {
-  min-height: 31px;
-  height: 31px;
-  padding: 0 9px;
-  font-size: 11px;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 11px;
+  font-size: 11.5px;
   font-weight: 600;
   border-radius: 6px;
   cursor: pointer;
@@ -3992,14 +3992,14 @@ select option {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 0;
+  padding: 4px 0;
 }
 
 .minimal-link-btn {
   background: none;
   border: none;
   padding: 0;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--muted);
   cursor: pointer;
   text-decoration: underline;
@@ -4016,14 +4016,14 @@ select option {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 4px 8px;
+  gap: 6px;
+  padding: 5px 10px;
   background: rgba(56, 189, 248, 0.04);
   border: 1px solid rgba(56, 189, 248, 0.12);
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 10.5px;
   color: var(--muted);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .minimal-sec-pill svg {
