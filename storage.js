@@ -98,6 +98,11 @@ export async function getMeta() {
     clipboardClearSec: 30,
     defaultMaskCodes: true,
     timeOffsetMs: 0,
+    gistSyncEnabled: false,
+    gistToken: "",
+    gistId: "",
+    gistUserLogin: "",
+    gistLastSyncedAt: 0,
     ...(result[META_KEY] || {}),
   };
 }
@@ -332,4 +337,125 @@ export async function clearAllData(options = {}) {
       resolve();
     });
   });
+}
+
+// ── GitHub Gist Cross-Browser Sync API ─────────────────────────────────────────
+export const GIST_FILE_NAME = "kh_vault_payload.json";
+
+export async function validateGitHubToken(token) {
+  if (!token || !token.trim()) throw new Error("Please enter a GitHub personal access token.");
+  const res = await fetch("https://api.github.com/user", {
+    headers: {
+      Authorization: "Bearer " + token.trim(),
+      Accept: "application/vnd.github+json",
+      "User-Agent": "KH-2FA-Extension",
+    },
+  });
+  if (res.status === 401) {
+    throw new Error("Invalid GitHub token. Please verify your token has 'gist' scope.");
+  }
+  if (!res.ok) {
+    throw new Error("GitHub API error: " + res.status + " " + res.statusText);
+  }
+  const user = await res.json();
+  return { login: user.login, name: user.name || user.login, avatarUrl: user.avatar_url };
+}
+
+export async function createGistVault(token, vaultRecord) {
+  const cleanToken = token.trim();
+  const payload = JSON.stringify(vaultRecord, null, 2);
+  const res = await fetch("https://api.github.com/gists", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + cleanToken,
+      Accept: "application/vnd.github+json",
+      "User-Agent": "KH-2FA-Extension",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      description: "KH 2FA Encrypted Cross-Browser Vault",
+      public: false,
+      files: {
+        [GIST_FILE_NAME]: {
+          content: payload,
+        },
+      },
+    }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error("Failed to create secret Gist: " + res.status + " " + errText);
+  }
+  const gist = await res.json();
+  return {
+    gistId: gist.id,
+    url: gist.html_url,
+    updatedAt: gist.updated_at ? new Date(gist.updated_at).getTime() : Date.now(),
+  };
+}
+
+export async function fetchGistVault(token, gistId) {
+  const cleanToken = token.trim();
+  const cleanId = gistId.trim();
+  const res = await fetch("https://api.github.com/gists/" + cleanId, {
+    headers: {
+      Authorization: "Bearer " + cleanToken,
+      Accept: "application/vnd.github+json",
+      "User-Agent": "KH-2FA-Extension",
+    },
+  });
+  if (res.status === 404) {
+    throw new Error("Gist ID \"" + cleanId + "\" not found. Verify your Gist ID and token.");
+  }
+  if (!res.ok) {
+    throw new Error("Failed to fetch Gist: " + res.status + " " + res.statusText);
+  }
+  const gist = await res.json();
+  const file = gist.files && gist.files[GIST_FILE_NAME];
+  if (!file || !file.content) {
+    throw new Error("Gist does not contain \"" + GIST_FILE_NAME + "\". Verify the Gist ID.");
+  }
+  let record;
+  try {
+    record = JSON.parse(file.content);
+  } catch (err) {
+    throw new Error("Failed to parse encrypted vault record from Gist.");
+  }
+  return {
+    record,
+    gistId: gist.id,
+    updatedAt: gist.updated_at ? new Date(gist.updated_at).getTime() : Date.now(),
+  };
+}
+
+export async function updateGistVault(token, gistId, vaultRecord) {
+  const cleanToken = token.trim();
+  const cleanId = gistId.trim();
+  const payload = JSON.stringify(vaultRecord, null, 2);
+  const res = await fetch("https://api.github.com/gists/" + cleanId, {
+    method: "PATCH",
+    headers: {
+      Authorization: "Bearer " + cleanToken,
+      Accept: "application/vnd.github+json",
+      "User-Agent": "KH-2FA-Extension",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      description: "KH 2FA Encrypted Cross-Browser Vault",
+      files: {
+        [GIST_FILE_NAME]: {
+          content: payload,
+        },
+      },
+    }),
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error("Failed to update Gist: " + res.status + " " + errText);
+  }
+  const gist = await res.json();
+  return {
+    gistId: gist.id,
+    updatedAt: gist.updated_at ? new Date(gist.updated_at).getTime() : Date.now(),
+  };
 }

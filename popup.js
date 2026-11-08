@@ -30,6 +30,10 @@ import {
   getLockoutState,
   setLockoutState,
   clearLockoutState,
+  validateGitHubToken,
+  createGistVault,
+  fetchGistVault,
+  updateGistVault,
 } from "./storage.js";
 import { getBrandInfo } from "./brandIcons.js";
 
@@ -111,6 +115,27 @@ const elements = {
   settingsChangePin: document.getElementById("settingsChangePin"),
   settingsBackup: document.getElementById("settingsBackup"),
   settingsGoogleSync: document.getElementById("settingsGoogleSync"),
+  settingsGistSync: document.getElementById("settingsGistSync"),
+  gistSyncStatusBadge: document.getElementById("gistSyncStatusBadge"),
+  checkGistSyncBtn: document.getElementById("checkGistSyncBtn"),
+  gistSyncSetupCard: document.getElementById("gistSyncSetupCard"),
+  gistSyncStatusCard: document.getElementById("gistSyncStatusCard"),
+  gistTokenInput: document.getElementById("gistTokenInput"),
+  gistTabNewBtn: document.getElementById("gistTabNewBtn"),
+  gistTabJoinBtn: document.getElementById("gistTabJoinBtn"),
+  gistModeNew: document.getElementById("gistModeNew"),
+  gistModeJoin: document.getElementById("gistModeJoin"),
+  gistCreateSyncBtn: document.getElementById("gistCreateSyncBtn"),
+  gistIdInput: document.getElementById("gistIdInput"),
+  gistConnectSyncBtn: document.getElementById("gistConnectSyncBtn"),
+  gistSetupError: document.getElementById("gistSetupError"),
+  gistStatusDetail: document.getElementById("gistStatusDetail"),
+  gistUserLogin: document.getElementById("gistUserLogin"),
+  gistIdDisplay: document.getElementById("gistIdDisplay"),
+  copyGistIdBtn: document.getElementById("copyGistIdBtn"),
+  gistLastSyncedTime: document.getElementById("gistLastSyncedTime"),
+  gistSyncNowBtn: document.getElementById("gistSyncNowBtn"),
+  gistDisconnectBtn: document.getElementById("gistDisconnectBtn"),
   syncStatusBadge: document.getElementById("syncStatusBadge"),
   syncToggle: document.getElementById("syncToggle"),
   syncStateText: document.getElementById("syncStateText"),
@@ -510,6 +535,15 @@ async function persistVaultRecord(record) {
       meta = await updateMeta({ lastSyncedAt: record.updatedAt || Date.now() });
     } catch (err) {
       console.warn("Failed to sync vault to Google sync storage:", err);
+    }
+  }
+  if (meta?.gistSyncEnabled && meta?.gistToken && meta?.gistId) {
+    try {
+      await updateGistVault(meta.gistToken, meta.gistId, record);
+      meta = await updateMeta({ gistLastSyncedAt: record.updatedAt || Date.now() });
+      refreshGistSyncUI();
+    } catch (err) {
+      console.warn("Failed to sync vault to GitHub Gist:", err);
     }
   }
 }
@@ -1972,6 +2006,7 @@ function hideAllSettingsSections() {
     elements.settingsChangePin,
     elements.settingsBackup,
     elements.settingsGoogleSync,
+    elements.settingsGistSync,
     elements.settingsPreferences,
     elements.settingsClockSync,
     elements.settingsReset,
@@ -1985,6 +2020,7 @@ function hideAllSettingsSections() {
 function showSettingsList() {
   hideAllSettingsSections();
   updateSyncBadge();
+  updateGistSyncBadge();
   updateClockSyncUI();
   elements.settingsList?.classList.remove("hidden");
   elements.settingsList?.setAttribute("aria-hidden", "false");
@@ -2005,6 +2041,7 @@ function openSettingsSection(key) {
     "change-pin": elements.settingsChangePin,
     backup: elements.settingsBackup,
     "google-sync": elements.settingsGoogleSync,
+    "gist-sync": elements.settingsGistSync,
     preferences: elements.settingsPreferences,
     "clock-sync": elements.settingsClockSync,
     reset: elements.settingsReset,
@@ -2019,6 +2056,9 @@ function openSettingsSection(key) {
   }
   if (key === "google-sync") {
     refreshSyncUI();
+  }
+  if (key === "gist-sync") {
+    refreshGistSyncUI();
   }
   if (key === "change-pin") {
     elements.currentPinInput?.focus();
@@ -3577,6 +3617,227 @@ async function handleCheckSyncManual() {
   }
 }
 
+
+// ── GitHub Gist Cross-Browser Sync Logic ─────────────────────────────────────
+function updateGistSyncBadge() {
+  if (!elements.gistSyncStatusBadge) return;
+  const isEnabled = Boolean(meta?.gistSyncEnabled && meta?.gistToken && meta?.gistId);
+  elements.gistSyncStatusBadge.textContent = isEnabled ? "Active" : "Off";
+  elements.gistSyncStatusBadge.classList.toggle("active", isEnabled);
+}
+
+function refreshGistSyncUI() {
+  updateGistSyncBadge();
+  if (!elements.settingsGistSync) return;
+  const isEnabled = Boolean(meta?.gistSyncEnabled && meta?.gistToken && meta?.gistId);
+
+  if (isEnabled) {
+    elements.gistSyncSetupCard?.classList.add("hidden");
+    elements.gistSyncStatusCard?.classList.remove("hidden");
+    if (elements.gistUserLogin) {
+      elements.gistUserLogin.textContent = meta.gistUserLogin ? `@${meta.gistUserLogin}` : "@github";
+    }
+    if (elements.gistIdDisplay) {
+      elements.gistIdDisplay.textContent = meta.gistId || "N/A";
+    }
+    if (elements.gistLastSyncedTime) {
+      elements.gistLastSyncedTime.textContent = meta.gistLastSyncedAt
+        ? new Date(meta.gistLastSyncedAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            month: "short",
+            day: "numeric",
+          })
+        : "Just now";
+    }
+  } else {
+    elements.gistSyncSetupCard?.classList.remove("hidden");
+    elements.gistSyncStatusCard?.classList.add("hidden");
+    if (elements.gistTokenInput) {
+      elements.gistTokenInput.value = meta?.gistToken || "";
+    }
+    if (elements.gistIdInput) {
+      elements.gistIdInput.value = meta?.gistId || "";
+    }
+  }
+}
+
+function showGistError(msg) {
+  if (!elements.gistSetupError) return;
+  elements.gistSetupError.textContent = msg;
+  elements.gistSetupError.classList.remove("hidden");
+}
+
+function hideGistError() {
+  if (!elements.gistSetupError) return;
+  elements.gistSetupError.textContent = "";
+  elements.gistSetupError.classList.add("hidden");
+}
+
+async function handleGistCreateSync() {
+  const token = (elements.gistTokenInput?.value || "").trim();
+  if (!token) {
+    showGistError("Please enter your GitHub Personal Access Token.");
+    return;
+  }
+  if (!vaultRecord) {
+    showGistError("Please create or unlock your vault first.");
+    return;
+  }
+
+  const btn = elements.gistCreateSyncBtn;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span>Creating Encrypted Gist...</span>`;
+  }
+
+  try {
+    hideGistError();
+    const user = await validateGitHubToken(token);
+    const res = await createGistVault(token, vaultRecord);
+    meta = await updateMeta({
+      gistSyncEnabled: true,
+      gistToken: token,
+      gistId: res.gistId,
+      gistUserLogin: user.login,
+      gistLastSyncedAt: res.updatedAt || Date.now(),
+    });
+    showToast("✓ Cross-Browser Cloud Sync created!");
+    refreshGistSyncUI();
+  } catch (err) {
+    console.error("Gist create sync error:", err);
+    showGistError(err.message || "Failed to create Gist.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<span>Initialize Cross-Browser Sync</span>`;
+    }
+  }
+}
+
+async function handleGistConnectSync() {
+  const token = (elements.gistTokenInput?.value || "").trim();
+  const gistId = (elements.gistIdInput?.value || "").trim();
+
+  if (!token) {
+    showGistError("Please enter your GitHub Personal Access Token.");
+    return;
+  }
+  if (!gistId) {
+    showGistError("Please enter your Sync ID (Gist ID).");
+    return;
+  }
+
+  const btn = elements.gistConnectSyncBtn;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span>Connecting & Verifying...</span>`;
+  }
+
+  try {
+    hideGistError();
+    const user = await validateGitHubToken(token);
+    const res = await fetchGistVault(token, gistId);
+
+    if (sessionPin) {
+      const decrypted = await decryptVault(sessionPin, res.record);
+      vault = decrypted;
+      vaultRecord = res.record;
+      await persistVaultRecord(vaultRecord);
+      renderAccounts();
+      renderPasswords();
+      showToast("✓ Connected & synced from GitHub Gist!");
+    } else {
+      vaultRecord = res.record;
+      await setVaultRecord(vaultRecord);
+      showToast("✓ Vault found on Gist! Enter your PIN to unlock.");
+      showLockedView({ createMode: false });
+    }
+
+    meta = await updateMeta({
+      gistSyncEnabled: true,
+      gistToken: token,
+      gistId: res.gistId,
+      gistUserLogin: user.login,
+      gistLastSyncedAt: res.updatedAt || Date.now(),
+    });
+
+    refreshGistSyncUI();
+  } catch (err) {
+    console.error("Gist connect error:", err);
+    showGistError(err.message || "Failed to connect to Gist.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<span>Connect &amp; Download Vault</span>`;
+    }
+  }
+}
+
+async function handleGistSyncNow() {
+  if (!meta?.gistSyncEnabled || !meta?.gistToken || !meta?.gistId) return;
+
+  const btn = elements.gistSyncNowBtn;
+  if (btn) {
+    btn.disabled = true;
+    const span = btn.querySelector("span");
+    if (span) span.textContent = "Syncing...";
+  }
+
+  try {
+    const gist = await fetchGistVault(meta.gistToken, meta.gistId);
+    const localTime = vaultRecord?.updatedAt || 0;
+    const remoteTime = gist.record?.updatedAt || 0;
+
+    if (remoteTime > localTime) {
+      if (sessionPin) {
+        const decrypted = await decryptVault(sessionPin, gist.record);
+        vault = decrypted;
+        vaultRecord = gist.record;
+        await setVaultRecord(vaultRecord);
+        renderAccounts();
+        renderPasswords();
+        showToast("✓ Vault updated with newer remote changes!");
+      } else {
+        vaultRecord = gist.record;
+        await setVaultRecord(vaultRecord);
+      }
+    } else {
+      if (vaultRecord) {
+        await updateGistVault(meta.gistToken, meta.gistId, vaultRecord);
+        showToast("✓ Vault pushed to GitHub Gist!");
+      }
+    }
+
+    meta = await updateMeta({ gistLastSyncedAt: Date.now() });
+    refreshGistSyncUI();
+  } catch (err) {
+    console.error("Gist sync now error:", err);
+    showToast(`Sync failed: ${err.message}`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      const span = btn.querySelector("span");
+      if (span) span.textContent = "Sync Now";
+    }
+  }
+}
+
+async function handleGistDisconnect() {
+  if (!confirm("Are you sure you want to disconnect GitHub Gist sync from this browser? (Your data in both this browser and the Gist will remain safe)")) {
+    return;
+  }
+  meta = await updateMeta({
+    gistSyncEnabled: false,
+    gistToken: "",
+    gistId: "",
+    gistUserLogin: "",
+    gistLastSyncedAt: 0,
+  });
+  showToast("✓ Cross-Browser Sync disconnected");
+  refreshGistSyncUI();
+}
+
 async function init() {
   [vaultRecord, meta, sessionData] = await Promise.all([
     getVaultRecord(),
@@ -4243,6 +4504,37 @@ async function init() {
 
   // Google Account Sync listeners
   elements.syncToggle?.addEventListener("change", handleSyncToggle);
+
+  // Cross-Browser Gist Sync listeners
+  elements.gistTabNewBtn?.addEventListener("click", () => {
+    elements.gistTabNewBtn.classList.add("active");
+    elements.gistTabJoinBtn?.classList.remove("active");
+    elements.gistModeNew?.classList.remove("hidden");
+    elements.gistModeJoin?.classList.add("hidden");
+  });
+
+  elements.gistTabJoinBtn?.addEventListener("click", () => {
+    elements.gistTabJoinBtn.classList.add("active");
+    elements.gistTabNewBtn?.classList.remove("active");
+    elements.gistModeJoin?.classList.remove("hidden");
+    elements.gistModeNew?.classList.add("hidden");
+  });
+
+  elements.gistCreateSyncBtn?.addEventListener("click", handleGistCreateSync);
+  elements.gistConnectSyncBtn?.addEventListener("click", handleGistConnectSync);
+  elements.gistSyncNowBtn?.addEventListener("click", handleGistSyncNow);
+  elements.gistDisconnectBtn?.addEventListener("click", handleGistDisconnect);
+
+  elements.copyGistIdBtn?.addEventListener("click", async () => {
+    if (!meta?.gistId) return;
+    await navigator.clipboard.writeText(meta.gistId);
+    showToast("✓ Copied Sync ID (Gist ID) to clipboard");
+  });
+
+  elements.checkGistSyncBtn?.addEventListener("click", () => {
+    openSettingsModal();
+    openSettingsSection("gist-sync");
+  });
   elements.syncNowBtn?.addEventListener("click", handleSyncNow);
   elements.syncClearBtn?.addEventListener("click", handleClearCloudSync);
   elements.checkSyncBtn?.addEventListener("click", handleCheckSyncManual);

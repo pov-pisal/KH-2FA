@@ -3616,3 +3616,112 @@ select option {
   font-weight: 600;
   border-radius: 8px;
 }
+
+/* ─── Cross-Browser GitHub Gist Sync ────────────────────────────────────────── */
+.gist-icon {
+  background: #24292e;
+  color: #f0f6fc;
+}
+
+.sync-setup-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choice-tab-row {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 4px;
+}
+
+.choice-tab {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.choice-tab.active {
+  background: var(--panel-2);
+  color: var(--primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.gist-mode-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gist-mode-desc {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.gist-id-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+.gist-id-pill code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: var(--primary);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gist-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10.5px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.gist-copy-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.link-small {
+  font-size: 11px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link-small:hover {
+  text-decoration: underline;
+}

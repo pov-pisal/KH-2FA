@@ -53,5 +53,8 @@
   },
   "side_panel": {
     "default_path": "popup.html"
-  }
+  },
+  "host_permissions": [
+    "https://api.github.com/*"
+  ]
 }
