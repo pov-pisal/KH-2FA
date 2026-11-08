@@ -4674,13 +4674,23 @@ async function init() {
 
   elements.pasteFromClipboardBtn?.addEventListener("click", async () => {
     try {
-      const text = await navigator.clipboard.readText();
+      const text = (await navigator.clipboard.readText() || "").trim();
       if (elements.receiveCodeInput) {
         elements.receiveCodeInput.value = text;
         showToast("✓ Pasted from clipboard");
+        if (text.startsWith("khsync:")) {
+          await handleImportSyncData(text);
+        }
       }
     } catch (e) {
       showToast("Clipboard access denied. Press Ctrl+V inside the box.");
+    }
+  });
+
+  elements.receiveCodeInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      elements.applyTransferCodeBtn?.click();
     }
   });
 

@@ -3776,12 +3776,126 @@ select option {
   border-radius: 4px;
 }
 
+/* ── 1-Click Browser Sync Header ── */
+.sync-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.5) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.sync-header-icon {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+  flex-shrink: 0;
+}
+
+.sync-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sync-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
+}
+
+.sync-header-text h3 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.sync-pill-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  letter-spacing: 0.2px;
+}
+
+.sync-header-text p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+/* ── Choice Tabs ── */
+.transfer-choice-wrapper {
+  margin-bottom: 10px;
+}
+
+.choice-tab-row {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 3px;
+  margin-bottom: 10px;
+}
+
+.choice-tab {
+  flex: 1;
+  padding: 7px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.choice-tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.choice-tab.active {
+  background: var(--panel-2);
+  color: var(--primary);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Transfer Panel Views ── */
 .transfer-panel-view {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* ── Send View ── */
 .transfer-qr-card {
   display: flex;
   flex-direction: column;
@@ -3790,19 +3904,20 @@ select option {
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 14px 12px;
+  padding: 12px 10px;
+  text-align: center;
 }
 
 .transfer-qr-display {
   background: #ffffff;
-  padding: 8px;
+  padding: 7px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 150px;
-  min-height: 150px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 135px;
+  min-height: 135px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 .transfer-qr-display img {
@@ -3811,18 +3926,42 @@ select option {
   height: auto;
 }
 
-.transfer-qr-subtext {
-  font-size: 11px;
-  color: var(--muted);
+.transfer-qr-caption {
   margin-top: 8px;
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.transfer-code-box {
+.qr-step-pill {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  padding: 1px 7px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transfer-qr-caption p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.transfer-qr-caption strong {
+  color: var(--text);
+}
+
+.transfer-code-card {
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 9px 12px;
+  padding: 8px 11px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -3838,7 +3977,7 @@ select option {
 }
 
 .transfer-action-btn {
-  padding: 4px 10px;
+  padding: 3px 9px;
   font-size: 11px;
   border-radius: 6px;
   display: inline-flex;
@@ -3850,11 +3989,11 @@ select option {
 
 .transfer-textarea {
   width: 100%;
-  height: 42px;
+  height: 36px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1.3;
-  padding: 6px 8px;
+  padding: 5px 8px;
   border-radius: 6px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -3864,90 +4003,240 @@ select option {
   box-sizing: border-box;
 }
 
-.transfer-receive-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.transfer-btn-large {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.transfer-divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  margin: 4px 0;
-}
-
-.transfer-divider::before,
-.transfer-divider::after {
-  content: "";
-  flex: 1;
-  border-bottom: 1px solid var(--border);
-}
-
-.transfer-divider span {
-  padding: 0 8px;
-}
-
-.paste-code-wrap {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.paste-code-wrap input {
-  flex: 1;
-  min-height: 33px;
-  height: 33px;
-  font-size: 12px;
-  padding: 6px 10px;
-  box-sizing: border-box;
-}
-
-.paste-btn {
-  padding: 6px 12px;
-  font-size: 12px;
-  min-height: 33px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
 .upload-transfer-file-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   width: 100%;
-  padding: 8px 12px;
-  font-size: 12px;
+  padding: 7px 12px;
+  font-size: 11.5px;
   font-weight: 500;
-  border: 1px dashed var(--border);
+  border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   box-sizing: border-box;
-  color: var(--text);
+  color: var(--muted);
+  background: transparent;
   transition: all 0.15s ease;
 }
 
 .upload-transfer-file-btn:hover {
   border-color: var(--primary);
+  color: var(--text);
   background: rgba(56, 189, 248, 0.05);
+}
+
+/* ── Receive View (Hero Scanner + Clean Paste) ── */
+.hero-scan-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(30, 41, 59, 0.4) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  padding: 2px;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.15);
+  transition: all 0.2s ease;
+}
+
+.hero-scan-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.25);
+}
+
+.hero-scan-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  text-align: left;
+}
+
+.hero-scan-icon-wrap {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.hero-scan-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-scan-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.hero-scan-title-row strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.badge-fast-tag {
+  background: #22c55e;
+  color: #052e16;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.hero-scan-body p {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.3;
+}
+
+/* Paste Code Box */
+.receive-code-box {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.receive-code-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.paste-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.paste-input-row input {
+  flex: 1;
+  min-height: 34px;
+  height: 34px;
+  font-size: 11.5px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.paste-input-row input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.paste-btn-compact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.paste-btn-compact:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.secondary-sync-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.secondary-sync-btn:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: var(--primary);
+}
+
+.file-transfer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 2px 0;
+}
+
+.file-transfer-link {
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: opacity 0.15s ease;
+}
+
+.file-transfer-link:hover {
+  opacity: 0.85;
+}
+
+/* Security Box */
+.sync-security-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 11px;
+  background: rgba(56, 189, 248, 0.04);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 9px;
+  margin-top: 2px;
+}
+
+.sync-security-icon {
+  color: var(--primary);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.sync-security-box p {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.sync-security-box strong {
+  color: var(--text);
 }
 
 .qr-too-large-fallback {
