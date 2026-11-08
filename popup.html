@@ -646,10 +646,22 @@
             </div>
           </div>
 
-          <label class="field">
-            <span>Notes (optional)</span>
-            <textarea id="passwordNotesInput" rows="2" placeholder="Security questions, recovery keys, or notes..."></textarea>
-          </label>
+          <div class="field notes-field-wrap">
+            <div class="field-label-row">
+              <label for="passwordNotesInput" class="notes-label-left">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <span>Notes (optional)</span>
+              </label>
+              <div class="notes-quick-templates" title="Quick template prefixes">
+                <button type="button" class="notes-chip-btn" data-template="PIN: ">+ PIN</button>
+                <button type="button" class="notes-chip-btn" data-template="Recovery Key: ">+ Key</button>
+                <button type="button" class="notes-chip-btn" data-template="Security Q: ">+ Q&A</button>
+              </div>
+            </div>
+            <div class="notes-textarea-wrap">
+              <textarea id="passwordNotesInput" rows="2" placeholder="Security questions, recovery keys, or notes..." spellcheck="false"></textarea>
+            </div>
+          </div>
         </div>
 
         <div class="row">

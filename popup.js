@@ -1532,6 +1532,54 @@ function renderPasswordCard(pw) {
   passRow.append(passVal, passActions);
   body.appendChild(passRow);
 
+  // Notes preview (if notes exist)
+  if (pw.notes && pw.notes.trim()) {
+    const notesBox = document.createElement("div");
+    notesBox.className = "pw-notes-preview";
+
+    const notesHeader = document.createElement("div");
+    notesHeader.className = "pw-notes-header";
+
+    const notesTag = document.createElement("span");
+    notesTag.className = "pw-notes-tag";
+    notesTag.innerHTML = `
+      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+      </svg>
+      <span>Note</span>
+    `;
+
+    const copyNoteBtn = document.createElement("button");
+    copyNoteBtn.type = "button";
+    copyNoteBtn.className = "pw-notes-copy-btn";
+    copyNoteBtn.title = "Copy note to clipboard";
+    copyNoteBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      <span>Copy</span>
+    `;
+    copyNoteBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      await navigator.clipboard.writeText(pw.notes);
+      scheduleClipboardClear(pw.notes, Number(meta?.clipboardClearSec ?? 30));
+      showToast("✓ Copied note");
+    });
+
+    notesHeader.append(notesTag, copyNoteBtn);
+
+    const notesBody = document.createElement("div");
+    notesBody.className = "pw-notes-body";
+    notesBody.textContent = pw.notes;
+
+    notesBox.append(notesHeader, notesBody);
+    body.appendChild(notesBox);
+  }
+
   // Footer: launch URL, Autofill button, Edit button
   const footer = document.createElement("div");
   footer.className = "pw-card-footer";
@@ -3938,6 +3986,25 @@ async function init() {
     }
     updateModalStrengthMeter();
     showToast("⚡ Generated strong password");
+  });
+
+  // Notes quick template chip insertion
+  document.querySelectorAll(".notes-chip-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const template = btn.dataset.template || "";
+      if (!elements.passwordNotesInput) return;
+      const current = elements.passwordNotesInput.value;
+      if (!current.trim()) {
+        elements.passwordNotesInput.value = template;
+      } else {
+        elements.passwordNotesInput.value = current.endsWith("\n") ? current + template : current + "\n" + template;
+      }
+      elements.passwordNotesInput.focus();
+      elements.passwordNotesInput.setSelectionRange(
+        elements.passwordNotesInput.value.length,
+        elements.passwordNotesInput.value.length
+      );
+    });
   });
 
   elements.passwordCategoryTrigger?.addEventListener("click", (e) => {
