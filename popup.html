@@ -1056,116 +1056,86 @@
             id="settingsBrowserTransfer"
             class="settings-section hidden"
           >
-            <div class="sync-section-header">
-              <div class="sync-header-icon transfer-icon-lg">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <!-- Minimalist Title -->
+            <div class="minimal-sync-header">
+              <div class="minimal-sync-title-wrap">
+                <span class="minimal-sync-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                </span>
+                <span class="minimal-sync-title">Browser Sync</span>
               </div>
-              <div class="sync-header-text">
-                <div class="sync-header-title-row">
-                  <h3>1-Click Browser Sync</h3>
-                  <span class="sync-pill-tag">Brave ↔ Chrome</span>
-                </div>
-                <p>Sync all 2FA accounts &amp; passwords seamlessly in 5 seconds. Zero setup or accounts required.</p>
+              <span class="sync-pill-tag">Chrome ↔ Brave</span>
+            </div>
+
+            <!-- Minimalist Tabs -->
+            <div class="choice-tab-row minimal-tabs">
+              <button type="button" id="transferTabSendBtn" class="choice-tab active">
+                <span>Send</span>
+              </button>
+              <button type="button" id="transferTabReceiveBtn" class="choice-tab">
+                <span>Receive</span>
+              </button>
+            </div>
+
+            <!-- View 1: Send -->
+            <div id="transferSendView" class="transfer-panel-view">
+              <div class="minimal-qr-card">
+                <div id="transferQrContainer" class="transfer-qr-display"></div>
+                <span class="minimal-qr-caption">Scan with Brave or copy code below</span>
+              </div>
+
+              <!-- Compact Copy Row -->
+              <div class="minimal-copy-row">
+                <input id="transferCodeText" class="minimal-code-input" readonly value="" placeholder="Unlock vault to view code" />
+                <button type="button" id="copyTransferCodeBtn" class="primary minimal-copy-btn">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy</span>
+                </button>
+              </div>
+
+              <div class="minimal-footer-row">
+                <button type="button" id="downloadTransferFileBtn" class="minimal-link-btn">
+                  <span>Download .khsync file</span>
+                </button>
               </div>
             </div>
 
-            <!-- Choice Tabs: Send vs Receive -->
-            <div class="transfer-choice-wrapper">
-              <div class="choice-tab-row">
-                <button type="button" id="transferTabSendBtn" class="choice-tab active">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                  <span>Send (This Browser)</span>
+            <!-- View 2: Receive -->
+            <div id="transferReceiveView" class="transfer-panel-view hidden">
+              <!-- Action 1: Screen Scan -->
+              <button type="button" id="receiveScanScreenBtn" class="primary minimal-hero-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <span>1-Click Scan Screen QR</span>
+              </button>
+
+              <div class="minimal-divider">
+                <span>OR PASTE CODE</span>
+              </div>
+
+              <!-- Action 2: Paste Code -->
+              <div class="minimal-paste-row">
+                <input type="text" id="receiveCodeInput" placeholder="Paste sync code..." autocomplete="off" />
+                <button type="button" id="pasteFromClipboardBtn" class="ghost minimal-btn-sm" title="Paste from clipboard">
+                  <span>Paste</span>
                 </button>
-                <button type="button" id="transferTabReceiveBtn" class="choice-tab">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  <span>Receive (Other Browser)</span>
+                <button type="button" id="applyTransferCodeBtn" class="primary minimal-btn-sm">
+                  <span>Sync</span>
                 </button>
               </div>
 
-              <!-- View 1: Send / Export -->
-              <div id="transferSendView" class="transfer-panel-view">
-                <div class="transfer-qr-card">
-                  <div id="transferQrContainer" class="transfer-qr-display"></div>
-                  <div class="transfer-qr-caption">
-                    <span class="qr-step-pill">Scan to Sync</span>
-                    <p>Open KH 2FA on Brave or 2nd browser and click <strong>Receive</strong></p>
-                  </div>
-                </div>
-
-                <!-- Sleek Single-Line Copy Bar -->
-                <div class="transfer-copy-bar">
-                  <div class="transfer-copy-info">
-                    <span class="transfer-copy-badge">SYNC CODE</span>
-                    <span id="transferCodeSnippet" class="transfer-code-snippet">khsync:••••••••••••</span>
-                    <textarea id="transferCodeText" class="sr-only" readonly></textarea>
-                  </div>
-                  <button type="button" id="copyTransferCodeBtn" class="primary transfer-copy-action-btn" title="Copy sync code to clipboard">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    <span>Copy Code</span>
-                  </button>
-                </div>
-
-                <div class="file-transfer-footer">
-                  <span>Need an offline backup file?</span>
-                  <button type="button" id="downloadTransferFileBtn" class="link-subtle-btn">
-                    <span>Export .khsync File</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- View 2: Receive / Import -->
-              <div id="transferReceiveView" class="transfer-panel-view hidden">
-                <!-- Method A: Hero Screen Scan -->
-                <div class="hero-scan-card">
-                  <button type="button" id="receiveScanScreenBtn" class="primary hero-scan-btn">
-                    <div class="hero-scan-icon-wrap">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                    </div>
-                    <div class="hero-scan-body">
-                      <div class="hero-scan-title-row">
-                        <strong>1-Click Scan Screen QR</strong>
-                        <span class="badge-fast-tag">Fastest</span>
-                      </div>
-                      <p>Instantly detects the QR code open on your other browser</p>
-                    </div>
-                  </button>
-                </div>
-
-                <!-- Method B: Paste Code -->
-                <div class="receive-code-box">
-                  <div class="receive-code-title">
-                    <span>Or Paste Sync Code</span>
-                  </div>
-                  <div class="paste-input-row">
-                    <input type="text" id="receiveCodeInput" placeholder="khsync:... or paste code" autocomplete="off" />
-                    <button type="button" id="pasteFromClipboardBtn" class="ghost paste-btn-compact" title="Paste from clipboard">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                      <span>Paste</span>
-                    </button>
-                  </div>
-                  <button type="button" id="applyTransferCodeBtn" class="secondary-sync-btn">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>Apply &amp; Sync Vault</span>
-                  </button>
-                </div>
-
-                <!-- Method C: File Fallback -->
-                <div class="file-transfer-footer">
-                  <span>Have a sync file?</span>
-                  <label class="file-transfer-link">
-                    <span>Choose .khsync File</span>
-                    <input type="file" id="receiveFileInput" accept=".khsync,.json" style="display:none;" />
-                  </label>
-                </div>
+              <!-- Action 3: File link -->
+              <div class="minimal-footer-row">
+                <label class="minimal-link-btn">
+                  <span>Or select .khsync file</span>
+                  <input type="file" id="receiveFileInput" accept=".khsync,.json" style="display:none;" />
+                </label>
               </div>
             </div>
 
-            <!-- Security Footer -->
-            <div class="sync-security-box">
-              <div class="sync-security-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-              </div>
-              <p><strong>Zero-Knowledge AES-256-GCM:</strong> Data is encrypted locally before transfer. Only your PIN can unlock it.</p>
+            <!-- Ultra-Clean Security Pill -->
+            <div class="minimal-sec-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span>Zero-Knowledge AES-256-GCM Encrypted</span>
             </div>
           </section>
 
