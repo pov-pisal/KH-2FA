@@ -93,7 +93,7 @@ export async function getMeta() {
     lockTimeoutMs: 2 * 60 * 1000,
     sortMode: "newest",
     theme: "dark",
-    syncEnabled: false,
+    syncEnabled: true,
     lastSyncedAt: 0,
     clipboardClearSec: 30,
     defaultMaskCodes: true,

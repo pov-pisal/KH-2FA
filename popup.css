@@ -3864,11 +3864,20 @@ select option {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
-.transfer-qr-display img {
+.transfer-qr-display img,
+.transfer-qr-display svg {
   display: block;
   width: 170px;
   height: 170px;
+  max-width: 100%;
+  max-height: 100%;
   image-rendering: pixelated;
+}
+
+.lock-sync-option-wrap {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
 }
 
 .minimal-qr-caption {

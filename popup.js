@@ -44,6 +44,9 @@ const elements = {
   lockTitle: document.getElementById("lockTitle"),
   lockSubtitle: document.getElementById("lockSubtitle"),
   syncDetectedBanner: document.getElementById("syncDetectedBanner"),
+  syncDetectedTitle: document.getElementById("syncDetectedTitle"),
+  lockSyncOptionWrap: document.getElementById("lockSyncOptionWrap"),
+  lockSyncBtn: document.getElementById("lockSyncBtn"),
   checkSyncBtn: document.getElementById("checkSyncBtn"),
   createPinFields: document.getElementById("createPinFields"),
   unlockPinField: document.getElementById("unlockPinField"),
@@ -369,19 +372,13 @@ function scheduleClipboardClear(code, delaySec) {
 function showAccountQrModal(account) {
   if (!account || !elements.qrModal) return;
   const brand = getBrandInfo(account.issuer, account.label);
-  const issuer = account.issuer || brand.name || "Account";
-  const label = account.label || "";
+  const issuer = account.issuer || brand.name || account.label || "Account";
   const secret = (account.secret || "").replace(/\s+/g, "").toUpperCase();
 
   elements.qrModalTitle.textContent = `${issuer} QR Code`;
   elements.qrModalIssuer.textContent = issuer;
-  if (label) {
-    elements.qrModalLabel.textContent = `· ${label}`;
-    elements.qrModalLabel.classList.remove("hidden");
-  } else {
-    elements.qrModalLabel.textContent = "";
-    elements.qrModalLabel.classList.add("hidden");
-  }
+  elements.qrModalLabel.textContent = "";
+  elements.qrModalLabel.classList.add("hidden");
   elements.qrModalBrandIcon.style.background = brand.bgColor;
   elements.qrModalBrandIcon.style.borderColor = brand.borderColor;
   elements.qrModalBrandIcon.innerHTML = brand.svg;
@@ -449,6 +446,7 @@ function showLockedView({ createMode, syncDetected = false }) {
     elements.lockSubtitle.textContent = "Set a PIN to encrypt your vault.";
     elements.createPinFields.classList.remove("hidden");
     elements.unlockPinField.classList.add("hidden");
+    elements.lockSyncOptionWrap?.classList.add("hidden");
     elements.unlockBtn.textContent = "Create";
   } else {
     elements.lockTitle.textContent = syncDetected ? "Synced Vault Found" : "Unlock vault";
@@ -457,6 +455,7 @@ function showLockedView({ createMode, syncDetected = false }) {
       : "Enter your PIN to unlock.";
     elements.createPinFields.classList.add("hidden");
     elements.unlockPinField.classList.remove("hidden");
+    elements.lockSyncOptionWrap?.classList.remove("hidden");
     elements.unlockBtn.textContent = "Unlock";
   }
 
@@ -678,6 +677,7 @@ async function handleUnlock() {
     vault = { accounts: [], passwords: [], createdAt: Date.now() };
     sessionPin = pin;
     vaultRecord = await encryptVault(pin, vault);
+    meta = await updateMeta({ syncEnabled: true, locked: false });
     await persistVaultRecord(vaultRecord);
     await setLocked(false);
     showMainView();
@@ -2270,8 +2270,9 @@ async function deletePassword(id) {
   showToast("Moved to Trash (30-day recovery)");
 }
 
-function openSettingsModal() {
-  if (meta?.locked) {
+function openSettingsModal(options = {}) {
+  const { allowLocked = false } = options;
+  if (meta?.locked && !allowLocked) {
     showToast("Unlock vault first");
     return;
   }
@@ -2306,13 +2307,17 @@ function openSettingsModal() {
     sortMode: getSortMode(),
     theme: getTheme(),
   };
-  showSettingsList();
-  elements.currentPinInput?.focus();
+  if (!meta?.locked) {
+    showSettingsList();
+    elements.currentPinInput?.focus();
+  }
 }
 
 function closeSettingsModal() {
   hideModal(elements.settingsModal);
-  showSettingsList();
+  if (!meta?.locked) {
+    showSettingsList();
+  }
 }
 
 function hideAllSettingsSections() {
@@ -2335,6 +2340,10 @@ function hideAllSettingsSections() {
 }
 
 function showSettingsList() {
+  if (meta?.locked) {
+    hideModal(elements.settingsModal);
+    return;
+  }
   if (document.activeElement && document.activeElement !== document.body) {
     try { document.activeElement.blur(); } catch (_) {}
   }
@@ -3334,16 +3343,9 @@ function renderAccounts() {
     title.className = "account-title";
 
     const issuer = document.createElement("strong");
-    issuer.textContent = account.issuer || brand.name || "Account";
+    issuer.textContent = account.issuer || brand.name || account.label || "Account";
     issuer.title = issuer.textContent;
     title.append(issuer);
-
-    if (account.label) {
-      const label = document.createElement("span");
-      label.textContent = `· ${account.label}`;
-      label.title = account.label;
-      title.append(label);
-    }
 
     
 
@@ -3619,34 +3621,7 @@ function isRestrictedUrl(url) {
 }
 
 async function decodeImageForQR(imgSource) {
-  // 1. Try pure JavaScript jsQR engine (100% desktop Chrome & Cross-Platform support)
-  try {
-    const qrFn = typeof jsQR !== "undefined" ? jsQR : (window.jsQR || null);
-    if (qrFn) {
-      const width = imgSource.naturalWidth || imgSource.width;
-      const height = imgSource.naturalHeight || imgSource.height;
-      if (width > 0 && height > 0) {
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d", { willReadFrequently: true });
-        ctx.drawImage(imgSource, 0, 0, width, height);
-        const imgData = ctx.getImageData(0, 0, width, height);
-
-        // Standard contrast scan
-        const code = qrFn(imgData.data, width, height, { inversionAttempts: "dontInvert" });
-        if (code?.data) return code.data;
-
-        // Inverted contrast scan (dark mode QR codes)
-        const codeInv = qrFn(imgData.data, width, height, { inversionAttempts: "onlyInvert" });
-        if (codeInv?.data) return codeInv.data;
-      }
-    }
-  } catch (err) {
-    console.debug("jsQR decode error:", err);
-  }
-
-  // 2. Fallback to native BarcodeDetector if available
+  // 1. Try native BarcodeDetector if available (instant hardware-accelerated decode in Chromium)
   if ("BarcodeDetector" in window) {
     try {
       const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
@@ -3660,15 +3635,44 @@ async function decodeImageForQR(imgSource) {
       console.debug("BarcodeDetector error:", e);
     }
   }
+
+  // 2. Pure JavaScript jsQR engine fallback (100% offline & desktop support)
+  try {
+    const qrFn = typeof jsQR !== "undefined" ? jsQR : (window.jsQR || null);
+    if (qrFn) {
+      const width = imgSource.naturalWidth || imgSource.width;
+      const height = imgSource.naturalHeight || imgSource.height;
+      if (width > 0 && height > 0) {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(imgSource, 0, 0, width, height);
+        const imgData = ctx.getImageData(0, 0, width, height);
+
+        const code = qrFn(imgData.data, width, height, { inversionAttempts: "attemptBoth" });
+        if (code?.data) return code.data;
+      }
+    }
+  } catch (err) {
+    console.debug("jsQR decode error:", err);
+  }
+
   return null;
 }
 
 async function populateAndOpenAddModal(urlOrSecret) {
   if (!urlOrSecret) return;
 
-  // Intercept 1-Click Cross-Browser Sync QR code
-  if (typeof urlOrSecret === "string" && (urlOrSecret.startsWith("khsync:") || urlOrSecret.includes('"encryptedVault"'))) {
-    await handleImportSyncData(urlOrSecret);
+  const trimmed = typeof urlOrSecret === "string" ? urlOrSecret.trim() : "";
+
+  // Intercept 1-Click Cross-Browser Sync QR code or encrypted vault data
+  if (
+    trimmed.startsWith("khsync:") ||
+    trimmed.includes('"ciphertext"') ||
+    trimmed.includes('"encryptedVault"')
+  ) {
+    await handleImportSyncData(trimmed);
     return;
   }
 
@@ -4271,7 +4275,17 @@ async function handleGistDisconnect() {
 function getTransferSyncString() {
   if (!vaultRecord) return "";
   try {
-    return "khsync:" + btoa(unescape(encodeURIComponent(JSON.stringify(vaultRecord))));
+    const payload = {
+      vault: vaultRecord,
+      ...(meta?.gistSyncEnabled && meta?.gistToken && meta?.gistId ? {
+        gist: {
+          token: meta.gistToken,
+          id: meta.gistId,
+          user: meta.gistUserLogin,
+        }
+      } : {})
+    };
+    return "khsync:" + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
   } catch (e) {
     return "";
   }
@@ -4294,16 +4308,27 @@ function renderTransferQR() {
   }
 
   try {
-    const qr = qrcode(0, "M");
-    qr.addData(rawStr);
-    qr.make();
-    elements.transferQrContainer.innerHTML = qr.createImgTag(2, 2);
+    let qr;
+    try {
+      qr = qrcode(0, "M");
+      qr.addData(rawStr);
+      qr.make();
+    } catch (_) {
+      qr = qrcode(0, "L");
+      qr.addData(rawStr);
+      qr.make();
+    }
+    if (typeof qr.createSvgTag === "function") {
+      elements.transferQrContainer.innerHTML = qr.createSvgTag(3, 2);
+    } else {
+      elements.transferQrContainer.innerHTML = qr.createImgTag(2, 2);
+    }
   } catch (e) {
     console.warn("QR too large, using fallback:", e);
     elements.transferQrContainer.innerHTML = `
       <div class="qr-too-large-fallback">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-        <span>Large Vault: Click 'Copy Sync Code' or 'Download Transfer File' below</span>
+        <span>Large Vault: Click 'Copy' below or download .khsync file</span>
       </div>`;
   }
 }
@@ -4317,15 +4342,89 @@ async function handleImportSyncData(raw) {
     }
 
     if (clean.startsWith("khsync:")) {
-      clean = clean.replace("khsync:", "").trim();
-      clean = decodeURIComponent(escape(atob(clean)));
+      clean = clean.slice(7).trim();
     }
 
-    const incomingRecord = JSON.parse(clean);
-    if (!incomingRecord.encryptedVault || !incomingRecord.encryptedVault.data) {
+    // Attempt parsing directly as JSON or decode from base64
+    let parsed = null;
+    try {
+      parsed = JSON.parse(clean);
+    } catch (_) {
+      try {
+        const decoded = decodeURIComponent(escape(atob(clean)));
+        parsed = JSON.parse(decoded);
+      } catch (e1) {
+        try {
+          const decoded2 = atob(clean);
+          parsed = JSON.parse(decoded2);
+        } catch (e2) {
+          // not valid json
+        }
+      }
+    }
+
+    if (!parsed) {
+      showToast("Invalid sync code format");
+      return false;
+    }
+
+    // Extract vaultRecord from various supported payload wrappers
+    let incomingRecord = null;
+    if (parsed && parsed.ciphertext && parsed.iv && parsed.salt) {
+      incomingRecord = parsed;
+    } else if (parsed?.vault && typeof parsed.vault === "object" && parsed.vault.ciphertext && parsed.vault.iv && parsed.vault.salt) {
+      incomingRecord = parsed.vault;
+    } else if (parsed?.vault && typeof parsed.vault === "string") {
+      try {
+        const inner = JSON.parse(parsed.vault);
+        if (inner?.ciphertext && inner?.iv && inner?.salt) {
+          incomingRecord = inner;
+        }
+      } catch (_) {}
+    } else if (parsed?.encryptedVault && typeof parsed.encryptedVault === "object" && parsed.encryptedVault.ciphertext && parsed.encryptedVault.iv && parsed.encryptedVault.salt) {
+      incomingRecord = parsed.encryptedVault;
+    }
+
+    // Handle plaintext accounts list backup import
+    if (!incomingRecord && Array.isArray(parsed?.accounts)) {
+      if (sessionPin) {
+        if (!vault) vault = { accounts: [], passwords: [], createdAt: Date.now() };
+        vault.accounts = parsed.accounts;
+        if (Array.isArray(parsed.passwords)) {
+          vault.passwords = parsed.passwords;
+        }
+        vault.updatedAt = Date.now();
+        const encrypted = await encryptVault(sessionPin, vault);
+        await persistVaultRecord(encrypted);
+        renderAccounts();
+        renderPasswords();
+        closeSettingsModal();
+        showToast("✓ Accounts restored from sync data!");
+        if (elements.receiveCodeInput) elements.receiveCodeInput.value = "";
+        return true;
+      } else {
+        showToast("Please unlock your vault before importing plain accounts");
+        return false;
+      }
+    }
+
+    if (!incomingRecord || !incomingRecord.ciphertext || !incomingRecord.iv || !incomingRecord.salt) {
       showToast("Invalid sync data format");
       return false;
     }
+
+    const incomingGist = parsed?.gist && parsed.gist.token && parsed.gist.id ? parsed.gist : null;
+    const syncMetaPatch = {
+      syncEnabled: true,
+      lastSyncedAt: Date.now(),
+      ...(incomingGist ? {
+        gistSyncEnabled: true,
+        gistToken: incomingGist.token,
+        gistId: incomingGist.id,
+        gistUserLogin: incomingGist.user || "",
+        gistLastSyncedAt: Date.now(),
+      } : {})
+    };
 
     if (sessionPin) {
       try {
@@ -4333,25 +4432,44 @@ async function handleImportSyncData(raw) {
         vault = decrypted;
         vaultRecord = incomingRecord;
         await persistVaultRecord(vaultRecord);
+        meta = await updateMeta({ locked: false, lastActive: Date.now(), ...syncMetaPatch });
+        await setSession({ pin: sessionPin, lastActive: Date.now() });
         renderAccounts();
         renderPasswords();
+        refreshGistSyncUI();
         closeSettingsModal();
-        showToast("✓ Browser Sync complete! All accounts and passwords restored.");
+        showToast("✓ Browser Sync complete! Automatic sync active.");
+        if (elements.receiveCodeInput) elements.receiveCodeInput.value = "";
         return true;
       } catch (e) {
+        // Vault PIN on source browser differs from sessionPin
         vaultRecord = incomingRecord;
-        await setVaultRecord(vaultRecord);
+        await persistVaultRecord(vaultRecord);
+        await setLocked(true);
+        vault = null;
+        sessionPin = null;
+        await clearStoredSession();
+        meta = await updateMeta({ locked: true, ...syncMetaPatch });
+        refreshGistSyncUI();
         closeSettingsModal();
         showToast("✓ Sync data loaded! Enter PIN to unlock.");
-        showLockedView({ createMode: false });
+        showLockedView({ createMode: false, syncDetected: true });
+        if (elements.receiveCodeInput) elements.receiveCodeInput.value = "";
         return true;
       }
     } else {
       vaultRecord = incomingRecord;
-      await setVaultRecord(vaultRecord);
+      await persistVaultRecord(vaultRecord);
+      await setLocked(true);
+      vault = null;
+      sessionPin = null;
+      await clearStoredSession();
+      meta = await updateMeta({ locked: true, ...syncMetaPatch });
+      refreshGistSyncUI();
       closeSettingsModal();
       showToast("✓ Sync data loaded! Enter PIN to unlock.");
-      showLockedView({ createMode: false });
+      showLockedView({ createMode: false, syncDetected: true });
+      if (elements.receiveCodeInput) elements.receiveCodeInput.value = "";
       return true;
     }
   } catch (err) {
@@ -4439,7 +4557,30 @@ async function init() {
     }
   }
 
+  // GitHub Gist Cross-Browser Sync reconciliation on startup
+  if (meta?.gistSyncEnabled && meta?.gistToken && meta?.gistId) {
+    try {
+      const gist = await fetchGistVault(meta.gistToken, meta.gistId);
+      if (gist?.record?.ciphertext) {
+        const localTime = vaultRecord?.updatedAt || 0;
+        const remoteTime = gist.record.updatedAt || 0;
+        if (remoteTime > localTime) {
+          vaultRecord = gist.record;
+          await setVaultRecord(vaultRecord);
+          meta = await updateMeta({ gistLastSyncedAt: remoteTime });
+          syncDetected = true;
+        } else if (localTime > remoteTime && vaultRecord) {
+          await updateGistVault(meta.gistToken, meta.gistId, vaultRecord);
+          meta = await updateMeta({ gistLastSyncedAt: localTime });
+        }
+      }
+    } catch (e) {
+      console.warn("Startup Gist sync reconciliation error:", e);
+    }
+  }
+
   updateSyncBadge();
+  updateGistSyncBadge();
 
   if (elements.lockTimeoutSelect) {
     elements.lockTimeoutSelect.value = String(getLockTimeoutMs());
@@ -5045,6 +5186,10 @@ async function init() {
 
   // ── 1-Click Browser Transfer Listeners ──
   elements.transferTabSendBtn?.addEventListener("click", () => {
+    if (meta?.locked) {
+      showToast("Unlock vault first to send / export data");
+      return;
+    }
     elements.transferTabSendBtn.classList.add("active");
     elements.transferTabReceiveBtn?.classList.remove("active");
     elements.transferSendView?.classList.remove("hidden");
@@ -5065,10 +5210,17 @@ async function init() {
       showToast("Unlock vault to copy sync code");
       return;
     }
-    await navigator.clipboard.writeText(str);
+    try {
+      await navigator.clipboard.writeText(str);
+    } catch {
+      if (elements.transferCodeText) {
+        elements.transferCodeText.select();
+        document.execCommand("copy");
+      }
+    }
     elements.copyTransferCodeBtn.classList.add("copied");
     setTimeout(() => elements.copyTransferCodeBtn?.classList.remove("copied"), 850);
-    showToast("✓ Copied Transfer Code! Ready to paste into Brave");
+    showToast("✓ Copied Transfer Code! Ready to paste into other browser");
   });
 
   elements.downloadTransferFileBtn?.addEventListener("click", handleDownloadTransferFile);
@@ -5080,7 +5232,7 @@ async function init() {
       if (elements.receiveCodeInput) {
         elements.receiveCodeInput.value = text;
         showToast("✓ Pasted from clipboard");
-        if (text.startsWith("khsync:")) {
+        if (text.startsWith("khsync:") || text.includes('"ciphertext"')) {
           await handleImportSyncData(text);
         }
       }
@@ -5104,14 +5256,35 @@ async function init() {
   elements.receiveFileInput?.addEventListener("change", (e) => {
     const file = e.target?.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      const content = evt.target?.result;
-      if (content) {
-        await handleImportSyncData(content);
-      }
-    };
-    reader.readAsText(file);
+    if (file.type?.startsWith("image/") || file.name.match(/\.(png|jpe?g|webp|gif|bmp)$/i)) {
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const dataUrl = evt.target?.result;
+        if (dataUrl) {
+          const img = new Image();
+          img.onload = async () => {
+            const qrContent = await decodeImageForQR(img);
+            if (qrContent) {
+              await handleImportSyncData(qrContent);
+            } else {
+              showToast("Could not find QR code in this image");
+            }
+          };
+          img.onerror = () => showToast("Failed to load QR image");
+          img.src = dataUrl;
+        }
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const content = evt.target?.result;
+        if (content) {
+          await handleImportSyncData(content);
+        }
+      };
+      reader.readAsText(file);
+    }
     e.target.value = "";
   });
 
@@ -5147,7 +5320,13 @@ async function init() {
   });
 
   elements.lockTransferFromBrowserBtn?.addEventListener("click", () => {
-    openSettingsModal();
+    openSettingsModal({ allowLocked: true });
+    openSettingsSection("browser-transfer");
+    elements.transferTabReceiveBtn?.click();
+  });
+
+  elements.lockSyncBtn?.addEventListener("click", () => {
+    openSettingsModal({ allowLocked: true });
     openSettingsSection("browser-transfer");
     elements.transferTabReceiveBtn?.click();
   });
@@ -5179,7 +5358,7 @@ async function init() {
   });
 
   elements.checkGistSyncBtn?.addEventListener("click", () => {
-    openSettingsModal();
+    openSettingsModal({ allowLocked: true });
     openSettingsSection("gist-sync");
   });
   elements.syncNowBtn?.addEventListener("click", handleSyncNow);

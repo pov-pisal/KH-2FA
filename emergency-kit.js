@@ -1,4 +1,5 @@
 // emergency-kit.js — Populates the Emergency Recovery Sheet
+import { qrcode } from "./qrcode.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const dateEl = document.getElementById("kitCreatedDate");
@@ -29,10 +30,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 1. Render Encrypted Backup QR code
     const rawStr = "khsync:" + btoa(unescape(encodeURIComponent(JSON.stringify(vaultRecord))));
     try {
-      const qr = qrcode(0, "M");
-      qr.addData(rawStr);
-      qr.make();
-      if (qrContainer) qrContainer.innerHTML = qr.createImgTag(2, 2);
+      let qr;
+      try {
+        qr = qrcode(0, "M");
+        qr.addData(rawStr);
+        qr.make();
+      } catch {
+        qr = qrcode(0, "L");
+        qr.addData(rawStr);
+        qr.make();
+      }
+      if (qrContainer) qrContainer.innerHTML = qr.createSvgTag(3, 2);
     } catch (e) {
       if (qrContainer) qrContainer.innerHTML = "<span style='font-size:10px;color:#64748b;'>Vault too large for single QR. Use export file.</span>";
     }

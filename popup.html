@@ -53,7 +53,7 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
             </div>
             <div class="sync-detected-body">
-              <strong>Google Account Synced Vault Found</strong>
+              <strong id="syncDetectedTitle">Synced Vault Found</strong>
               <span>Enter your PIN below to unlock all your accounts.</span>
             </div>
           </div>
@@ -131,6 +131,12 @@
 
           <div class="row">
             <button id="unlockBtn" class="primary">Unlock</button>
+          </div>
+          <div id="lockSyncOptionWrap" class="lock-sync-option-wrap hidden">
+            <button id="lockSyncBtn" class="ghost minimal-link-btn" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <span>⚡ Sync from another Browser</span>
+            </button>
           </div>
           <p id="lockError" class="error" role="alert"></p>
           <div id="lockoutNotice" class="lockout-box hidden" role="alert"></div>
@@ -1154,8 +1160,8 @@
               <!-- Action 3: File link -->
               <div class="minimal-footer-row">
                 <label class="minimal-link-btn">
-                  <span>Or select .khsync file</span>
-                  <input type="file" id="receiveFileInput" accept=".khsync,.json" style="display:none;" />
+                  <span>Or select .khsync file / QR image</span>
+                  <input type="file" id="receiveFileInput" accept=".khsync,.json,.png,.jpg,.jpeg,.webp" style="display:none;" />
                 </label>
               </div>
             </div>
